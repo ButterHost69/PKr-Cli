@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package cmd_connection;
+option go_package = "./myserver/pb";
+
+service CmdConnection {
+  rpc ExecuteCommand (CommandRequest) returns (CommandResponse);
+}
+
+message CommandRequest {
+  string command_type = 1;
+  string conn_slug = 2;
+  string conn_password = 3;
+  string wrkspace = 4; // Need When Pushing Files
+  string rs_port = 5; // recv and send PORT
+}
+
+message CommandResponse {
+  bool ack = 1;
+  string rs_port = 2; // Need for recv for get req
+}
