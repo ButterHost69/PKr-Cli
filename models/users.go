@@ -1,13 +1,14 @@
 package models
 
 import (
-	"ButterHost69/PKr-client/encrypt"
+	// "ButterHost69/PKr-client/encrypt"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 
+	"github.com/ButterHost69/PKr-cli/encrypt"
 	// "github.com/go-delve/delve/cmd/dlv/cmds"
 )
 
@@ -19,15 +20,17 @@ type Connections struct {
 }
 
 type ConnectionInfo struct {
-	ConnectionSlug string `json:"connection_slug"`
-	CurrentIP      string `json:"current_ip"`
-	CurrentPort      string `json:"current_port"`
+	// ConnectionSlug string `json:"connection_slug"`
+	Username	string	`json:"username"`	
+	CurrentIP	string 	`json:"current_ip"`
+	CurrentPort	string 	`json:"current_port"`
 }
 
 type WorkspaceFolder struct {
-	WorkspaceName   string   `json:"workspace_name"`
-	WorkspaceLoc    string   `json:"workspace_loc"`
-	ConnectionSlugs []string `json:"connection_slug"`
+	WorkspaceName   	string   `json:"workspace_name"`
+	WorkspacePath    	string   `json:"workspace_path"`
+	WorkSpacePassword	string	`json:"workspace_password"`
+	// ConnectionSlugs []string `json:"connection_slug"`
 }
 
 type Files struct {
@@ -54,14 +57,14 @@ var (
 	MY_USERNAME string
 )
 
-func CreateUserIfNotExists() {
+func CreateUserIfNotExists(username string) {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
 		fmt.Println("!! 'tmp' No such DIR exists ")
 
-		var username string
-		fmt.Println(" [*] Register [*]")
-		fmt.Print(" > Username: ")
-		fmt.Scanln(&username)
+		// var username string
+		// fmt.Println(" [*] Register [*]")
+		// fmt.Print(" > Username: ")
+		// fmt.Scanln(&username)
 		MY_USERNAME = username
 
 		usconf := UsersConfig{
@@ -99,11 +102,36 @@ func CreateUserIfNotExists() {
 		}
 
 		fmt.Printf(" ~ Created User : %s\n", username)
+		return
 	}
+
+	fmt.Println("It Seems PKr is Already Installed...")
 }
 
 func AddConnection(connection_slug string, password string) {
 
+}
+
+func RegisterNewSendWorkspace(workspace_name string, workspace_path string, workspace_password string)(error){
+	userConfig, err := 	readFromUserConfigFile()
+	if err != nil {
+		fmt.Println("Error in reading From the UserConfig File...")
+		return err
+	}
+
+	workspaceFolder := WorkspaceFolder {
+		WorkspaceName: workspace_name,
+		WorkspacePath: workspace_path,
+		WorkSpacePassword: workspace_password,
+	}
+	userConfig.Sendworkspaces = append(userConfig.Sendworkspaces, workspaceFolder)
+	
+	if err := writeToUserConfigFile(userConfig); err != nil {
+		fmt.Println("Error Occured in Writing To the UserConfig File")
+		return err
+	}
+
+	return nil
 }
 
 func readFromUserConfigFile() (UsersConfig, error) {
@@ -191,7 +219,7 @@ func AddNewConnectionToTheWorkspace(wName string, connectionSlug string) error {
 	for _, newSWork := range userConfig.Sendworkspaces {
 		if wName == newSWork.WorkspaceName {
 			wFound = true
-			newSWork.ConnectionSlugs = append(newSWork.ConnectionSlugs, connectionSlug)
+			// newSWork.ConnectionSlugs = append(newSWork.ConnectionSlugs, connectionSlug)
 			break
 		}
 	}
@@ -210,6 +238,11 @@ func AddNewConnectionToTheWorkspace(wName string, connectionSlug string) error {
 	return nil
 }
 
+
+
+// This CODE Might Be Useless.
+// This Function Doesnt Seem to be Used Anywhere
+// Please Delete this Future ME
 func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error {
 	//connectionSlugs := make([]string, 1)
 	var connectionSlugs []string
@@ -217,8 +250,8 @@ func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error
 	fmt.Println(connectionSlugs)
 	wfolder := WorkspaceFolder{
 		WorkspaceName:   wName,
-		WorkspaceLoc:    wPath,
-		ConnectionSlugs: connectionSlugs,
+		WorkspacePath:    wPath,
+		// ConnectionSlugs: connectionSlugs,
 	}
 
 	userConfig, err := readFromUserConfigFile()

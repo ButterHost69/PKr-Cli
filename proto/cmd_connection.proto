@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package cmd_connection;
-option go_package = "./myserver/pb";
+option go_package = "./pb";
 
 service CmdConnection {
   rpc ExecuteCommand (CommandRequest) returns (CommandResponse);

@@ -1,4 +1,8 @@
 protofiles:
-		cd client && protoc --proto_path=./myserver/proto ./myserver/proto/*.proto --go_out=. --go-grpc_out=.
+	protoc ./proto/*.proto --go_out=. --go-grpc_out=.
 
-.PHONY protofiles
+
+protoc_files:
+	protoc --go_out=. ./proto/*.proto
+# Prefered One
+# .PHONY protofiles
