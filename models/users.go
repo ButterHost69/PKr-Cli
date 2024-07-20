@@ -3,6 +3,7 @@ package models
 import (
 	// "ButterHost69/PKr-client/encrypt"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -49,8 +50,9 @@ type UsersConfig struct {
 
 const (
 	ROOT_DIR     = "tmp"
-	MY_KEYS_PATH = "tmp/mykeys"
-	CONFIG_FILE  = "tmp/userConfig.json"
+	MY_KEYS_PATH = ROOT_DIR + "/mykeys"
+	CONFIG_FILE  = ROOT_DIR + "/userConfig.json"
+	LOG_FILE = ROOT_DIR + "/logs.txt"
 )
 
 var (
@@ -132,6 +134,22 @@ func RegisterNewSendWorkspace(workspace_name string, workspace_path string, work
 	}
 
 	return nil
+}
+
+func GetWorkspaceFilePath(workspace_name string) (string, error) {
+	userConfig, err := readFromUserConfigFile() 
+	if err != nil {
+		return "", err
+	}
+
+	workspaces := userConfig.Sendworkspaces
+	for _, workspace := range workspaces{
+		if workspace.WorkspaceName == workspace_name {
+			return workspace.WorkspacePath, nil
+		}
+	}
+
+	return "" , errors.New("no such workspace found")
 }
 
 func readFromUserConfigFile() (UsersConfig, error) {
@@ -304,4 +322,22 @@ func ValidateConnection(connSlug string, connPassword string) bool {
 	}
 
 	return false
+}
+
+func AddUsersLogEntry(workspace_name string, log_entry string) (error){
+	// Adds the "root_dir/logs.txt"
+	workspace_path := LOG_FILE
+	
+	// Opens or Creates the Log File 
+	file, err := os.OpenFile(workspace_path,  os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
+	
+	defer file.Close()
+	log.SetOutput(file)
+	log.Printf(log_entry + "\n", log.LstdFlags)
+
+		
+	return nil
 }
