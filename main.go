@@ -44,6 +44,7 @@ func main() {
 		fmt.Scan(&workspace_password)
 
 		// Check if .PKr folder already exists; if so then do nothing ...
+		// This Doesnt Work Please Check Why Later
 		if _, err := os.Stat(".PKr"); os.IsExist(err) {
 			fmt.Println(".PKr Already Exists...")
 			fmt.Println("It seems PKr is already Initialized...")
@@ -63,7 +64,7 @@ func main() {
 		}
 
 		workspace_path, err := os.Getwd()
-		workspace_path_split := strings.Split(workspace_path, "/")
+		workspace_path_split := strings.Split(workspace_path, "\\")
 		workspaceName := workspace_path_split[len(workspace_path_split)	- 1]
 		if err != nil {
 			fmt.Println("Unable to Identify The Current Working Directory Name")
@@ -100,6 +101,9 @@ func main() {
 			fmt.Printf("Error: %v\n",err)
 			return
 		}
+
+		fmt.Println("Workspace Created Successfully !!")
+		return
 
 	}	
   }

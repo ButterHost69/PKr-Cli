@@ -22,12 +22,12 @@ type Connection struct {
 
 const (
 	WORKSPACE_PKR_DIR = ".PKr"
-	LOGS_PKR_FILE_PATH = WORKSPACE_CONFIG_FILE_PATH + "/logs.txt"
-	WORKSPACE_CONFIG_FILE_PATH = WORKSPACE_PKR_DIR + "/workspaceConfig.json"
+	LOGS_PKR_FILE_PATH = WORKSPACE_PKR_DIR + "\\logs.txt"
+	WORKSPACE_CONFIG_FILE_PATH = WORKSPACE_PKR_DIR + "\\workspaceConfig.json"
 )
 
 func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string) (error){
-	pkr_config_file_path := workspace_file_path + WORKSPACE_CONFIG_FILE_PATH
+	pkr_config_file_path := workspace_file_path + "\\" + WORKSPACE_CONFIG_FILE_PATH
 	if _, err := os.Stat(pkr_config_file_path); os.IsExist(err) {
 		fmt.Println("~ workspaceConfig.jso already Exists")
 		return err
@@ -63,7 +63,7 @@ func AddLogEntry(workspace_name string, log_entry string) (error){
 	}
 
 	// Adds the ".Pkr/logs.txt"
-	workspace_path += LOGS_PKR_FILE_PATH
+	workspace_path += "\\" + LOGS_PKR_FILE_PATH
 
 	// Opens or Creates the Log File 
 	file, err := os.OpenFile(workspace_path,  os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
