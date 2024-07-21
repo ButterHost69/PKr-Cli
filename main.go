@@ -33,12 +33,13 @@ func main() {
 
 	case "push":
 		
+	// Maybe its Done	
 	case "init" : {
 		// Register Folder to Send Workspace / Export Folder [X]
 		// Create a .PKr Folder [X]
 		// Create a Keys Folder [Will Store Other Users Public Keys] [X]
 		// Create a config file -> Store Shit like User info [X]
-		// Log this entry ... [in the .PKr folder of each workspace]
+		// Log this entry ... [in the .PKr folder of each workspace] [X]
 		var workspace_password string
 		fmt.Print("Please Enter A Password: ")
 		fmt.Scan(&workspace_password)

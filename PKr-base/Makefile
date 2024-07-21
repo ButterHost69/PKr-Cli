@@ -4,5 +4,5 @@ protofiles:
 
 protoc_files:
 	protoc --go_out=. ./proto/*.proto
-# Prefered One	
+# Prefered One
 # .PHONY protofiles
