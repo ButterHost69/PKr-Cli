@@ -44,8 +44,8 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	// 2. Authenticate Request [X]
 	// 3. Add the New Connection to the .PKr Config File [X]
 	// 4. Store the Public Key [X]
-	// 5. Send the Response with port []
-	// 6. Open a Data Transfer Port and shit [Will be a separate Function not here] []
+	// 5. Send the Response with port [X]
+	// 6. Open a Data Transfer Port and shit [Will be a separate Function not here] [X]
 	
 	p, _ := peer.FromContext(ctx)
   	ip := p.Addr.String()
@@ -97,7 +97,22 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 		}, err
 	}
 
-	// Start New Data grpc Server
-	port, err := StartDataServer(1024 * time.Second, file_path)
+	// Start New Data grpc Server and Transfer Data
+	var portchan chan int
+	var errorchan chan error
+
+	go StartDataServer(1024 * time.Second, file_path, portchan, errorchan)
+	select {
+	case port_num := <- portchan:
+		return &pb.InitResponse{
+			Response: 200,
+			Port: int32(port_num),
+		}, nil	
+	case err := <- errorchan:
+		return &pb.InitResponse{
+			Response: 4000,
+			Port: 0000,
+		}, err	
+	}
 	// 
 }

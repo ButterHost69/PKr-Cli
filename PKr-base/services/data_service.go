@@ -216,12 +216,12 @@ func isPortInUse(port int) bool {
 	return true
 }
 
-func StartDataServer(time_till_wait time.Duration, workspace_path string) (int, error) {
+func StartDataServer(time_till_wait time.Duration, workspace_path string, portchan chan int, errorchan chan error){
 	// Pass the port using channels
 	// Look into it later, i mean soon, after the DataServer soon[]
 
+	// Generate a Random not Taken Port Number
 	rand.Seed(time.Now().UnixNano())
-
 	var port int
 	for {
 		port = rand.Intn(65535-1024) + 1024
@@ -230,10 +230,12 @@ func StartDataServer(time_till_wait time.Duration, workspace_path string) (int, 
 		}
 	}
 
+	// Register and Start gRPC Server
 	str_port := strconv.Itoa(port)
 	lis, err := net.Listen("tcp", ":"+str_port)
 	if err != nil {
 		AddUserLogEntry(err)
+		errorchan <- err
 	}
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -247,13 +249,16 @@ func StartDataServer(time_till_wait time.Duration, workspace_path string) (int, 
 	pb.RegisterDataServiceServer(grpcServer, &dataServer)
 
 	go func() {
+		// Add Serve With Time Out Later
 		if err := grpcServer.Serve(lis); err != nil {
 			AddUserLogEntry(err)
 			AddUserLogEntry("Closing Data Server")
+			errorchan <- err
 			os.Exit(1)
 		}
 	}()
 
+	portchan <- port
 	wg.Wait()
 	AddUserLogEntry("Data Transfer Done... Closing Data Server")
 	grpcServer.GracefulStop()
