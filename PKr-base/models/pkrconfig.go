@@ -123,7 +123,7 @@ func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
 func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	file, err := os.Open(workspace_config_path)
 	if err != nil {
-		// fmt.Println("error in opening PKR config file.... pls check if tmp/userConfig.json available ")
+		// fmt.Println("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
 		return PKRConfig{}, err
 	}
 	defer file.Close()
@@ -136,7 +136,7 @@ func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 		return PKRConfig{}, err
 	}
 
-	// fmt.Println(userConfig)
+	// fmt.Println(pkrConfig)
 	return pkrConfig, nil
 }
 
@@ -162,7 +162,7 @@ func writeToPKRConfigFile(workspace_config_path string, newPKRConfing PKRConfig)
 
 // Logs Entry of all the events occurred related to the workspace
 // Also Creates the Log File by default
-func AddLogEntry(workspace_name string, log_entry string) (error){
+func AddLogEntry(workspace_name string, log_entry any) (error){
 	workspace_path, err := GetWorkspaceFilePath(workspace_name)
 	if err != nil {
 		return err
@@ -179,7 +179,8 @@ func AddLogEntry(workspace_name string, log_entry string) (error){
 	
 	defer file.Close()
 	log.SetOutput(file)
-	log.Printf(log_entry + "\n", log.LstdFlags)
+	log.Println(log_entry)
+	// log.Println(log_entry, log.LstdFlags)
 
 		
 	return nil

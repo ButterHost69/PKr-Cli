@@ -7,6 +7,7 @@ package main
 import (
 	"ButterHost69/PKr-base/pb"
 	"ButterHost69/PKr-base/services"
+	"fmt"
 	"net"
 	"os"
 
@@ -33,7 +34,7 @@ func main(){
 	backgroundService := services.BackgroundServer{}
 	
 	pb.RegisterBackgroundServiceServer(grpcServer, &backgroundService)
-	
+	fmt.Println("Server Started")
 	if err := grpcServer.Serve(lis); err != nil {
 		services.AddUserLogEntry(err)
 		services.AddUserLogEntry("Closing Listening Server")

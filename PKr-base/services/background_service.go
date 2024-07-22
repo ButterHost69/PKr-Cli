@@ -1,10 +1,11 @@
 package services
 
 import (
-	"ButterHost69/PKr-base/encrypt"
+	// "ButterHost69/PKr-base/encrypt"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
+	"fmt"
 	"time"
 
 	"google.golang.org/grpc/peer"
@@ -23,15 +24,15 @@ func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Em
   	ip := p.Addr.String()
 	if err != nil {
 		logentry := "Could Not Provide Public Key To IP: " + ip
-		AddUserLogEntry(logentry)
-		AddUserLogEntry(err)
+		models.AddUsersLogEntry("[X]",logentry)
+		models.AddUsersLogEntry("[X]",err)
 
 		return &pb.PublicKey{
 			Key: "",
 		}, err
 	}
 	logentry := "Successfully Provided Public Key To IP: " + ip
-	AddUserLogEntry(logentry)
+	models.AddUsersLogEntry("[X]", logentry)
 
 	return &pb.PublicKey{
 		Key: keyData,
@@ -51,20 +52,26 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
   	ip := p.Addr.String()
 
 	encrypted_password := request.Password
-	password, err := encrypt.DecryptData(encrypted_password)
-	if err != nil {
-		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
-		AddUserLogEntry(err)	
-		return &pb.InitResponse{
-			Response: 4000,
-			Port: 0000,
-		}, nil
-	}
+
+
+	// This is Comment temporary
+	// password, err := encrypt.DecryptData(encrypted_password)
+	password := encrypted_password
+
+	// UNCOMMENT THIS SHIT --------
+	// if err != nil {
+	// 	AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
+	// 	AddUserLogEntry(err)	
+	// 	return &pb.InitResponse{
+	// 		Response: 4000,
+	// 		Port: 0000,
+	// 	}, nil
+	// }
 
 	// Authenticates Workspace Name and Password and Get the Workspace File Path
 	file_path := models.AuthenticateWorkspaceInfo(request.WorkspaceName, password)
 	if file_path == "" {
-		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
+		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: " + ip)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port: 0000,
@@ -76,10 +83,10 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	connection.CurrentPort = request.Port
 
 	// Save Public Key
-	keysPath, err := models.StorePublicKeys(file_path + "\\keys\\", request.PublicKey)
+	keysPath, err := models.StorePublicKeys(file_path + "\\.PKr\\keys\\", request.PublicKey)
 	if err != nil {
-		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
-		AddUserLogEntry(err)
+		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: " + ip)
+		models.AddLogEntry(request.WorkspaceName, err)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port: 0000,
@@ -88,20 +95,21 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	
 	// Store the New Connection in the .PKr Config file
 	connection.PublicKeyPath = keysPath
-	if err := models.AddConnectionToPKRConfigFile(file_path + "\\workspaceConfig.json", connection); err != nil {
-		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
-		AddUserLogEntry(err)
+	if err := models.AddConnectionToPKRConfigFile(file_path + "\\.PKr\\workspaceConfig.json", connection); err != nil {
+		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: " + ip)
+		models.AddLogEntry(request.WorkspaceName, err)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port: 0000,
 		}, err
 	}
+	models.AddLogEntry(request.WorkspaceName, fmt.Sprintf("Added User with IP: %v to the Connection List", ip))
 
 	// Start New Data grpc Server and Transfer Data
 	var portchan chan int
 	var errorchan chan error
-
-	go StartDataServer(1024 * time.Second, file_path, portchan, errorchan)
+	
+	go StartDataServer(1024 * time.Second, request.WorkspaceName,file_path, portchan, errorchan)
 	select {
 	case port_num := <- portchan:
 		return &pb.InitResponse{

@@ -343,7 +343,8 @@ func GetAllConnections() []Connections {
 // 	return false
 // }
 
-func AddUsersLogEntry(workspace_name string, log_entry string) (error){
+// Creates Log Entry in the Main tmp file
+func AddUsersLogEntry(workspace_name string, log_entry any) (error){
 	// Adds the "root_dir/logs.txt"
 	workspace_path := LOG_FILE
 	
@@ -355,7 +356,7 @@ func AddUsersLogEntry(workspace_name string, log_entry string) (error){
 	
 	defer file.Close()
 	log.SetOutput(file)
-	log.Printf(log_entry + "\n", log.LstdFlags)
+	log.Println(log_entry)
 
 		
 	return nil

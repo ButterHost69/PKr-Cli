@@ -10,7 +10,7 @@ import (
 
 type PKRConfig struct {
 	WorkspaceName 	string		`json:"workspace_name"`
-	AllConnections	Connection	`json:"all_connections"`
+	AllConnections	[]Connection	`json:"all_connections"`
 }
 
 type Connection struct {

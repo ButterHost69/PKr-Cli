@@ -216,7 +216,7 @@ func isPortInUse(port int) bool {
 	return true
 }
 
-func StartDataServer(time_till_wait time.Duration, workspace_path string, portchan chan int, errorchan chan error){
+func StartDataServer(time_till_wait time.Duration, workspace_name string,workspace_path string, portchan chan int, errorchan chan error){
 	// Pass the port using channels
 	// Look into it later, i mean soon, after the DataServer soon[]
 
@@ -232,11 +232,19 @@ func StartDataServer(time_till_wait time.Duration, workspace_path string, portch
 
 	// Register and Start gRPC Server
 	str_port := strconv.Itoa(port)
+	
+	logdata := fmt.Sprintf("Port Number: %v Has Been Selected For Data Transfer", str_port)
+	models.AddLogEntry(workspace_name, logdata)
+	
 	lis, err := net.Listen("tcp", ":"+str_port)
 	if err != nil {
-		AddUserLogEntry(err)
+		models.AddLogEntry(workspace_name ,err)
 		errorchan <- err
 	}
+
+	logdata = fmt.Sprintf("Started Listening to the Port: %v", str_port)
+	models.AddLogEntry(workspace_name, logdata)
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -251,15 +259,19 @@ func StartDataServer(time_till_wait time.Duration, workspace_path string, portch
 	go func() {
 		// Add Serve With Time Out Later
 		if err := grpcServer.Serve(lis); err != nil {
-			AddUserLogEntry(err)
-			AddUserLogEntry("Closing Data Server")
+			models.AddLogEntry(workspace_name,err)
+			models.AddLogEntry(workspace_name, "Closing Data Server")
 			errorchan <- err
 			os.Exit(1)
 		}
 	}()
 
+	logdata = fmt.Sprintf("gRPC Server Data Started on Port: %v", str_port)
+	models.AddLogEntry(workspace_name, logdata)
+
 	portchan <- port
+	
 	wg.Wait()
-	AddUserLogEntry("Data Transfer Done... Closing Data Server")
+	models.AddLogEntry(workspace_name, "Data Transfer Done... Closing Data Server")
 	grpcServer.GracefulStop()
 }
