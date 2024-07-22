@@ -27,7 +27,9 @@ func AddUserLogEntry(log_text any) {
 	if err != nil {
 		return
 	}
+	defer file.Close()
 
 	log.SetOutput(file)
 	log.Println(log_text)
 }
+

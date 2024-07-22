@@ -152,6 +152,25 @@ func GetWorkspaceFilePath(workspace_name string) (string, error) {
 	return "" , errors.New("no such workspace found")
 }
 
+// Returns Workspace Path if Username and Password Correct
+func AuthenticateWorkspaceInfo(workspace_name string, workspace_password string) (string) {
+	userConfig, err := readFromUserConfigFile() 
+	if err != nil {
+		return ""
+	}
+
+	for _, workspace := range userConfig.Sendworkspaces{
+		if workspace.WorkspaceName == workspace_name {
+			if workspace.WorkSpacePassword == workspace_password {
+				return workspace.WorkspacePath
+			}
+		}
+	}
+
+	return ""
+}
+
+
 func readFromUserConfigFile() (UsersConfig, error) {
 	file, err := os.Open(CONFIG_FILE)
 	if err != nil {

@@ -29,7 +29,7 @@ const (
 func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string) (error){
 	pkr_config_file_path := workspace_file_path + "\\" + WORKSPACE_CONFIG_FILE_PATH
 	if _, err := os.Stat(pkr_config_file_path); os.IsExist(err) {
-		fmt.Println("~ workspaceConfig.jso already Exists")
+		fmt.Println("~ workspaceConfig.json already Exists")
 		return err
 	}
 

@@ -27,10 +27,12 @@ message InitRequest {
     string username = 2;
     string password = 3;
     string public_key = 4;
+    string port = 5;
   }
   
   message InitResponse {
     int32 response = 1; // 200 [Valid / ACK / OK] ||| 4000 [InValid / You Fucked Up Somewhere]
+    int32 port = 2;
   }
 
 message WorkspaceRequest {
@@ -40,5 +42,21 @@ message WorkspaceRequest {
 
 message GetWorkspaceResponse {
     int32 response = 1; // 200 [Valid / ACK / OK] ||| 4000 [InValid / You Fucked Up Somewhere]
-    string port = 2;
+    int32 port = 2;
+}
+
+
+
+service DataService {
+    rpc GetData (DataRequest) returns (stream Data);
+}
+
+message DataRequest {
+    string workspace_name = 1;
+    string connection_ip = 2;
+}
+
+message Data {
+    uint32 filetype = 1; // Data[0] or AES Key[1] or AES IV[2]
+    bytes chunk = 2;
 }

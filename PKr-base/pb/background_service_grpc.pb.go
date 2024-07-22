@@ -191,3 +191,121 @@ var BackgroundService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/background_service.proto",
 }
+
+const (
+	DataService_GetData_FullMethodName = "/background_service.DataService/GetData"
+)
+
+// DataServiceClient is the client API for DataService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type DataServiceClient interface {
+	GetData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (DataService_GetDataClient, error)
+}
+
+type dataServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewDataServiceClient(cc grpc.ClientConnInterface) DataServiceClient {
+	return &dataServiceClient{cc}
+}
+
+func (c *dataServiceClient) GetData(ctx context.Context, in *DataRequest, opts ...grpc.CallOption) (DataService_GetDataClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &DataService_ServiceDesc.Streams[0], DataService_GetData_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServiceGetDataClient{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataService_GetDataClient interface {
+	Recv() (*Data, error)
+	grpc.ClientStream
+}
+
+type dataServiceGetDataClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServiceGetDataClient) Recv() (*Data, error) {
+	m := new(Data)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// DataServiceServer is the server API for DataService service.
+// All implementations must embed UnimplementedDataServiceServer
+// for forward compatibility
+type DataServiceServer interface {
+	GetData(*DataRequest, DataService_GetDataServer) error
+	mustEmbedUnimplementedDataServiceServer()
+}
+
+// UnimplementedDataServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedDataServiceServer struct {
+}
+
+func (UnimplementedDataServiceServer) GetData(*DataRequest, DataService_GetDataServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetData not implemented")
+}
+func (UnimplementedDataServiceServer) mustEmbedUnimplementedDataServiceServer() {}
+
+// UnsafeDataServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DataServiceServer will
+// result in compilation errors.
+type UnsafeDataServiceServer interface {
+	mustEmbedUnimplementedDataServiceServer()
+}
+
+func RegisterDataServiceServer(s grpc.ServiceRegistrar, srv DataServiceServer) {
+	s.RegisterService(&DataService_ServiceDesc, srv)
+}
+
+func _DataService_GetData_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DataRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServiceServer).GetData(m, &dataServiceGetDataServer{ServerStream: stream})
+}
+
+type DataService_GetDataServer interface {
+	Send(*Data) error
+	grpc.ServerStream
+}
+
+type dataServiceGetDataServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServiceGetDataServer) Send(m *Data) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// DataService_ServiceDesc is the grpc.ServiceDesc for DataService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var DataService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "background_service.DataService",
+	HandlerType: (*DataServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetData",
+			Handler:       _DataService_GetData_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "proto/background_service.proto",
+}
