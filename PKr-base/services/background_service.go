@@ -106,8 +106,8 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	models.AddLogEntry(request.WorkspaceName, fmt.Sprintf("Added User with IP: %v to the Connection List", ip))
 
 	// Start New Data grpc Server and Transfer Data
-	var portchan chan int
-	var errorchan chan error
+	portchan := make(chan int)
+	errorchan := make(chan error)
 	
 	go StartDataServer(1024 * time.Second, request.WorkspaceName,file_path, portchan, errorchan)
 	select {
