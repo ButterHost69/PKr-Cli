@@ -7,6 +7,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"io/ioutil"
 
 	// "io/ioutil"
 	"path/filepath"
@@ -33,7 +34,10 @@ type DataServer struct {
 // I dont Know if this works. Check it later
 // I copied From : https://gosamples.dev/zip-file/
 // CHEECHK THIISS LAAATTERRR
-func ZipData(workspace_path string) (string, error) {
+// Running This Function Twice Makes a Zip File Whose Size keeps increasing until the Entire Disk
+// is filled
+// Dont USE THISSSSS
+func ZipppData(workspace_path string) (string, error) {
 	// 2024-01-20.zip
 	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
 
@@ -59,10 +63,11 @@ func ZipData(workspace_path string) (string, error) {
 
 			header.Method = zip.Deflate
 
-			header.Name, err = filepath.Rel(filepath.Dir(workspace_path), path)
+			relPath, err := filepath.Rel(filepath.Dir(workspace_path), path)
 			if err != nil {
 				return err
 			}
+			header.Name = relPath
 
 			if info.IsDir() {
 				header.Name += "/"
@@ -87,6 +92,70 @@ func ZipData(workspace_path string) (string, error) {
 			_, err = io.Copy(headerWriter, f)
 			return err
 		})
+}
+
+func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string)(error){
+	files, err := ioutil.ReadDir(dirpath)
+	if err != nil {
+		// log.Println(err)
+		return err
+	}
+
+	for _, file := range(files) {
+		if file.Name() == ".PKr"{
+			continue
+		} else if !file.IsDir() {
+			content, err := os.ReadFile(dirpath + file.Name())
+			
+			if err != nil {
+				// log.Println(err)
+				return err		
+			}
+
+			file, err := writer.Create(relativepath + file.Name())
+			if err != nil {
+				// log.Println(err)
+				return err
+			}
+			file.Write(content)
+		} else if file.IsDir() {
+			newDirPath := dirpath + file.Name() + "\\"
+			newRelativePath := relativepath + file.Name() + "\\"
+			
+			addFilesToZip(writer, newDirPath, newRelativePath)
+		}
+	}
+
+	return nil
+}
+
+func ZipData(workspace_path string) (string, error) {
+	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
+
+	zip_file, err := os.Create(workspace_path + "\\.PKr\\" + zipFileName)
+	if err != nil {
+		// models.AddLogEntry(workspace_name, err)
+		return "", err
+	}
+
+	defer zip_file.Close()
+
+
+	writer := zip.NewWriter(zip_file) 
+
+	// cwd, err := os.Getwd() 
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return		
+	// }
+
+	addFilesToZip(writer, workspace_path + "\\" , "" )
+
+	if err = writer.Close(); err != nil {
+		return "", err
+	}
+
+	return zipFileName, nil
 }
 
 func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService_GetDataServer) error {
@@ -119,15 +188,15 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
-
+	zipped_filepath = server.workspace_path + "\\.PKr\\" + zipped_filepath
 	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
-		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v", err)
+		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v\nFilePath: %v", err,zipped_filepath)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
 
-	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path, request.ConnectionIp)
+	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path , request.ConnectionIp)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Find Users Public Key\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)

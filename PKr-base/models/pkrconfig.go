@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/ButterHost69/PKr-cli/models"
 	fake "github.com/brianvoe/gofakeit/v7"
 	// "github.com/ButterHost69/PKr-cli/models"
 )
@@ -85,7 +86,7 @@ func CreateSlug() string {
 }
 
 func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string)(string, error) {
-	pkrconfig, err := readFromPKRConfigFile(workspace_path)
+	pkrconfig, err := readFromPKRConfigFile(workspace_path + "\\" +WORKSPACE_CONFIG_FILE_PATH)
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +124,7 @@ func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
 func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	file, err := os.Open(workspace_config_path)
 	if err != nil {
-		// fmt.Println("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
+		models.AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
 		return PKRConfig{}, err
 	}
 	defer file.Close()
@@ -132,7 +133,7 @@ func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pkrConfig)
 	if err != nil {
-		// fmt.Println("error in decoding json data")
+		models.AddUsersLogEntry("error in decoding json data")
 		return PKRConfig{}, err
 	}
 
