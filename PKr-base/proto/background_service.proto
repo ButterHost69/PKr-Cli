@@ -19,14 +19,14 @@ service BackgroundService {
 }
 
 message PublicKey {
-    string key = 1;
+    bytes key = 1;
 }
 
 message InitRequest {
     string workspace_name = 1;
     string username = 2;
     string password = 3;
-    string public_key = 4;
+    bytes public_key = 4;
     string port = 5;
   }
   

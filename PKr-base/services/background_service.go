@@ -5,6 +5,7 @@ import (
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -28,14 +29,14 @@ func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Em
 		models.AddUsersLogEntry("[X]",err)
 
 		return &pb.PublicKey{
-			Key: "",
+			Key: nil,
 		}, err
 	}
 	logentry := "Successfully Provided Public Key To IP: " + ip
 	models.AddUsersLogEntry("[X]", logentry)
 
 	return &pb.PublicKey{
-		Key: keyData,
+		Key: []byte(keyData),
 	}, nil
 
 }
@@ -83,7 +84,17 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	connection.CurrentPort = request.Port
 
 	// Save Public Key
-	keysPath, err := models.StorePublicKeys(file_path + "\\.PKr\\keys\\", request.PublicKey)
+	publicKey,err := base64.StdEncoding.DecodeString(string(request.PublicKey))
+	if err != nil {
+		models.AddLogEntry(request.WorkspaceName, "Failed to convert key to Base64 for User IP: " + ip)
+		models.AddLogEntry(request.WorkspaceName, err)
+		return &pb.InitResponse{
+			Response: 4000,
+			Port: 0000,
+		}, err
+	}	
+	
+	keysPath, err := models.StorePublicKeys(file_path + "\\.PKr\\keys\\", string(publicKey))
 	if err != nil {
 		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: " + ip)
 		models.AddLogEntry(request.WorkspaceName, err)
@@ -109,7 +120,7 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	portchan := make(chan int)
 	errorchan := make(chan error)
 	
-	go StartDataServer(1024 * time.Second, request.WorkspaceName,file_path, portchan, errorchan)
+	go StartDataServer(120 * time.Minute, request.WorkspaceName,file_path, portchan, errorchan)
 	select {
 	case port_num := <- portchan:
 		return &pb.InitResponse{

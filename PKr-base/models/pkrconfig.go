@@ -86,7 +86,7 @@ func CreateSlug() string {
 }
 
 func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string)(string, error) {
-	pkrconfig, err := readFromPKRConfigFile(workspace_path + "\\" +WORKSPACE_CONFIG_FILE_PATH)
+	pkrconfig, err := readFromPKRConfigFile(workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH)
 	if err != nil {
 		return "", err
 	}

@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"strings"
 
 	// "hash"
 	"os"
@@ -105,6 +106,7 @@ func DecryptData(cipherText string) (string, error) {
 }
 
 func EncryptData(data string, publicPemBock string) (string, error) {
+	publicPemBock = strings.TrimSpace(publicPemBock)
 	block, _ := pem.Decode([]byte(publicPemBock))
 	if block == nil {
 		fmt.Println("error in parsing the pem Block...")

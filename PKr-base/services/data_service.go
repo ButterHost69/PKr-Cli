@@ -175,6 +175,9 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
+	
+	models.AddLogEntry(request.WorkspaceName, "Workspace Zipped")
+
 	key, err := encrypt.AESGenerakeKey(16)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Generate AES Key\nError: %v", err)
@@ -188,6 +191,9 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
+	
+	models.AddLogEntry(request.WorkspaceName, "AES Keys Generated")
+
 	zipped_filepath = server.workspace_path + "\\.PKr\\" + zipped_filepath
 	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
@@ -196,12 +202,18 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
+	
+	models.AddLogEntry(request.WorkspaceName, "Zip AES is Encrypted")
+
+	// ## Uncomment Later ##
 	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path , request.ConnectionIp)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Find Users Public Key\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
+
+	// ## Uncomment Later ##
 	publicKey, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Read Users Public Key\nError: %v", err)
@@ -209,6 +221,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
+	// ## Uncomment Later ##
 	encrypt_key, err := encrypt.EncryptData(string(key), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt Key\nError: %v", err)
@@ -216,6 +229,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
+	// ## Uncomment Later ##
 	encrypt_iv, err := encrypt.EncryptData(string(iv), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt IV\nError: %v", err)
@@ -231,21 +245,30 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	}
 	defer encrypt_file.Close()
 
-	buff := make([]byte, 256)
+
+	models.AddLogEntry(request.WorkspaceName, "AES Keys Encrypted")
+
+	buff := make([]byte, 2048)
 	chunknumber := 1
+
+	// logdata = fmt.Sprintf()
+	models.AddLogEntry(request.WorkspaceName, "Sending Chunks...")
 
 	// Send the File
 	for {
 		num, err := encrypt_file.Read(buff)
+		// ## Uncomment Later ##
 		if err == io.EOF {
 			// If file Send Over then Send the Key and IV
+			models.AddLogEntry(request.WorkspaceName, "Sending Encrypted Keys")
 			if err := stream.Send(&pb.Data{Filetype: 1, Chunk: []byte(encrypt_key)}); err != nil {
 				logdata := fmt.Sprintf("Could Not Send Encrypted Key\nError: %v", err)
 				models.AddLogEntry(request.WorkspaceName, logdata)
 				return err
 			}
 
-			if err := stream.Send(&pb.Data{Filetype: 1, Chunk: []byte(encrypt_iv)}); err != nil {
+			models.AddLogEntry(request.WorkspaceName, "Sending Encrypted IV")
+			if err := stream.Send(&pb.Data{Filetype: 2, Chunk: []byte(encrypt_iv)}); err != nil {
 				logdata := fmt.Sprintf("Could Not Send Encrypted IV\nError: %v", err)
 				models.AddLogEntry(request.WorkspaceName, logdata)
 				return err
@@ -269,7 +292,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 
 		chunknumber += 1
 	}
-	logdata := fmt.Sprintf("File Sent SuccessFully to User IP: %v\nTotol Size: %v", request.ConnectionIp, chunknumber*256)
+	logdata := fmt.Sprintf("File Sent SuccessFully to User IP: %v\nTotal Size: %v", request.ConnectionIp, chunknumber*256)
 	models.AddLogEntry(request.WorkspaceName, logdata)
 
 	server.wg.Done()
