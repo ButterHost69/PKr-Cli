@@ -2,7 +2,30 @@ protofiles:
 	protoc ./proto/*.proto --go_out=. --go-grpc_out=.
 
 
-protoc_files:
-	protoc --go_out=. ./proto/*.proto
-# Prefered One	
-# .PHONY protofiles
+BASE_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-base\PKr-base.exe
+CLI_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-cli.exe
+
+TEST_DEST=C:\Users\palas\Desktop\Projs\PKr\PKr-test-runs\$(TEST)
+TEST=Test-3
+
+build2test: clean build copy
+
+build: clean
+	@echo Building the Go file...
+	go build
+	cd PKr-base &&  go build
+
+copy: build
+	@echo Copying the executable to the destination...
+	@copy $(BASE_OUTPUT) $(TEST_DEST)
+	@copy $(CLI_OUTPUT) $(TEST_DEST)
+
+clean:
+	@echo Cleaning up...
+	del $(CLI_OUTPUT)
+	del $(BASE_OUTPUT)
+	del $(TEST_DEST)\PKr-base.exe
+	del $(TEST_DEST)\PKr-cli.exe
+
+.PHONY: build2test build copy clean protofiles
+

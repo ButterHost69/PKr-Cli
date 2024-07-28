@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	// "log"
 
 	// "io/ioutil"
 	"path/filepath"
@@ -102,7 +103,10 @@ func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string)(erro
 	}
 
 	for _, file := range(files) {
-		if file.Name() == ".PKr"{
+		// Comment This Later ... Only For Debugging 
+		// models.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
+		// ..........
+		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp"{
 			continue
 		} else if !file.IsDir() {
 			content, err := os.ReadFile(dirpath + file.Name())

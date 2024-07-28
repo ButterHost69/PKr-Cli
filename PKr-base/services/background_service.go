@@ -2,11 +2,14 @@ package services
 
 import (
 	// "ButterHost69/PKr-base/encrypt"
+	"ButterHost69/PKr-base/encrypt"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/peer"
@@ -25,15 +28,15 @@ func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Em
   	ip := p.Addr.String()
 	if err != nil {
 		logentry := "Could Not Provide Public Key To IP: " + ip
-		models.AddUsersLogEntry("[X]",logentry)
-		models.AddUsersLogEntry("[X]",err)
+		models.AddUsersLogEntry(logentry)
+		models.AddUsersLogEntry(err)
 
 		return &pb.PublicKey{
 			Key: nil,
 		}, err
 	}
 	logentry := "Successfully Provided Public Key To IP: " + ip
-	models.AddUsersLogEntry("[X]", logentry)
+	models.AddUsersLogEntry(logentry)
 
 	return &pb.PublicKey{
 		Key: []byte(keyData),
@@ -52,22 +55,28 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	p, _ := peer.FromContext(ctx)
   	ip := p.Addr.String()
 
+	// Could Have Regex
+	re := regexp.MustCompile(`^\[::1\]`)
+    ip = re.ReplaceAllString(ip, "192.168.29.182")
+	ip = strings.Split(ip, ":")[0]
+	ip = ip + ":9000"
+	
 	encrypted_password := request.Password
 
 
 	// This is Comment temporary
-	// password, err := encrypt.DecryptData(encrypted_password)
-	password := encrypted_password
+	password, err := encrypt.DecryptData(encrypted_password)
+	// password := encrypted_password
 
 	// UNCOMMENT THIS SHIT --------
-	// if err != nil {
-	// 	AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
-	// 	AddUserLogEntry(err)	
-	// 	return &pb.InitResponse{
-	// 		Response: 4000,
-	// 		Port: 0000,
-	// 	}, nil
-	// }
+	if err != nil {
+		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
+		AddUserLogEntry(err)	
+		return &pb.InitResponse{
+			Response: 4000,
+			Port: 0000,
+		}, nil
+	}
 
 	// Authenticates Workspace Name and Password and Get the Workspace File Path
 	file_path := models.AuthenticateWorkspaceInfo(request.WorkspaceName, password)

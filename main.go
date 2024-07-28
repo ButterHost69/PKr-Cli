@@ -71,7 +71,8 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-
+		
+		fmt.Println("Retrieved Public Key From the Source PC")
 		encrypted_password, err := encrypt.EncryptData(workspace_password, string(public_key))
 		if err != nil {
 			fmt.Println("Error Occured in Encrypting Password")
@@ -103,8 +104,9 @@ func main() {
 			fmt.Println(err)
 		}
 
-		only_ip := strings.Split(workspace_ip, ":")[0]
-
+		fmt.Println("Initialized Workspace With the Source PC")
+		only_ip := strings.Split(workspace_ip, ":")[0] + ":"
+		fmt.Printf("Data Port: %d\n",port)
 		if err = dialer.GetData(workspace_name, only_ip, strconv.Itoa(port) ); err != nil {
 			fmt.Println("Error: Could not Retrieve Data From the Source PC")
 			fmt.Println(err)

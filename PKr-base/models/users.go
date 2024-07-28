@@ -351,7 +351,7 @@ func GetAllConnections() []Connections {
 // }
 
 // Creates Log Entry in the Main tmp file
-func AddUsersLogEntry(workspace_name string, log_entry any) (error){
+func AddUsersLogEntry(log_entry any) (error){
 	// Adds the "root_dir/logs.txt"
 	workspace_path := LOG_FILE
 	

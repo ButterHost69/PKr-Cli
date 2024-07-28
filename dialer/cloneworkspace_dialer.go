@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
@@ -21,7 +22,7 @@ import (
 )
 
 func GetPublicKey(workspace_ip string) ([]byte, error) {
-	conn, err := grpc.NewClient(workspace_ip)
+	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +41,7 @@ func GetPublicKey(workspace_ip string) ([]byte, error) {
 }
 
 func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password, port string, public_key []byte)(int, error){
-	conn, err := grpc.NewClient(workspace_ip)
+	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 	if err != nil {
 		return 0, err
 	}
@@ -80,7 +81,50 @@ func getMyIP()(string, error){
 	return localAddr.IP.String(), nil
 }
 
-func UnzipData(src, dest string)(error) {
+func UnzipData(src, dest string)(error){
+	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
+	zipper, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer zipper.Close()
+	totalfiles := 0
+	for count, file := range zipper.File {
+		if file.FileInfo().IsDir() {
+			continue
+		} else {
+			dir, _ := filepath.Split(file.Name)
+			if dir != "" {
+				if err := os.MkdirAll(dir, 0777); err != nil {
+					return err
+				}
+			}
+			unzipfile, err := os.Create(file.Name)
+			if err != nil {
+				return err
+			}
+			defer unzipfile.Close()
+			
+			content, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer content.Close()
+			
+			_, err = io.Copy(unzipfile, content)
+			if err != nil {
+				return err
+			}
+			totalfiles += 1
+			fmt.Printf("%d] File: %s\n",count, unzipfile.Name())
+		}	
+	}
+	fmt.Printf("\nTotal Files Recieved: %d\n", totalfiles)
+	return nil
+}
+
+func t_UnzipData(src, dest string)(error) {
+	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
 	zipped_data, err := zip.OpenReader(src)
 	if err != nil {
 		return err
@@ -101,16 +145,19 @@ func UnzipData(src, dest string)(error) {
 		if err != nil {
 			return nil
 		}
+		defer f.Close()
 
 		content, err := file.Open()
 		if err != nil {
 			return err
 		}
-
+		defer content.Close()
+		
 		_, err = io.Copy(f, content)
 		if err != nil {
 			return err
 		}
+		fmt.Printf("%s", f.Name())
 	}
 
 	return nil
@@ -125,12 +172,15 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 	// Unzip data on the GetFolder
 
 	new_addr := workspace_ip + port
-	my_ip, err := getMyIP()
+	my_ip, err := getMyIP() 
 	if err != nil {
 		return err
 	}
-
-	conn, err := grpc.NewClient(new_addr)	
+	my_ip = my_ip + ":9000"
+	// Comment This Later
+	fmt.Println("IP: " + my_ip)
+	// ...
+	conn, err := grpc.NewClient(new_addr, grpc.WithInsecure())	
 	if err != nil {
 		return err
 	}
@@ -190,20 +240,25 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 	}
 
 	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
-	zip_file_path := getworkspace.WorkspacePath + "\\.PKr\\" + zipFileName
-	if err = os.WriteFile(zip_file_path, data, os.ModeAppend); err != nil {
+	zip_file_path := getworkspace.WorkspacePath + "\\.PKr\\" + 	zipFileName
+	zippedfile, err := os.Create(zip_file_path)
+	if err != nil {
 		return err
 	}
+	defer zippedfile.Close()
+
+	zippedfile.Write(data)
 
 	// Delete all files in the GetWorkspace Dir except for .PKr
-	files, err := ioutil.ReadDir(getworkspace.WorkspaceName)
+	files, err := ioutil.ReadDir(getworkspace.WorkspacePath)
 	if err != nil {
 		return err
 	}
 
+	fmt.Printf("Deleting All Files at: %s\n\n", getworkspace.WorkspacePath)
 	for _, file:= range files{
-		if file.Name() != ".PKr" {
-			if err = os.RemoveAll(path.Join([]string{getworkspace.WorkspaceName, file.Name()}...)); err != nil {
+		if file.Name() != ".PKr" && file.Name() != "PKr-base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp"{
+			if err = os.RemoveAll(path.Join([]string{getworkspace.WorkspacePath, file.Name()}...)); err != nil {
 				return err
 			}
 		}
@@ -211,7 +266,7 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 
 	// Unzip Content
 	// unzip_file_path := getworkspace.WorkspacePath
-	if err = UnzipData(zip_file_path, getworkspace.WorkspaceName); err != nil {
+	if err = UnzipData(zip_file_path, getworkspace.WorkspacePath + "\\"); err != nil {
 		return err
 	}
 
