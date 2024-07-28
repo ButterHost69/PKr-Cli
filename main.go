@@ -46,10 +46,10 @@ func main() {
 		// Encrypt Password [X]
 		// Read Our Key [X]
 		// Send Password and request for InitConnection -> return port [X]
-		// Register The import Folder [ ]
-		// Connect to DataServer from the Port  [ ]
-		// Decrypt the file [ ]
-		// Unzip the File [ ]
+		// Register The import Folder [X]
+		// Connect to DataServer from the Port  [X]
+		// Decrypt the file [X]
+		// Unzip the File [X]
 
 		var workspace_ip string
 		var workspace_name string
