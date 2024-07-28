@@ -40,12 +40,19 @@ type Files struct {
 	FileSize string `json:"file_size"`
 }
 
+type GetWorkspaceFolder struct {
+	WorkspaceName		string		`json:"workspace_name"`
+	WorkspacePath    	string		`json:"workspace_path"`
+	WorkspcaceIP		string		`json:"workspace_ip"`
+}
+
+
 type UsersConfig struct {
 	User           string        `json:"user"`
 	AllConnections []Connections `json:"all_connections"`
 
 	Sendworkspaces []WorkspaceFolder `json:"send_workspace"`
-	GetWorkspaces  []WorkspaceFolder `json:"get_workspace"`
+	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
 }
 
 const (

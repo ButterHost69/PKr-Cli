@@ -34,6 +34,12 @@ type WorkspaceFolder struct {
 	// ConnectionSlugs []string `json:"connection_slug"`
 }
 
+type GetWorkspaceFolder struct {
+	WorkspaceName		string		`json:"workspace_name"`
+	WorkspacePath    	string		`json:"workspace_path"`
+	WorkspcaceIP		string		`json:"workspace_ip"`
+}
+
 type Files struct {
 	FileName string `json:"file_name"`
 	FileLoc  string `json:"file_loc"`
@@ -45,7 +51,7 @@ type UsersConfig struct {
 	AllConnections []Connections `json:"all_connections"`
 
 	Sendworkspaces []WorkspaceFolder `json:"send_workspace"`
-	GetWorkspaces  []WorkspaceFolder `json:"get_workspace"`
+	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
 }
 
 const (
@@ -59,14 +65,11 @@ var (
 	MY_USERNAME string
 )
 
+// Creates the Main tmp Folder.
+// Generates the public and private keys.
+// Generates userConfig.json.
 func CreateUserIfNotExists(username string) {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
-		fmt.Println("!! 'tmp' No such DIR exists ")
-
-		// var username string
-		// fmt.Println(" [*] Register [*]")
-		// fmt.Print(" > Username: ")
-		// fmt.Scanln(&username)
 		MY_USERNAME = username
 
 		usconf := UsersConfig{
@@ -340,4 +343,43 @@ func AddUsersLogEntry(workspace_name string, log_entry string) (error){
 
 		
 	return nil
+}
+
+
+func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string)(error){
+	// WorkspaceName		string		`json:"workspace_name"`
+	// WorkspacePath    	string		`json:"workspace_path"`
+	// WorkspcaceIP			string		`json:"workspace_ip"`
+
+	userConfig, err := readFromUserConfigFile()
+	if err != nil {
+		return err
+	}
+	connection := GetWorkspaceFolder{
+		WorkspaceName: workspace_name,
+		WorkspacePath: workspace_path,
+		WorkspcaceIP: workspace_ip,
+	}
+	userConfig.GetWorkspaces = append(userConfig.GetWorkspaces, connection)
+	
+	if err := writeToUserConfigFile(userConfig); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetGetWorkspaceFolder(workspace_name string)(GetWorkspaceFolder, error){
+	userConfig, err := readFromUserConfigFile() 
+	if err != nil {
+		return GetWorkspaceFolder{}, err
+	}
+
+	for _, workspace := range userConfig.GetWorkspaces{
+		if workspace.WorkspaceName == workspace_name {
+			return workspace, err
+		}
+	}
+
+	return GetWorkspaceFolder{}, err
 }

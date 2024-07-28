@@ -1,10 +1,19 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+
+	"github.com/ButterHost69/PKr-cli/dialer"
+	"github.com/ButterHost69/PKr-cli/encrypt"
 	"github.com/ButterHost69/PKr-cli/models"
+)
+
+const (
+	BACKGROUND_SERVER_PORT	=	9000
 )
 
 func main() {
@@ -15,7 +24,6 @@ func main() {
 	cmd := strings.ToLower(os.Args[1])
 	switch cmd {
 	case "install": {
-
 		// -> Setup Username [X]
 		// -> Generate Public and Private Keys [X]
 		// -> Register gRPC Server as a service 
@@ -33,6 +41,76 @@ func main() {
 
 	case "push":
 		
+	case "clone": {
+		// Get Public Key From the Host Original Source PC [X]
+		// Encrypt Password [X]
+		// Read Our Key [X]
+		// Send Password and request for InitConnection -> return port [X]
+		// Register The import Folder [ ]
+		// Connect to DataServer from the Port  [ ]
+		// Decrypt the file [ ]
+		// Unzip the File [ ]
+
+		var workspace_ip string
+		var workspace_name string
+		var workspace_password string
+		
+		fmt.Print("> Enter the Workspace IP [addr:port]: ")
+		fmt.Scan(&workspace_ip)
+		
+		fmt.Print("> Enter the Workspace Name: ")
+		fmt.Scan(&workspace_name)
+		
+		fmt.Print("> Enter the Workspace Password: ")
+		fmt.Scan(&workspace_password)
+
+		// Get and Encrypt Key
+		public_key, err := dialer.GetPublicKey(workspace_ip)
+		if err != nil {
+			fmt.Println("Error Occured in Retrieving Public Key")
+			fmt.Println(err)
+			return
+		}
+
+		encrypted_password, err := encrypt.EncryptData(workspace_password, string(public_key))
+		if err != nil {
+			fmt.Println("Error Occured in Encrypting Password")
+			fmt.Println(err)
+			return
+		}
+
+		my_public_key, err := os.ReadFile("./tmp/mykeys/publickey.pem")
+		if err != nil {
+			fmt.Println("Error Occured in Reading Our Public Key")
+			fmt.Println("Please Ensure Key is Present at ./tmp/mykeys/publickey.pem")
+			fmt.Println(err)
+		}
+
+		base64_public_key := base64.StdEncoding.EncodeToString(my_public_key)
+
+		port, err := dialer.InitNewWorkSpaceConnection(workspace_ip, workspace_name, encrypted_password, strconv.Itoa(BACKGROUND_SERVER_PORT), []byte(base64_public_key))
+		if err != nil {
+			fmt.Println("Error Occured in Dialing Init New Workspace Connection")
+			fmt.Println(err)
+		}
+		currDir, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error in Retrieving Current Working Directory")
+			fmt.Println(err)
+		}
+		if err = models.AddGetWorkspaceFolderToUserConfig(workspace_name, currDir, workspace_ip); err != nil {
+			fmt.Println("Error in adding GetConnection to the Main User Config Folder")
+			fmt.Println(err)
+		}
+
+		only_ip := strings.Split(workspace_ip, ":")[0]
+
+		if err = dialer.GetData(workspace_name, only_ip, strconv.Itoa(port) ); err != nil {
+			fmt.Println("Error: Could not Retrieve Data From the Source PC")
+			fmt.Println(err)
+		}
+	}
+	
 	// Maybe its Done	
 	case "init" : {
 		// Register Folder to Send Workspace / Export Folder [X]
@@ -105,7 +183,6 @@ func main() {
 
 		fmt.Println("Workspace Created Successfully !!")
 		return
-
 	}	
   }
 }
