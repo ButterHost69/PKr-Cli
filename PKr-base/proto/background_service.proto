@@ -16,6 +16,8 @@ service BackgroundService {
     // Request to Open a gRPC Port for Data Transfer
     rpc GetWorkspace (WorkspaceRequest) returns (GetWorkspaceResponse);
 
+    rpc NotifyPush (NotifyPushRequest) returns (NotifyPushResponse);
+
 }
 
 message PublicKey {
@@ -46,6 +48,13 @@ message GetWorkspaceResponse {
 }
 
 
+message NotifyPushRequest {
+    string workspace_name = 1;
+}
+
+message NotifyPushResponse {
+    int32 response = 1; // 200 [Valid ??]
+}
 
 service DataService {
     rpc GetData (DataRequest) returns (stream Data);

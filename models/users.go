@@ -16,28 +16,28 @@ import (
 type Connections struct {
 	ConnectionSlug string `json:"connection_slug"`
 	// Password       string `json:"password"`
-	CurrentIP      string `json:"current_ip"`
-	CurrentPort      string `json:"current_port"`
+	CurrentIP   string `json:"current_ip"`
+	CurrentPort string `json:"current_port"`
 }
 
 type ConnectionInfo struct {
 	// ConnectionSlug string `json:"connection_slug"`
-	Username	string	`json:"username"`	
-	CurrentIP	string 	`json:"current_ip"`
-	CurrentPort	string 	`json:"current_port"`
+	Username    string `json:"username"`
+	CurrentIP   string `json:"current_ip"`
+	CurrentPort string `json:"current_port"`
 }
 
 type WorkspaceFolder struct {
-	WorkspaceName   	string   `json:"workspace_name"`
-	WorkspacePath    	string   `json:"workspace_path"`
-	WorkSpacePassword	string	`json:"workspace_password"`
+	WorkspaceName     string `json:"workspace_name"`
+	WorkspacePath     string `json:"workspace_path"`
+	WorkSpacePassword string `json:"workspace_password"`
 	// ConnectionSlugs []string `json:"connection_slug"`
 }
 
 type GetWorkspaceFolder struct {
-	WorkspaceName		string		`json:"workspace_name"`
-	WorkspacePath    	string		`json:"workspace_path"`
-	WorkspcaceIP		string		`json:"workspace_ip"`
+	WorkspaceName string `json:"workspace_name"`
+	WorkspacePath string `json:"workspace_path"`
+	WorkspcaceIP  string `json:"workspace_ip"`
 }
 
 type Files struct {
@@ -50,20 +50,119 @@ type UsersConfig struct {
 	User           string        `json:"user"`
 	AllConnections []Connections `json:"all_connections"`
 
-	Sendworkspaces []WorkspaceFolder `json:"send_workspace"`
+	Sendworkspaces []WorkspaceFolder    `json:"send_workspace"`
 	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
+}
+
+// For server
+// Mainly for IP and shit
+// Try to make the code as swappable as possible
+//
+// Not Done
+type BetterSendWorkspace struct {
+}
+
+type BetterGetWorkspace struct {
+}
+
+type ServerConfig struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	ServerIP string `json:"server_ip"`
+
+	SendWorkspaces []BetterSendWorkspace `json:"send_workspace"`
+	GetWorkspaces  []BetterGetWorkspace  `json:"get_workspace"`
+}
+
+type ServerFileConfig struct {
+	ServerLists []ServerConfig `json:"server_lists"`
 }
 
 const (
 	ROOT_DIR     = "tmp"
 	MY_KEYS_PATH = ROOT_DIR + "\\mykeys"
 	CONFIG_FILE  = ROOT_DIR + "\\userConfig.json"
-	LOG_FILE = ROOT_DIR + "\\logs.txt"
+	SERVER_CONFIG_FILE  = ROOT_DIR + "\\serverConfig.json"
+	LOG_FILE     = ROOT_DIR + "\\logs.txt"
 )
 
 var (
 	MY_USERNAME string
 )
+
+func CreateServerConfigFiles() {
+	serverConfig := ServerFileConfig{}
+	jsonbytes, err := json.Marshal(serverConfig)
+	if err != nil {
+		fmt.Println("~ Unable to Parse Username to Json")
+	}
+	err = os.WriteFile(ROOT_DIR+"/serverConfig.json", jsonbytes, 0777)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func writeToServerConfigFile(newUserConfig ServerFileConfig) error {
+	jsonData, err := json.MarshalIndent(newUserConfig, "", "	")
+	// fmt.Println(jsonData)
+	if err != nil {
+		fmt.Println("error occured in Marshalling the data to JSON")
+		fmt.Println(err)
+		return err
+	}
+
+	// fmt.Println(string(jsonData))
+	err = os.WriteFile(SERVER_CONFIG_FILE, jsonData, 0777)
+	if err != nil {
+		fmt.Println("error occured in storing data in server file")
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
+func readFromServerConfigFile() (ServerFileConfig, error) {
+	file, err := os.Open(SERVER_CONFIG_FILE)
+	if err != nil {
+		fmt.Println("error in opening config file.... pls check if tmp/userConfig.json available ")
+		return ServerFileConfig{}, err
+	}
+	defer file.Close()
+
+	var serverConfig ServerFileConfig
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&serverConfig)
+	if err != nil {
+		fmt.Println("error in decoding json data")
+		return ServerFileConfig{}, err
+	}
+
+	// fmt.Println(userConfig)
+	return serverConfig, nil
+}
+
+func AddNewServerToConfig(username, password, serverip string) error {
+	serverConfig, err := readFromServerConfigFile()
+	if err != nil {
+		fmt.Println("Error in reading From the ServerConfig File...")
+		return err
+	}
+
+	sconf := ServerConfig{
+		Username: username,
+		Password: password,
+		ServerIP: serverip,
+	}
+
+	serverConfig.ServerLists = append(serverConfig.ServerLists, sconf)
+	if err := writeToServerConfigFile(serverConfig); err != nil {
+		fmt.Println("Error Occured in Writing To the Server File")
+		return err
+	}
+
+	return nil
+}
 
 // Creates the Main tmp Folder.
 // Generates the public and private keys.
@@ -117,20 +216,20 @@ func AddConnection(connection_slug string, password string) {
 
 }
 
-func RegisterNewSendWorkspace(workspace_name string, workspace_path string, workspace_password string)(error){
-	userConfig, err := 	readFromUserConfigFile()
+func RegisterNewSendWorkspace(workspace_name string, workspace_path string, workspace_password string) error {
+	userConfig, err := readFromUserConfigFile()
 	if err != nil {
 		fmt.Println("Error in reading From the UserConfig File...")
 		return err
 	}
 
-	workspaceFolder := WorkspaceFolder {
-		WorkspaceName: workspace_name,
-		WorkspacePath: workspace_path,
+	workspaceFolder := WorkspaceFolder{
+		WorkspaceName:     workspace_name,
+		WorkspacePath:     workspace_path,
 		WorkSpacePassword: workspace_password,
 	}
 	userConfig.Sendworkspaces = append(userConfig.Sendworkspaces, workspaceFolder)
-	
+
 	if err := writeToUserConfigFile(userConfig); err != nil {
 		fmt.Println("Error Occured in Writing To the UserConfig File")
 		return err
@@ -140,19 +239,19 @@ func RegisterNewSendWorkspace(workspace_name string, workspace_path string, work
 }
 
 func GetWorkspaceFilePath(workspace_name string) (string, error) {
-	userConfig, err := readFromUserConfigFile() 
+	userConfig, err := readFromUserConfigFile()
 	if err != nil {
 		return "", err
 	}
 
 	workspaces := userConfig.Sendworkspaces
-	for _, workspace := range workspaces{
+	for _, workspace := range workspaces {
 		if workspace.WorkspaceName == workspace_name {
 			return workspace.WorkspacePath, nil
 		}
 	}
 
-	return "" , errors.New("no such workspace found")
+	return "", errors.New("no such workspace found")
 }
 
 func readFromUserConfigFile() (UsersConfig, error) {
@@ -204,8 +303,8 @@ func AddConnectionInUserConfig(connection_slug string, password string, connecti
 	connection := Connections{
 		ConnectionSlug: connection_slug,
 		// Password:       password,
-		CurrentIP:      connectionIP,
-		CurrentPort:	strconv.Itoa(cmdPort),
+		CurrentIP:   connectionIP,
+		CurrentPort: strconv.Itoa(cmdPort),
 	}
 
 	userConfig.AllConnections = append(userConfig.AllConnections, connection)
@@ -259,8 +358,6 @@ func AddNewConnectionToTheWorkspace(wName string, connectionSlug string) error {
 	return nil
 }
 
-
-
 // This CODE Might Be Useless.
 // This Function Doesnt Seem to be Used Anywhere
 // Please Delete this Future ME
@@ -270,8 +367,8 @@ func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error
 	connectionSlugs = append(connectionSlugs, connectionSlug)
 	fmt.Println(connectionSlugs)
 	wfolder := WorkspaceFolder{
-		WorkspaceName:   wName,
-		WorkspacePath:    wPath,
+		WorkspaceName: wName,
+		WorkspacePath: wPath,
 		// ConnectionSlugs: connectionSlugs,
 	}
 
@@ -302,7 +399,6 @@ func GetAllConnections() []Connections {
 		fmt.Println("error in reading from the userConfig File")
 	}
 
-	
 	return userConfigFile.AllConnections
 }
 
@@ -317,7 +413,6 @@ func GetAllConnections() []Connections {
 // 		return false
 // 	}
 
-
 // 	for _, conn := range userConfigFile.AllConnections {
 // 		if conn.ConnectionSlug == connPassword && conn.Password == connPassword{
 // 			return true
@@ -327,26 +422,24 @@ func GetAllConnections() []Connections {
 // 	return false
 // }
 
-func AddUsersLogEntry(workspace_name string, log_entry string) (error){
+func AddUsersLogEntry(workspace_name string, log_entry string) error {
 	// Adds the "root_dir/logs.txt"
 	workspace_path := LOG_FILE
-	
-	// Opens or Creates the Log File 
-	file, err := os.OpenFile(workspace_path,  os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+
+	// Opens or Creates the Log File
+	file, err := os.OpenFile(workspace_path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return err
 	}
-	
+
 	defer file.Close()
 	log.SetOutput(file)
-	log.Printf(log_entry + "\n", log.LstdFlags)
+	log.Printf(log_entry+"\n", log.LstdFlags)
 
-		
 	return nil
 }
 
-
-func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string)(error){
+func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string) error {
 	// WorkspaceName		string		`json:"workspace_name"`
 	// WorkspacePath    	string		`json:"workspace_path"`
 	// WorkspcaceIP			string		`json:"workspace_ip"`
@@ -358,10 +451,10 @@ func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace
 	connection := GetWorkspaceFolder{
 		WorkspaceName: workspace_name,
 		WorkspacePath: workspace_path,
-		WorkspcaceIP: workspace_ip,
+		WorkspcaceIP:  workspace_ip,
 	}
 	userConfig.GetWorkspaces = append(userConfig.GetWorkspaces, connection)
-	
+
 	if err := writeToUserConfigFile(userConfig); err != nil {
 		return err
 	}
@@ -369,13 +462,13 @@ func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace
 	return nil
 }
 
-func GetGetWorkspaceFolder(workspace_name string)(GetWorkspaceFolder, error){
-	userConfig, err := readFromUserConfigFile() 
+func GetGetWorkspaceFolder(workspace_name string) (GetWorkspaceFolder, error) {
+	userConfig, err := readFromUserConfigFile()
 	if err != nil {
 		return GetWorkspaceFolder{}, err
 	}
 
-	for _, workspace := range userConfig.GetWorkspaces{
+	for _, workspace := range userConfig.GetWorkspaces {
 		if workspace.WorkspaceName == workspace_name {
 			return workspace, err
 		}
