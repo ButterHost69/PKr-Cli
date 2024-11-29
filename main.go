@@ -237,6 +237,13 @@ func main() {
 					if err := models.AddNewServerToConfig(server_username, server_password, server_ip); err != nil {
 						fmt.Println("Error Occured in Adding Server to serverConfig.json")
 						fmt.Println(err)
+						return
+					}
+					
+					if err := dialer.RegisterServer(server_username, server_password, server_ip); err != nil {
+						fmt.Println("Error Occured in Adding Server to serverConfig.json")
+						fmt.Println(err)
+						return
 					}
 				}
 			}
