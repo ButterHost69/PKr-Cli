@@ -197,6 +197,31 @@ func main() {
 			return
 		}
 
+		// list Created workspaces
+	case "list":{
+		userConfigFile, err := models.ReadFromUserConfigFile()
+		if err != nil {
+			fmt.Println("Could not list Workspaces...")
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Println(" -- Send Workspaces -- ")
+		for idx, workspace := range userConfigFile.Sendworkspaces{
+			fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
+			fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
+
+		}
+
+		fmt.Println(" -- Get Workspaces -- ")
+		for idx, workspace := range userConfigFile.GetWorkspaces{
+			fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
+			fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
+		}
+
+		return
+	}
+
 	// For server
 	// Mainly for IP and shit
 	// Try to make the code as swappable as possible
@@ -234,7 +259,7 @@ func main() {
 						return
 					}
 
-					username, err := dialer.RegisterServer(server_username, server_password, server_ip); 
+					username, err := dialer.RegisterServer(server_username, server_password, server_ip)
 					if err != nil {
 						fmt.Println("error Occured in Sending Request to server")
 						fmt.Println(err)
@@ -252,6 +277,14 @@ func main() {
 
 					fmt.Println("Entry added to serverConfig.json file")
 					return
+				}
+
+				// Can Name in future
+			case "register workspace":
+				{
+					// TODO: [ ] Show the workspaces available 
+					// TODO: [ ] Denote the workspace as linked to server
+					// TODO: [ ] Send request and register the workspace
 				}
 			}
 		}

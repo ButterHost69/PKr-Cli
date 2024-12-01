@@ -143,7 +143,7 @@ func AddConnection(connection_slug string, password string) {
 }
 
 func RegisterNewSendWorkspace(workspace_name string, workspace_path string, workspace_password string) error {
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		fmt.Println("Error in reading From the UserConfig File...")
 		return err
@@ -165,7 +165,7 @@ func RegisterNewSendWorkspace(workspace_name string, workspace_path string, work
 }
 
 func GetWorkspaceFilePath(workspace_name string) (string, error) {
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return "", err
 	}
@@ -180,7 +180,7 @@ func GetWorkspaceFilePath(workspace_name string) (string, error) {
 	return "", errors.New("no such workspace found")
 }
 
-func readFromUserConfigFile() (UsersConfig, error) {
+func ReadFromUserConfigFile() (UsersConfig, error) {
 	file, err := os.Open(CONFIG_FILE)
 	if err != nil {
 		fmt.Println("error in opening config file.... pls check if tmp/userConfig.json available ")
@@ -221,7 +221,7 @@ func writeToUserConfigFile(newUserConfig UsersConfig) error {
 }
 
 func AddConnectionInUserConfig(connection_slug string, password string, connectionIP string, cmdPort int) error {
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func UpdateWorkSpaceFolders() {
 // }
 
 func AddNewConnectionToTheWorkspace(wName string, connectionSlug string) error {
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error
 		// ConnectionSlugs: connectionSlugs,
 	}
 
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return err
 	}
@@ -320,7 +320,7 @@ func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error
 }
 
 func GetAllConnections() []Connections {
-	userConfigFile, err := readFromUserConfigFile()
+	userConfigFile, err := ReadFromUserConfigFile()
 	if err != nil {
 		fmt.Println("error in reading from the userConfig File")
 	}
@@ -328,9 +328,6 @@ func GetAllConnections() []Connections {
 	return userConfigFile.AllConnections
 }
 
-// func GetAllSendWorkspaceList() []string {
-
-// }
 
 // func ValidateConnection(connSlug string, connPassword string) bool {
 // 	userConfigFile, err := readFromUserConfigFile()
@@ -370,7 +367,7 @@ func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace
 	// WorkspacePath    	string		`json:"workspace_path"`
 	// WorkspcaceIP			string		`json:"workspace_ip"`
 
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return err
 	}
@@ -389,7 +386,7 @@ func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace
 }
 
 func GetGetWorkspaceFolder(workspace_name string) (GetWorkspaceFolder, error) {
-	userConfig, err := readFromUserConfigFile()
+	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		return GetWorkspaceFolder{}, err
 	}
