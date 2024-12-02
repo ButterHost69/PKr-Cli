@@ -17,6 +17,10 @@ const (
 )
 
 // TODO: [ ] Shift everything to flag based, no terminal inputs, take all inputs as flags
+// TODO: [ ] Refactor the code. 
+// 		TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
+// 		TODO: [ ] Why are there print statements in files other than main.
+// 		TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Required Minimum 2 Args")
@@ -198,29 +202,30 @@ func main() {
 		}
 
 		// list Created workspaces
-	case "list":{
-		userConfigFile, err := models.ReadFromUserConfigFile()
-		if err != nil {
-			fmt.Println("Could not list Workspaces...")
-			fmt.Println(err)
+	case "list":
+		{
+			userConfigFile, err := models.ReadFromUserConfigFile()
+			if err != nil {
+				fmt.Println("Could not list Workspaces...")
+				fmt.Println(err)
+				return
+			}
+
+			fmt.Println(" -- Send Workspaces -- ")
+			for idx, workspace := range userConfigFile.Sendworkspaces {
+				fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
+				fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
+
+			}
+
+			fmt.Println(" -- Get Workspaces -- ")
+			for idx, workspace := range userConfigFile.GetWorkspaces {
+				fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
+				fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
+			}
+
 			return
 		}
-
-		fmt.Println(" -- Send Workspaces -- ")
-		for idx, workspace := range userConfigFile.Sendworkspaces{
-			fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
-			fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
-
-		}
-
-		fmt.Println(" -- Get Workspaces -- ")
-		for idx, workspace := range userConfigFile.GetWorkspaces{
-			fmt.Printf("%d] %s: \n", idx, workspace.WorkspaceName)
-			fmt.Printf("	- %s\n\n", workspace.WorkspacePath)
-		}
-
-		return
-	}
 
 	// For server
 	// Mainly for IP and shit
@@ -280,11 +285,26 @@ func main() {
 				}
 
 				// Can Name in future
-			case "register workspace":
+				// TODO: [ ] to the added workspace add a field ??if_server could do, idk why though. Maybe...
+			case "register_workspace":
 				{
-					// TODO: [ ] Show the workspaces available 
+					// TODO: [ ] Show the workspaces available
 					// TODO: [ ] Denote the workspace as linked to server
 					// TODO: [ ] Send request and register the workspace
+					var workspace_name string
+					var server_ip string
+
+					fmt.Print("Enter Send Workpace Name to Register: ")
+					fmt.Scan(&workspace_name)
+					fmt.Print("Enter Server IP: ")
+					fmt.Scan(&server_ip)
+					ifDone := models.AddServerToWorkpace(workspace_name, server_ip)
+					if !ifDone {
+						fmt.Println("error")
+						return
+					}
+
+					fmt.Println("Done.")
 				}
 			}
 		}

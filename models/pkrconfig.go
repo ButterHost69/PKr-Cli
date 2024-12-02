@@ -52,7 +52,46 @@ func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string
 
 	return nil
 }
+// TODO: [ ] Fix the log part
+func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
+	file, err := os.Open(workspace_config_path)
+	if err != nil {
+		// models.AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
+		return PKRConfig{}, err
+	}
+	defer file.Close()
 
+	var pkrConfig PKRConfig
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&pkrConfig)
+	if err != nil {
+		// models.AddUsersLogEntry("error in decoding json data")
+		return PKRConfig{}, err
+	}
+
+	// fmt.Println(pkrConfig)
+	return pkrConfig, nil
+}
+
+func writeToPKRConfigFile(workspace_config_path string, newPKRConfing PKRConfig) (error){
+	jsonData, err := json.MarshalIndent(newPKRConfing, "", "	")
+	// fmt.Println(jsonData)
+	if err != nil {
+		fmt.Println("error occured in Marshalling the data to JSON")
+		fmt.Println(err)
+		return err
+	}
+
+	// fmt.Println(string(jsonData))
+	err = os.WriteFile(workspace_config_path, jsonData, 0777)
+	if err != nil {
+		fmt.Println("error occured in storing data in userconfig file")
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
 
 // Logs Entry of all the events occurred related to the workspace
 // Also Creates the Log File by default

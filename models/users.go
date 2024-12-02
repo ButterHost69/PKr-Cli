@@ -27,10 +27,11 @@ type ConnectionInfo struct {
 	CurrentPort string `json:"current_port"`
 }
 
-type WorkspaceFolder struct {
-	WorkspaceName     string `json:"workspace_name"`
-	WorkspacePath     string `json:"workspace_path"`
-	WorkSpacePassword string `json:"workspace_password"`
+type SendWorkspaceFolder struct {
+	WorkspaceName     	string `json:"workspace_name"`
+	WorkspacePath     	string `json:"workspace_path"`
+	WorkSpacePassword 	string `json:"workspace_password"`
+	ServerIP			string `json:"server_ip"`
 	// ConnectionSlugs []string `json:"connection_slug"`
 }
 
@@ -50,7 +51,7 @@ type UsersConfig struct {
 	User           string        `json:"user"`
 	AllConnections []Connections `json:"all_connections"`
 
-	Sendworkspaces []WorkspaceFolder    `json:"send_workspace"`
+	Sendworkspaces []SendWorkspaceFolder    `json:"send_workspace"`
 	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
 }
 
@@ -149,7 +150,7 @@ func RegisterNewSendWorkspace(workspace_name string, workspace_path string, work
 		return err
 	}
 
-	workspaceFolder := WorkspaceFolder{
+	workspaceFolder := SendWorkspaceFolder{
 		WorkspaceName:     workspace_name,
 		WorkspacePath:     workspace_path,
 		WorkSpacePassword: workspace_password,
@@ -292,7 +293,7 @@ func CreateNewWorkspace(wName string, wPath string, connectionSlug string) error
 	var connectionSlugs []string
 	connectionSlugs = append(connectionSlugs, connectionSlug)
 	fmt.Println(connectionSlugs)
-	wfolder := WorkspaceFolder{
+	wfolder := SendWorkspaceFolder{
 		WorkspaceName: wName,
 		WorkspacePath: wPath,
 		// ConnectionSlugs: connectionSlugs,
@@ -328,7 +329,67 @@ func GetAllConnections() []Connections {
 	return userConfigFile.AllConnections
 }
 
+func GetAllSendWorkspaceList() []SendWorkspaceFolder {
+	userConfigFile, err := ReadFromUserConfigFile()
+	if err != nil {
+		fmt.Println("error in reading from the userConfig File")
+		return []SendWorkspaceFolder{}
+	}
 
+	return userConfigFile.Sendworkspaces
+}
+
+func IfSendWorkspaceExits(workspace_name string) bool {
+	sendWorkspaceFolder := GetAllSendWorkspaceList()
+	if len(sendWorkspaceFolder) == 0 {
+		fmt.Println("No Send Workspaces ...")
+		return false
+	}
+
+	for _, workspace  := range sendWorkspaceFolder {
+		if workspace.WorkspaceName == workspace_name{
+			return true
+		}
+	}
+	return false
+}
+
+func GetSendWorkspace(workspace_name string) SendWorkspaceFolder  {
+	userConfigFile, err := ReadFromUserConfigFile()
+	if err != nil {
+		fmt.Println("error in reading from the userConfig File")
+		return SendWorkspaceFolder{}
+	}
+
+	for _, workspace  := range userConfigFile.Sendworkspaces {
+		if workspace.WorkspaceName == workspace_name{
+			return workspace
+		}
+	}
+	return SendWorkspaceFolder{}
+}
+
+func AddServerToWorkpace(workspace_name, server_ip string) bool {
+	userConfigFile, err := ReadFromUserConfigFile()
+	if err != nil {
+		fmt.Println("error in reading from the userConfig File")
+		return false
+	}
+
+	for i, workspace  := range userConfigFile.Sendworkspaces {
+		if workspace.WorkspaceName == workspace_name{
+			userConfigFile.Sendworkspaces[i].ServerIP = server_ip
+
+			if err != writeToUserConfigFile(userConfigFile) {
+				fmt.Println("error in writing from the userConfig File")
+				return false
+			}
+
+			return true
+		}
+	}
+	return false
+}
 // func ValidateConnection(connSlug string, connPassword string) bool {
 // 	userConfigFile, err := readFromUserConfigFile()
 // 	if err != nil {
