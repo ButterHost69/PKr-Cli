@@ -17,10 +17,11 @@ const (
 )
 
 // TODO: [ ] Shift everything to flag based, no terminal inputs, take all inputs as flags
-// TODO: [ ] Refactor the code. 
-// 		TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
-// 		TODO: [ ] Why are there print statements in files other than main.
-// 		TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
+// TODO: [ ] Refactor the code.
+//
+//	TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
+//	TODO: [ ] Why are there print statements in files other than main.
+//	TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Required Minimum 2 Args")
@@ -264,7 +265,7 @@ func main() {
 						return
 					}
 
-					username, err := dialer.RegisterServer(server_username, server_password, server_ip)
+					username, err := dialer.RegisterServer(server_ip, server_username, server_password)
 					if err != nil {
 						fmt.Println("error Occured in Sending Request to server")
 						fmt.Println(err)
@@ -288,9 +289,11 @@ func main() {
 				// TODO: [ ] to the added workspace add a field ??if_server could do, idk why though. Maybe...
 			case "register_workspace":
 				{
-					// TODO: [ ] Show the workspaces available
-					// TODO: [ ] Denote the workspace as linked to server
-					// TODO: [ ] Send request and register the workspace
+					// TODO: [X] Show the workspaces available
+					// TODO: [X] Denote the workspace as linked to server
+					// TODO: [X] Send request and register the workspace
+
+					// TODO: [ ] Test this code ...
 					var workspace_name string
 					var server_ip string
 
@@ -303,7 +306,16 @@ func main() {
 						fmt.Println("error")
 						return
 					}
-
+					username, password, err := models.GetServerUsernamePassword(server_ip)
+					if err != nil {
+						fmt.Printf("error Could not get Server Usernamea and Password...\nError: %v\n", err)
+						return 
+					}
+					err = dialer.RegisterWorkspace(server_ip, username, password, workspace_name)
+					if err != nil {
+						fmt.Printf("error Could not get Server Usernamea and Password...\nError: %v\n", err)
+						return
+					}
 					fmt.Println("Done.")
 				}
 			}

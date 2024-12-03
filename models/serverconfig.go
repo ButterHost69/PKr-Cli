@@ -80,3 +80,18 @@ func AddNewServerToConfig(username, password, serverip string) error {
 
 	return nil
 }
+
+func GetServerUsernamePassword(server_ip string) (string, string, error) {
+	serverConfig, err := readFromServerConfigFile()
+	if err != nil {
+		fmt.Println("Error in reading From the ServerConfig File...")
+		return "", "", err
+	}
+
+	for _, server := range serverConfig.ServerLists {
+		if server.ServerIP == server_ip {
+			return server.Username, server.Password, nil
+		}
+	}
+	return "", "", fmt.Errorf("error could not find server with ip: %s", server_ip)
+}
