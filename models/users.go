@@ -66,19 +66,6 @@ type BetterSendWorkspace struct {
 type BetterGetWorkspace struct {
 }
 
-type ServerConfig struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	ServerIP string `json:"server_ip"`
-
-	SendWorkspaces []BetterSendWorkspace `json:"send_workspace"`
-	GetWorkspaces  []BetterGetWorkspace  `json:"get_workspace"`
-}
-
-type ServerFileConfig struct {
-	ServerLists []ServerConfig `json:"server_lists"`
-}
-
 const (
 	ROOT_DIR     = "tmp"
 	MY_KEYS_PATH = ROOT_DIR + "\\mykeys"

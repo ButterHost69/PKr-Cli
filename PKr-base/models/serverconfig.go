@@ -7,6 +7,10 @@ import (
 	"os"
 )
 
+var (
+	SERVER_CONFIG_FILE  = ROOT_DIR + "\\serverConfig.json"
+)
+
 type ServerConfig struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -18,6 +22,17 @@ type ServerConfig struct {
 
 type ServerFileConfig struct {
 	ServerLists []ServerConfig `json:"server_lists"`
+}
+
+// For server
+// Mainly for IP and shit
+// Try to make the code as swappable as possible
+//
+// Not Done
+type BetterSendWorkspace struct {
+}
+
+type BetterGetWorkspace struct {
 }
 
 func CreateServerConfigFiles() {
@@ -107,4 +122,13 @@ func GetServerUsernamePassword(server_ip string) (string, string, error) {
 		}
 	}
 	return "", "", fmt.Errorf("error could not find server with ip: %s", server_ip)
+}
+
+func GetAllServers() ([]ServerConfig, error) {
+	serverConfig, err := readFromServerConfigFile()
+	if err != nil {
+		return serverConfig.ServerLists, fmt.Errorf("error in reading From the ServerConfig File...\nError: %v",err)
+	}
+
+	return serverConfig.ServerLists, nil
 }
