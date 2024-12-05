@@ -81,7 +81,7 @@ var (
 // Creates the Main tmp Folder.
 // Generates the public and private keys.
 // Generates userConfig.json.
-func CreateUserIfNotExists(username string) {
+func CreateUserIfNotExists(username string) error {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
 		MY_USERNAME = username
 
@@ -91,39 +91,43 @@ func CreateUserIfNotExists(username string) {
 
 		jsonbytes, err := json.Marshal(usconf)
 		if err != nil {
-			fmt.Println("~ Unable to Parse Username to Json")
+			return fmt.Errorf("~ Unable to Parse Username to Json")
 		}
 
+		// TODO: [ ] Handle This Error Properly. Find the Reasons this error occurs
+		// 			 If it is because of the folder already existing... Than handle appropriately
 		if err = os.Mkdir(ROOT_DIR, 0777); err != nil {
-			fmt.Println("~ Folder tmp exists")
+			// fmt.Println("~ Folder tmp exists")
 		}
 		err = os.WriteFile(ROOT_DIR+"/userConfig.json", jsonbytes, 0777)
 		if err != nil {
-			log.Fatal(err.Error())
+			return fmt.Errorf("error Unable to write at %s.\nError:%v", ROOT_DIR+"/userConfig.json", err)
 		}
 
+		// TODO: [ ] Handle This Error Properly. Find the Reasons this error occurs
+		// 			 If it is because of the folder already existing... Than handle appropriately
 		if err = os.Mkdir(MY_KEYS_PATH, 0777); err != nil {
-			fmt.Println("~ Folder tmp exists")
+			// fmt.Println("~ Folder tmp exists")
 		}
 
 		private_key, public_key := encrypt.GenerateRSAKeys()
 		if private_key == nil && public_key == nil {
-			panic("Could Not Generate Keys")
+			return fmt.Errorf("Could Not Generate Keys")
 		}
 
 		if err = encrypt.StorePrivateKeyInFile(MY_KEYS_PATH+"/privatekey.pem", private_key); err != nil {
-			panic(err.Error())
+			return fmt.Errorf("error could not store private keys.\nError:%v",err)
 		}
 
 		if err = encrypt.StorePublicKeyInFile(MY_KEYS_PATH+"/publickey.pem", public_key); err != nil {
-			panic(err.Error())
+			return fmt.Errorf("error could not store public keys.\nError:%v",err)
 		}
 
-		fmt.Printf(" ~ Created User : %s\n", username)
-		return
+		// fmt.Printf(" ~ Created User : %s\n", username)
+		return nil
 	}
 
-	fmt.Println("It Seems PKr is Already Installed...")
+	return fmt.Errorf("It Seems PKr is Already Installed...")
 }
 
 func AddConnection(connection_slug string, password string) {

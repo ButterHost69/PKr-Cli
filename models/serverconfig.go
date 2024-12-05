@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	// "log"
 	"os"
 )
 
@@ -20,16 +20,17 @@ type ServerFileConfig struct {
 	ServerLists []ServerConfig `json:"server_lists"`
 }
 
-func CreateServerConfigFiles() {
+func CreateServerConfigFiles() error {
 	serverConfig := ServerFileConfig{}
 	jsonbytes, err := json.Marshal(serverConfig)
 	if err != nil {
-		fmt.Println("~ Unable to Parse Username to Json")
+		return fmt.Errorf("~ Unable to Parse JSON to server config file.\nError:%v", err)
 	}
 	err = os.WriteFile(ROOT_DIR+"/serverConfig.json", jsonbytes, 0777)
 	if err != nil {
-		log.Fatal(err.Error())
+		return fmt.Errorf("error could not write server config file.\nError:%v", err)
 	}
+	return nil
 }
 
 func writeToServerConfigFile(newUserConfig ServerFileConfig) error {
