@@ -15,12 +15,12 @@ const (
 
 // TODO: [ ] Shift everything to flag based, support terminal inputs and CLI
 // TODO: [ ] Refactor the code.
-//
-//	TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
-//	TODO: [ ] Why are there print statements in files other than main.
-//	TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
-//  TODO: [ ] Add verbose option that allows for prints in "inside" functions (anything aside from main)
-// 	TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
+// 
+// TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
+// TODO: [ ] Why are there print statements in files other than main.
+// TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
+// TODO: [ ] Add verbose option that allows for prints in "inside" functions (anything aside from main)
+// TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
 
 var (
 	TUI bool
@@ -192,18 +192,24 @@ func main() {
 		switch cmd {
 		case "install":
 			{
-				var username string
-				flag.StringVar(&username, "-u", "", "Username to Install PKr")
-				flag.Parse()
+				installCmd := flag.NewFlagSet("install", flag.ExitOnError)
+				username := installCmd.String("u", "", "Username to Install PKr")
 				
-				err := root.Install(username)
+				installCmd.Parse(os.Args[3:])
+				if *username == "" {
+					fmt.Println("Error: Username is required for install")
+					return
+				}
+				
+				fmt.Println("Creating User: ", *username)
+				err := root.Install(*username)
 				if err != nil {
 					fmt.Println("Could not Install PKr.")
 					fmt.Println(err)
 					return
 				}
 
-				fmt.Printf(" ~ Created User : %s\n", username)
+				fmt.Printf(" ~ Created User : %s\n", *username)
 				return
 			}
 
@@ -215,22 +221,26 @@ func main() {
 
 		case "clone":
 			{
-				var workspace_ip string
-				var workspace_name string
-				var workspace_password string
+				cloneCmd := flag.NewFlagSet("clone", flag.ExitOnError)
+				
+				workspace_ip := cloneCmd.String("ip", "", "(*) Clone Workspace IP")
+				workspace_name := cloneCmd.String("wn", "", "(*) Workspace Name")
+				workspace_password := cloneCmd.String("wp", "", "(*) Workspace Password ")
 
-				flag.StringVar(&workspace_ip, "ip", "", "(*) Clone Workspace IP")
-				flag.StringVar(&workspace_name, "wn", "", "(*) Workspace Name")
-				flag.StringVar(&workspace_password, "wp", "", "(*) Workspace Password ")
+				cloneCmd.Parse(os.Args[3:])
+				if *workspace_ip == "" && *workspace_name == "" && *workspace_password == ""{
+					fmt.Println("Error: Username is required for install")
+					return
+				}
 
-				err := root.Clone(workspace_ip, workspace_name, workspace_password)
+				err := root.Clone(*workspace_ip, *workspace_name, *workspace_password)
 				if err != nil {
-					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, workspace_ip)
+					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", *workspace_name, *workspace_ip)
 					fmt.Println(err)
 					return
 				}
 
-				fmt.Printf("Successfully Cloned Workspace: %s\n", workspace_name)
+				fmt.Printf("Successfully Cloned Workspace: %s\n", *workspace_name)
 				return
 
 			}
@@ -238,10 +248,10 @@ func main() {
 		// Maybe its Done
 		case "init":
 			{
-				var workspace_password string
-				flag.StringVar(&workspace_password, "wp", "", "(*) Workspace Password ")
+				initCmd := flag.NewFlagSet("init", flag.ExitOnError)
+				workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
 				
-				if err := root.Init(workspace_password); err != nil {
+				if err := root.Init(*workspace_password); err != nil {
 					fmt.Println("Error Occured in Initialize a New Workspace")
 					fmt.Printf("error: %v\n", err)
 					return
