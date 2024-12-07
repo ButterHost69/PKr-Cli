@@ -24,10 +24,21 @@ import (
 // 	SERVER_LOG_FILE = ROOT_DIR + "\\serverlogs.txt"
 // )
 
+var (
+	IP_ADDR	string
+)
 
+func Init(){
+	IP_ADDR = os.Getenv("PKR-IP")
+	if IP_ADDR == "" {
+		IP_ADDR = ":9000"
+	}
+}
 
 func main(){
-	lis, err := net.Listen("tcp", ":9000")
+	Init()
+
+	lis, err := net.Listen("tcp", IP_ADDR)
 	if err != nil {
 		services.AddUserLogEntry(err)
 	}

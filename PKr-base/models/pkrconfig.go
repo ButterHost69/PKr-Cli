@@ -3,16 +3,15 @@ package models
 import (
 	// "ButterHost69/PKr-base/services"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
 
-	"github.com/ButterHost69/PKr-cli/models"
+
 	fake "github.com/brianvoe/gofakeit/v7"
-	// "github.com/ButterHost69/PKr-cli/models"
+
 )
 
 type PKRConfig struct {
@@ -97,7 +96,7 @@ func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string)(string, error
 		}
 	}
 
-	return "",errors.New(fmt.Sprintf("no such ip exists : %v\n", ipaddr))
+	return "",fmt.Errorf("no such ip exists : %v\n", ipaddr)
 }
 
 func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
@@ -124,7 +123,7 @@ func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
 func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	file, err := os.Open(workspace_config_path)
 	if err != nil {
-		models.AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
+		AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
 		return PKRConfig{}, err
 	}
 	defer file.Close()
@@ -133,7 +132,7 @@ func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pkrConfig)
 	if err != nil {
-		models.AddUsersLogEntry("error in decoding json data")
+		AddUsersLogEntry("error in decoding json data")
 		return PKRConfig{}, err
 	}
 

@@ -52,11 +52,11 @@ func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string
 
 	return nil
 }
-// TODO: [ ] Fix the log part
+// TODO: [X] Fix the log part
 func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	file, err := os.Open(workspace_config_path)
 	if err != nil {
-		// models.AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
+		AddUsersLogEntry(workspace_config_path, "error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
 		return PKRConfig{}, err
 	}
 	defer file.Close()
@@ -65,7 +65,7 @@ func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&pkrConfig)
 	if err != nil {
-		// models.AddUsersLogEntry("error in decoding json data")
+		AddUsersLogEntry(workspace_config_path, "error in decoding json data")
 		return PKRConfig{}, err
 	}
 

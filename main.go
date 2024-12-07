@@ -4,18 +4,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/ButterHost69/PKr-cli/root"
 )
 
-const (
-	BACKGROUND_SERVER_PORT = 9000
-)
-
-// TODO: [ ] Shift everything to flag based, support terminal inputs and CLI
-// TODO: [ ] Refactor the code.
-// 
+// TODO: [ ] Shift everything to flag based, support terminal inputs and CLI - Server Commands Remaining
+// TODO: [X] Refactor the code.
+//
 // TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
 // TODO: [ ] Why are there print statements in files other than main.
 // TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
@@ -25,12 +22,44 @@ const (
 var (
 	TUI bool
 	CLI bool
+	BACKGROUND_SERVER_PORT int
+	
 )
 
 func Init() {
+	// flag.IntVar(&BACKGROUND_SERVER_PORT, "ip", 9000, "Other Users BACKGROUND Port")
+	value := os.Getenv("PKR-IP")
+	if value == "" {
+		value = ":9000"
+	}
+	BACKGROUND_SERVER_PORT, _ = strconv.Atoi(value)
+	
 	flag.BoolVar(&TUI, "tui", false, "Use Application in TUI Mode")
 	flag.BoolVar(&CLI, "cli", false, "Use Application in CLI Mode")
 	flag.Parse()
+}
+
+func PrintMode(){
+	fmt.Println("Must Define Mode to use PKr in")
+	fmt.Println("	1] `PKr -tui` -> For Terminal User Interface. Takes Input through stdout, requires less flags")
+	fmt.Println("	2] `PKr -cli` -> For Command Line Interface. Requires Input as flags")
+}
+
+func PrintArguments(){
+	fmt.Printf("Required Minimum 3 Args\n\n")
+	fmt.Println("Valid Parameters:")
+	fmt.Println("	1] install -> Create User and Install PKr")
+	fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
+	fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
+	fmt.Println("	4] list -> List all Send and Get Workspaces")
+	fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
+}
+
+func PrintServerOptions(){
+	fmt.Println("server requires additional arguments")
+	fmt.Println("Valid Arguments:")
+	fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
+	fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
 }
 
 func main() {
@@ -39,20 +68,12 @@ func main() {
 	// TUI -> Takes Input from stdin and print output/errors on stdout
 	// CLI -> Input Passed as flag with command, output/errors on stdout
 	if !TUI && !CLI {
-		fmt.Println("Must Define Mode to use PKr in")
-		fmt.Println("	1] `PKr -tui` -> For Terminal User Interface. Takes Input through stdout, requires less flags")
-		fmt.Println("	2] `PKr -cli` -> For Command Line Interface. Requires Input as flags")
+		PrintMode()
 		return
 	}
 
 	if len(os.Args) < 3 {
-		fmt.Printf("Required Minimum 3 Args\n\n")
-		fmt.Println("Valid Parameters:")
-		fmt.Println("	1] install -> Create User and Install PKr")
-		fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
-		fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
-		fmt.Println("	4] list -> List all Send and Get Workspaces")
-		fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
+		PrintArguments()
 		return
 	}
 
@@ -101,7 +122,7 @@ func main() {
 				fmt.Print("> Enter the Workspace Password: ")
 				fmt.Scan(&workspace_password)
 
-				err := root.Clone(workspace_ip, workspace_name, workspace_password)
+				err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
 				if err != nil {
 					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, workspace_ip)
 					fmt.Println(err)
@@ -145,10 +166,7 @@ func main() {
 		case "server":
 			{
 				if len(os.Args) < 4 {
-					fmt.Println("server requires additional arguments")
-					fmt.Println("Valid Arguments:")
-					fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
-					fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
+					PrintServerOptions()
 					return
 				}
 				opts := strings.ToLower(os.Args[3])
@@ -167,28 +185,21 @@ func main() {
 					}
 				default:
 					{
-						fmt.Printf("Incorrect Argument %s provided...\n\n", opts)
-						fmt.Println("Valid Arguments:")
-						fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
-						fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
+						PrintServerOptions()
+						return
 					}
 				}
 			}
 		default:
 			{
-				fmt.Printf("Incorrect Parameter %s provided...\n\n", cmd)
-				fmt.Println("Valid Parameters:")
-				fmt.Println("	1] install -> Create User and Install PKr")
-				fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
-				fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
-				fmt.Println("	4] list -> List all Send and Get Workspaces")
-				fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
+				PrintArguments()
+				return
 			}
 		}
 	}
 
 	if CLI {
-		// TODO: [ ] Required %s Parameter than display usage when flags are not provided, by checking if val == ""
+		// TODO: [X] Required %s Parameter than display usage when flags are not provided, by checking if val == ""
 		switch cmd {
 		case "install":
 			{
@@ -198,6 +209,7 @@ func main() {
 				installCmd.Parse(os.Args[3:])
 				if *username == "" {
 					fmt.Println("Error: Username is required for install")
+					fmt.Println(`Usage: PKr -cli install -u="username"`)
 					return
 				}
 				
@@ -229,11 +241,12 @@ func main() {
 
 				cloneCmd.Parse(os.Args[3:])
 				if *workspace_ip == "" && *workspace_name == "" && *workspace_password == ""{
-					fmt.Println("Error: Username is required for install")
+					fmt.Println("Error: Workspace IP and Name and Password required")
+					cloneCmd.Usage()
 					return
 				}
 
-				err := root.Clone(*workspace_ip, *workspace_name, *workspace_password)
+				err := root.Clone(BACKGROUND_SERVER_PORT, *workspace_ip, *workspace_name, *workspace_password)
 				if err != nil {
 					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", *workspace_name, *workspace_ip)
 					fmt.Println(err)
@@ -250,6 +263,13 @@ func main() {
 			{
 				initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 				workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
+				
+				initCmd.Parse(os.Args[3:])
+				if *workspace_password == ""{
+					fmt.Println("Error: Workspace Password required")
+					initCmd.Usage()
+					return
+				}
 				
 				if err := root.Init(*workspace_password); err != nil {
 					fmt.Println("Error Occured in Initialize a New Workspace")
@@ -276,13 +296,11 @@ func main() {
 		// Try to make the code as swappable as possible
 		//
 		// Was working on server setup ~ check models, it is still partial
+		// TODO: [ ] CLI remaining For server part. Flags are not taken
 		case "server":
 			{
 				if len(os.Args) < 4 {
-					fmt.Println("server requires additional arguments")
-					fmt.Println("Valid Arguments:")
-					fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
-					fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
+					PrintServerOptions()
 					return
 				}
 				opts := strings.ToLower(os.Args[3])
@@ -301,22 +319,13 @@ func main() {
 					}
 				default:
 					{
-						fmt.Printf("Incorrect Argument %s provided...\n\n", opts)
-						fmt.Println("Valid Arguments:")
-						fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
-						fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
+						PrintServerOptions()
 					}
 				}
 			}
 		default:
 			{
-				fmt.Printf("Incorrect Parameter %s provided...\n\n", cmd)
-				fmt.Println("Valid Parameters:")
-				fmt.Println("	1] install -> Create User and Install PKr")
-				fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
-				fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
-				fmt.Println("	4] list -> List all Send and Get Workspaces")
-				fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
+				PrintArguments()
 			}
 		}
 	}

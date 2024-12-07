@@ -13,13 +13,13 @@ import (
 )
 
 // TODO: [ ] Temporary, Find a Better Way ---
-const (
-	BACKGROUND_SERVER_PORT = 9000
-)
+// const (
+// 	BACKGROUND_SERVER_PORT = 9000
+// )
 // ---
 
 
-func Clone(workspace_ip, workspace_name, workspace_password string) error {
+func Clone(BACKGROUND_SERVER_PORT int ,workspace_ip, workspace_name, workspace_password string) error {
 	// [X] Get Public Key From the Host Original Source PC 
 	// [X]  Encrypt Password 
 	// [X]  Read Our Key 
@@ -29,7 +29,7 @@ func Clone(workspace_ip, workspace_name, workspace_password string) error {
 	// [X]  Decrypt the file 
 	// [X]  Unzip the File 
 
-	// [ ] Get and Encrypt Key
+	// [X] Get and Encrypt Key
 	public_key, err := dialer.GetPublicKey(workspace_ip)
 	if err != nil {
 		return fmt.Errorf("error Occured in Retrieving Public Key.\nerror:%v", err)

@@ -1,0 +1,6 @@
+# Just for trying doesnt work [orginally for automating testing]
+.gitignore
+.git
+tmp/
+PKr-cli.exe
+PKr-base/PKr-base.exe

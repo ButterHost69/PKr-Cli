@@ -27,5 +27,12 @@ clean:
 	del $(TEST_DEST)\PKr-base.exe
 	del $(TEST_DEST)\PKr-cli.exe
 
+# Just for trying doesnt work [orginally for automating testing]
+docker_build:
+	docker build -t pkr-cli .
+
+docker_compose:
+	docker-compose up --build
+
 .PHONY: build2test build copy clean protofiles
 
