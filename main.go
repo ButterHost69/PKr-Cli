@@ -105,7 +105,25 @@ func main() {
 
 		case "get":
 
-		case "push":
+		case "push":{
+			dir, err := os.Getwd()
+			if err != nil {
+				fmt.Println("Could not Get Directory Name: ")
+					fmt.Println(err)
+					return
+			}
+
+			workspace_namel := strings.Split(dir, "\\")
+			workspace_name := workspace_namel[len(workspace_namel) - 1]
+			fmt.Println("Pushing Workpace: ", workspace_name)
+
+			err := root.Push(workspace_name)
+			if err != nil {
+				fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
+				fmt.Println(err)
+				return
+			}
+		}
 
 		case "clone":
 			{
