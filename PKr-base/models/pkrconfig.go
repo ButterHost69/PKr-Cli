@@ -15,15 +15,16 @@ import (
 )
 
 type PKRConfig struct {
-	WorkspaceName 	string		`json:"workspace_name"`
+	WorkspaceName 	string			`json:"workspace_name"`
 	AllConnections	[]Connection	`json:"all_connections"`
+	Updates_Hash 	[]string		`json:"updates_hash"`
 }
 
 type Connection struct {
-	Username      string `json:"username"`
-	CurrentIP     string `json:"current_ip"`
-	CurrentPort   string `json:"current_port"`
-	PublicKeyPath string `json:"public_key_path"`
+	Username      	string 		`json:"username"`
+	CurrentIP     	string 		`json:"current_ip"`
+	CurrentPort   	string 		`json:"current_port"`
+	PublicKeyPath 	string 		`json:"public_key_path"`
 }
 
 const (

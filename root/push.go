@@ -77,12 +77,23 @@ func ZipData(workspace_path string) (string, error) {
 	return zipFileName, nil
 }
 
+
+// [ ] Generate Hash of Files
+// [ ] Add to their .PKr file
+// [ ] Notify all Connections 
 func Push(workspace_name string) error {
 	workspace_path, err := models.GetWorkspaceFilePath(workspace_name)
 	if err != nil {
 		return fmt.Errorf("could find workspace.\nError: %v", err)
 	}
 	zipfile, err := ZipData(workspace_path)
+	if err != nil {
+		return fmt.Errorf("could not zip data.\nError: %v", err)
+	}
+
+	fmt.Println("[Log Delete Later] Zipfile Path: ", zipfile)
+	
+	err = models.AddNewPushToConfig(workspace_name, zipfile)
 	if err != nil {
 		return fmt.Errorf("could not zip data.\nError: %v", err)
 	}

@@ -9,15 +9,16 @@ import (
 )
 
 type PKRConfig struct {
-	WorkspaceName 	string		`json:"workspace_name"`
+	WorkspaceName 	string			`json:"workspace_name"`
 	AllConnections	[]Connection	`json:"all_connections"`
+	Updates_Hash 	[]string		`json:"updates_hash"`
 }
 
 type Connection struct {
-	Username      string `json:"username"`
-	CurrentIP     string `json:"current_ip"`
-	CurrentPort   string `json:"current_port"`
-	PublicKeyPath string `json:"public_key_path"`
+	Username      	string 		`json:"username"`
+	CurrentIP     	string 		`json:"current_ip"`
+	CurrentPort   	string 		`json:"current_port"`
+	PublicKeyPath 	string 		`json:"public_key_path"`
 }
 
 const (
@@ -118,5 +119,20 @@ func AddLogEntry(workspace_name string, log_entry string) (error){
 	return nil
 }
 
+func AddNewPushToConfig(workspace_name, zipfile_path string) error {
+	workspace_path, err := GetWorkspaceFilePath(workspace_name)
+	if err != nil {
+		return err
+	}
 
+	workspace_path += WORKSPACE_CONFIG_FILE_PATH 
+	// fmt.Println("[LOG DELETE LATER]Workspace Path: ", workspace_path)
+	
+	workspace_json, err := readFromPKRConfigFile(workspace_path)
+	if err != nil {
+		return fmt.Errorf("could not add entry to config file.\nError: %e", err)
+	}
 
+	workspace_json.Updates_Hash = append(workspace_json.Updates_Hash, zipfile_path)
+	return nil
+}

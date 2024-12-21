@@ -117,7 +117,7 @@ func main() {
 			workspace_name := workspace_namel[len(workspace_namel) - 1]
 			fmt.Println("Pushing Workpace: ", workspace_name)
 
-			err := root.Push(workspace_name)
+			err = root.Push(workspace_name)
 			if err != nil {
 				fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
 				fmt.Println(err)
