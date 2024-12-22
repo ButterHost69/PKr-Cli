@@ -47,5 +47,4 @@ func Server_Setup() {
 	}
 
 	fmt.Println("Entry added to serverConfig.json file")
-	return
 }

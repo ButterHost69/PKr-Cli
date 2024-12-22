@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ButterHost69/PKr-cli/encrypt"
 	"github.com/ButterHost69/PKr-cli/models"
 )
 
@@ -74,13 +75,20 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
-	return zipFileName, nil
+	return workspace_path + "\\.PKr\\" + zipFileName, nil
 }
 
 
-// [ ] Generate Hash of Files
+// [ ] Generate Hash of Zip Files
 // [ ] Add to their .PKr file
 // [ ] Notify all Connections 
+
+// TODO:
+// 	[ ] Test the Entire code nothing is tested
+
+// LATER UPDATE:
+// 		[ ] Do the Zip and Create Hash in Memory before saving it
+// 		[ ]
 func Push(workspace_name string) error {
 	workspace_path, err := models.GetWorkspaceFilePath(workspace_name)
 	if err != nil {
@@ -92,13 +100,19 @@ func Push(workspace_name string) error {
 	}
 
 	fmt.Println("[Log Delete Later] Zipfile Path: ", zipfile)
-	
-	err = models.AddNewPushToConfig(workspace_name, zipfile)
+
+	generate_hash, err := encrypt.GenerateHash(zipfile)
+	if err != nil {
+		return fmt.Errorf("could hash file data: %s.\nError: %v", zipfile, err)
+	}
+
+	//  [ ] Rename Zip file to hash name
+	err = models.AddNewPushToConfig(workspace_name, generate_hash)
 	if err != nil {
 		return fmt.Errorf("could not zip data.\nError: %v", err)
 	}
 
-
+	
 	return nil
 	// generate_sha1 :=
 }
