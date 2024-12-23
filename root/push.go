@@ -106,13 +106,19 @@ func Push(workspace_name string) error {
 		return fmt.Errorf("could hash file data: %s.\nError: %v", zipfile, err)
 	}
 
-	//  [ ] Rename Zip file to hash name
+	generate_hash = generate_hash + ".zip"
+
+	if err  = os.Rename(zipfile, workspace_path + "\\.PKr\\" + generate_hash); err != nil {
+		return fmt.Errorf("could rename zip file to new hash name: %s.\nError: %v", generate_hash, err)
+	}
+
+	//  [X] Rename Zip file to hash name
 	err = models.AddNewPushToConfig(workspace_name, generate_hash)
 	if err != nil {
 		return fmt.Errorf("could not zip data.\nError: %v", err)
 	}
 
-	
+	// [ ] Notify all Connections
 	return nil
 	// generate_sha1 :=
 }
