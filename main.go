@@ -104,7 +104,8 @@ func main() {
 		case "uninstall":
 
 		case "get":
-
+		
+		// [ ] Test this code thoroughly - Use VMWare Maybe ?? 
 		case "push":{
 			dir, err := os.Getwd()
 			if err != nil {
@@ -117,12 +118,14 @@ func main() {
 			workspace_name := workspace_namel[len(workspace_namel) - 1]
 			fmt.Println("Pushing Workpace: ", workspace_name)
 
-			err = root.Push(workspace_name)
+			success, err := root.Push(workspace_name)
 			if err != nil {
 				fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
 				fmt.Println(err)
 				return
 			}
+
+			fmt.Printf("\nNotified %d Users !!\n", success)
 		}
 
 		case "clone":

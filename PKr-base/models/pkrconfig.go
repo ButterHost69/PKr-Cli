@@ -97,7 +97,7 @@ func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string)(string, error
 		}
 	}
 
-	return "",fmt.Errorf("no such ip exists : %v\n", ipaddr)
+	return "",fmt.Errorf("no such ip exists : %v", ipaddr)
 }
 
 func StorePublicKeys(workspace_keys_path string, key string) (string, error) {

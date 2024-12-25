@@ -136,3 +136,18 @@ func AddNewPushToConfig(workspace_name, zipfile_path string) error {
 	workspace_json.Updates_Hash = append(workspace_json.Updates_Hash, zipfile_path)
 	return nil
 }
+
+func GetWorkspaceConnectionsIP(workspace_path string)([]string, error){
+	ipList := []string{}
+	pkrconfig, err := readFromPKRConfigFile(workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH)
+	if err != nil {
+		return ipList, err
+	}
+
+	for _, connection := range(pkrconfig.AllConnections){
+		ipList = append(ipList, connection.CurrentIP)
+	}
+
+	return ipList, nil
+}
+

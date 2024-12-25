@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ButterHost69/PKr-cli/dialer"
 	"github.com/ButterHost69/PKr-cli/encrypt"
 	"github.com/ButterHost69/PKr-cli/models"
 )
@@ -89,38 +90,46 @@ func ZipData(workspace_path string) (string, error) {
 // LATER UPDATE:
 // 		[ ] Do the Zip and Create Hash in Memory before saving it
 // 		[ ]
-func Push(workspace_name string) error {
+func Push(workspace_name string) (int, error) {
 	workspace_path, err := models.GetWorkspaceFilePath(workspace_name)
 	if err != nil {
-		return fmt.Errorf("could find workspace.\nError: %v", err)
+		return -1, fmt.Errorf("could find workspace.\nError: %v", err)
 	}
 	zipfile, err := ZipData(workspace_path)
 	if err != nil {
-		return fmt.Errorf("could not zip data.\nError: %v", err)
+		return -1, fmt.Errorf("could not zip data.\nError: %v", err)
 	}
 
 	fmt.Println("[Log Delete Later] Zipfile Path: ", zipfile)
 
 	generate_hash, err := encrypt.GenerateHash(zipfile)
 	if err != nil {
-		return fmt.Errorf("could hash file data: %s.\nError: %v", zipfile, err)
+		return -1, fmt.Errorf("could hash file data: %s.\nError: %v", zipfile, err)
 	}
 
 	generate_hash = generate_hash + ".zip"
 
 	if err  = os.Rename(zipfile, workspace_path + "\\.PKr\\" + generate_hash); err != nil {
-		return fmt.Errorf("could rename zip file to new hash name: %s.\nError: %v", generate_hash, err)
+		return -1, fmt.Errorf("could rename zip file to new hash name: %s.\nError: %v", generate_hash, err)
 	}
 
 	//  [X] Rename Zip file to hash name
 	err = models.AddNewPushToConfig(workspace_name, generate_hash)
 	if err != nil {
-		return fmt.Errorf("could not zip data.\nError: %v", err)
+		return -1, fmt.Errorf("could not zip data.\nError: %v", err)
 	}
 
 	// [ ] Notify all Connections
-
+	connections, err := models.GetWorkspaceConnectionsIP(workspace_path)
+	if err != nil {
+		return -1, fmt.Errorf("could not get workspace connections IP.\nError: %v", err)
+	}
 	
-	return nil
+	success_count, err := dialer.PushToConnections(workspace_name, connections)
+	if err != nil {
+		return -1, fmt.Errorf("could not notify the connections.\nError: %v", err)
+	}
+	
+	return success_count, nil
 	// generate_sha1 :=
 }
