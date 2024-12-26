@@ -97,7 +97,7 @@ func DecryptData(cipherText string) (string, error) {
 	label := []byte("")
 	plaintext, err := rsa.DecryptOAEP(hash, rand.Reader, privKey, []byte(baseDecoded), label)
 	if err != nil {
-		fmt.Println("error in decrypting cipher text...")
+		fmt.Println("error in decrypting cipher text...", err)
 		return "", err
 	}
 

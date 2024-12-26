@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ROOT_DIR     = "..\\tmp"
+	ROOT_DIR     = "tmp"
 	MY_KEYS_PATH = ROOT_DIR + "\\mykeys"
 	CONFIG_FILE  = ROOT_DIR + "\\userConfig.json"
 	LOG_FILE = ROOT_DIR + "\\logs.txt"

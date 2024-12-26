@@ -43,7 +43,8 @@ func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Em
 	}, nil
 
 }
-
+// FIXME : IP is not stored when Connection is formed ... Look into it
+// FIXME: Public Key Is checked from somewhere else...in the root dir ../..
 func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, request *pb.InitRequest)(*pb.InitResponse, error){
 	// 1. Decrypt password [X]
 	// 2. Authenticate Request [X]
@@ -52,9 +53,12 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection (ctx context.Context, requ
 	// 5. Send the Response with port [X]
 	// 6. Open a Data Transfer Port and shit [Will be a separate Function not here] [X]
 	
+	// [ ] Find a Better Alternative
 	p, _ := peer.FromContext(ctx)
   	ip := p.Addr.String()
 
+	
+	// [ ] Check Could be Causing Errors
 	// Could Have Regex
 	re := regexp.MustCompile(`^\[::1\]`)
     ip = re.ReplaceAllString(ip, "192.168.29.182")

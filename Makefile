@@ -6,7 +6,7 @@ BASE_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-base\PKr-base.exe
 CLI_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-cli.exe
 
 TEST_DEST=C:\Users\palas\Desktop\Projs\PKr\PKr-test-runs\$(TEST)
-TEST=Test-4
+TEST=Test-5
 
 build2test: clean build copy
 

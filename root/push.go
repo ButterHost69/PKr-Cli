@@ -95,6 +95,8 @@ func Push(workspace_name string) (int, error) {
 	if err != nil {
 		return -1, fmt.Errorf("could find workspace.\nError: %v", err)
 	}
+
+	fmt.Println("Zip File Created ...")
 	zipfile, err := ZipData(workspace_path)
 	if err != nil {
 		return -1, fmt.Errorf("could not zip data.\nError: %v", err)
@@ -116,7 +118,7 @@ func Push(workspace_name string) (int, error) {
 	//  [X] Rename Zip file to hash name
 	err = models.AddNewPushToConfig(workspace_name, generate_hash)
 	if err != nil {
-		return -1, fmt.Errorf("could not zip data.\nError: %v", err)
+		return -1, fmt.Errorf("could add entry to PKR config file.\nError: %v", err)
 	}
 
 	// [ ] Notify all Connections

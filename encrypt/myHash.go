@@ -21,7 +21,6 @@ func GenerateHash(file_path string) (string, error) {
     log.Fatal(err)
   }
 
-  string_hash := string(h.Sum(nil))
-  return string_hash, nil
-
+  hash := h.Sum(nil)
+  return fmt.Sprintf("%x", hash), nil
 }

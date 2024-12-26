@@ -125,12 +125,12 @@ func AddNewPushToConfig(workspace_name, zipfile_path string) error {
 		return err
 	}
 
-	workspace_path += WORKSPACE_CONFIG_FILE_PATH 
+	workspace_path = workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH 
 	// fmt.Println("[LOG DELETE LATER]Workspace Path: ", workspace_path)
 	
 	workspace_json, err := readFromPKRConfigFile(workspace_path)
 	if err != nil {
-		return fmt.Errorf("could not add entry to config file.\nError: %e", err)
+		return fmt.Errorf("could not add entry to config file.\nError: %v", err)
 	}
 
 	workspace_json.Updates_Hash = append(workspace_json.Updates_Hash, zipfile_path)

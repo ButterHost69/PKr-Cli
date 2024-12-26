@@ -35,6 +35,7 @@ func Init(){
 	}
 }
 
+// TODO: [ ] Write "Push" Command notification server
 func main(){
 	Init()
 
