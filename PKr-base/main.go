@@ -54,10 +54,15 @@ func main(){
 	// All The functions written with it are not tested
 	go func ()  {
 		services.AddUserLogEntry("Update me Service Started")	
-		for {
-			serverList, err := models.GetAllServers()
+		serverList, err := models.GetAllServers()
 			if err != nil {
 				services.AddUserLogEntry(err)	
+		}
+
+		for {
+			// Quit For Loop if no Server list
+			if len(serverList) == 0 {
+				break
 			}
 
 			for _, server := range serverList{
