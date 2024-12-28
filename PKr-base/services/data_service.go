@@ -179,7 +179,27 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	
+	generate_hash, err := encrypt.GenerateHash(server.workspace_path + "\\.PKr\\" + zipped_filepath)
+	if err != nil {
+		logdata := fmt.Sprintf("Could Not Generate Hash Name for the Zip File\nError: %v", err)
+		models.AddLogEntry(request.WorkspaceName, logdata)
+		return err
+	}
+
+	generate_hash = generate_hash + ".zip"
+	if err  = os.Rename(server.workspace_path + "\\.PKr\\" + zipped_filepath, server.workspace_path + "\\.PKr\\" + generate_hash); err != nil {
+		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", generate_hash, zipped_filepath, err)
+		models.AddLogEntry(request.WorkspaceName, logdata)
+		return err
+	}
+
+	err = models.AddNewPushToConfig(request.WorkspaceName, strings.Split(generate_hash, ".")[0])
+	if err != nil {
+		logdata := fmt.Sprintf("could add entry to PKR config file.\nError: %v", err)
+		models.AddLogEntry(request.WorkspaceName, logdata)
+		return err
+	}
+
 	models.AddLogEntry(request.WorkspaceName, "Workspace Zipped")
 
 	key, err := encrypt.AESGenerakeKey(16)
@@ -198,7 +218,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	
 	models.AddLogEntry(request.WorkspaceName, "AES Keys Generated")
 
-	zipped_filepath = server.workspace_path + "\\.PKr\\" + zipped_filepath
+	zipped_filepath = server.workspace_path + "\\.PKr\\" + generate_hash
 	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v\nFilePath: %v", err,zipped_filepath)
@@ -209,7 +229,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	
 	models.AddLogEntry(request.WorkspaceName, "Zip AES is Encrypted")
 
-	// ## Uncomment Later ##
+	
 	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path , request.ConnectionIp)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Find Users Public Key\nError: %v", err)
@@ -217,7 +237,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	// ## Uncomment Later ##
+	
 	publicKey, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Read Users Public Key\nError: %v", err)
@@ -225,7 +245,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	// ## Uncomment Later ##
+	
 	encrypt_key, err := encrypt.EncryptData(string(key), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt Key\nError: %v", err)
@@ -233,7 +253,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	// ## Uncomment Later ##
+	
 	encrypt_iv, err := encrypt.EncryptData(string(iv), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt IV\nError: %v", err)

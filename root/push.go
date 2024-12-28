@@ -116,7 +116,7 @@ func Push(workspace_name string) (int, error) {
 	}
 
 	//  [X] Rename Zip file to hash name
-	err = models.AddNewPushToConfig(workspace_name, generate_hash)
+	err = models.AddNewPushToConfig(workspace_name, strings.Split(generate_hash, ".")[0])
 	if err != nil {
 		return -1, fmt.Errorf("could add entry to PKR config file.\nError: %v", err)
 	}

@@ -17,7 +17,7 @@ import (
 type PKRConfig struct {
 	WorkspaceName 	string			`json:"workspace_name"`
 	AllConnections	[]Connection	`json:"all_connections"`
-	Updates_Hash 	[]string		`json:"updates_hash"`
+	LastHash 		string		`json:"last_hash"`
 }
 
 type Connection struct {
@@ -187,5 +187,25 @@ func AddLogEntry(workspace_name string, log_entry any) (error){
 	return nil
 }
 
+func AddNewPushToConfig(workspace_name, zipfile_path string) error {
+	workspace_path, err := GetWorkspaceFilePath(workspace_name)
+	if err != nil {
+		return err
+	}
 
+	workspace_path = workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH 
+	// fmt.Println("[LOG DELETE LATER]Workspace Path: ", workspace_path)
+	
+	workspace_json, err := readFromPKRConfigFile(workspace_path)
+	if err != nil {
+		return fmt.Errorf("could not add entry to config file.\nError: %v", err)
+	}
 
+	workspace_json.LastHash = zipfile_path
+
+	if err := writeToPKRConfigFile(workspace_path, workspace_json)
+	err != nil {
+		return fmt.Errorf("error in writing the update hash to file: %s.\nError: %v", workspace_path, err)
+	}
+	return nil
+}
