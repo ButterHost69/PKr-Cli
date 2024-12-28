@@ -79,17 +79,17 @@ func ZipData(workspace_path string) (string, error) {
 	return workspace_path + "\\.PKr\\" + zipFileName, nil
 }
 
-
 // [ ] Generate Hash of Zip Files
 // [ ] Add to their .PKr file
-// [ ] Notify all Connections 
+// [ ] Notify all Connections
 
 // TODO:
 // 	[ ] Test the Entire code nothing is tested
 
 // LATER UPDATE:
-// 		[ ] Do the Zip and Create Hash in Memory before saving it
-// 		[ ]
+//
+//	[ ] Do the Zip and Create Hash in Memory before saving it
+//	[ ]
 func Push(workspace_name string) (int, error) {
 	workspace_path, err := models.GetWorkspaceFilePath(workspace_name)
 	if err != nil {
@@ -111,7 +111,7 @@ func Push(workspace_name string) (int, error) {
 
 	generate_hash = generate_hash + ".zip"
 
-	if err  = os.Rename(zipfile, workspace_path + "\\.PKr\\" + generate_hash); err != nil {
+	if err = os.Rename(zipfile, workspace_path+"\\.PKr\\"+generate_hash); err != nil {
 		return -1, fmt.Errorf("could rename zip file to new hash name: %s.\nError: %v", generate_hash, err)
 	}
 
@@ -126,12 +126,9 @@ func Push(workspace_name string) (int, error) {
 	if err != nil {
 		return -1, fmt.Errorf("could not get workspace connections IP.\nError: %v", err)
 	}
-	
-	success_count, err := dialer.PushToConnections(workspace_name, connections)
-	if err != nil {
-		return -1, fmt.Errorf("could not notify the connections.\nError: %v", err)
-	}
-	
+
+	success_count := dialer.PushToConnections(workspace_name, connections)
+
 	return success_count, nil
 	// generate_sha1 :=
 }

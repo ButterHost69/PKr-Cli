@@ -10,6 +10,7 @@ import (
 	"github.com/ButterHost69/PKr-cli/root"
 )
 
+// TODO: [ ] While Zipping File or Unzipping files, empty directory is ignored (Moit)
 // TODO: [ ] Shift everything to flag based, support terminal inputs and CLI - Server Commands Remaining
 // TODO: [X] Refactor the code.
 //
@@ -20,10 +21,9 @@ import (
 // TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
 
 var (
-	TUI bool
-	CLI bool
+	TUI                    bool
+	CLI                    bool
 	BACKGROUND_SERVER_PORT int
-	
 )
 
 func Init() {
@@ -33,19 +33,19 @@ func Init() {
 		value = ":9000"
 	}
 	BACKGROUND_SERVER_PORT, _ = strconv.Atoi(value)
-	
+
 	flag.BoolVar(&TUI, "tui", false, "Use Application in TUI Mode")
 	flag.BoolVar(&CLI, "cli", false, "Use Application in CLI Mode")
 	flag.Parse()
 }
 
-func PrintMode(){
+func PrintMode() {
 	fmt.Println("Must Define Mode to use PKr in")
 	fmt.Println("	1] `PKr -tui` -> For Terminal User Interface. Takes Input through stdout, requires less flags")
 	fmt.Println("	2] `PKr -cli` -> For Command Line Interface. Requires Input as flags")
 }
 
-func PrintArguments(){
+func PrintArguments() {
 	fmt.Printf("Required Minimum 3 Args\n\n")
 	fmt.Println("Valid Parameters:")
 	fmt.Println("	1] install -> Create User and Install PKr")
@@ -55,7 +55,7 @@ func PrintArguments(){
 	fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
 }
 
-func PrintServerOptions(){
+func PrintServerOptions() {
 	fmt.Println("server requires additional arguments")
 	fmt.Println("Valid Arguments:")
 	fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
@@ -104,29 +104,30 @@ func main() {
 		case "uninstall":
 
 		case "get":
-		
-		// [ ] Test this code thoroughly - Use VMWare Maybe ?? 
-		case "push":{
-			dir, err := os.Getwd()
-			if err != nil {
-				fmt.Println("Could not Get Directory Name: ")
+
+		// [ ] Test this code thoroughly - Use VMWare Maybe ??
+		case "push":
+			{
+				dir, err := os.Getwd()
+				if err != nil {
+					fmt.Println("Could not Get Directory Name: ")
 					fmt.Println(err)
 					return
+				}
+
+				workspace_namel := strings.Split(dir, "\\")
+				workspace_name := workspace_namel[len(workspace_namel)-1]
+				fmt.Println("Pushing Workpace: ", workspace_name)
+
+				success, err := root.Push(workspace_name)
+				if err != nil {
+					fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
+					fmt.Println(err)
+					return
+				}
+
+				fmt.Printf("\nNotified %d Users !!\n", success)
 			}
-
-			workspace_namel := strings.Split(dir, "\\")
-			workspace_name := workspace_namel[len(workspace_namel) - 1]
-			fmt.Println("Pushing Workpace: ", workspace_name)
-
-			success, err := root.Push(workspace_name)
-			if err != nil {
-				fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
-				fmt.Println(err)
-				return
-			}
-
-			fmt.Printf("\nNotified %d Users !!\n", success)
-		}
 
 		case "clone":
 			{
@@ -226,14 +227,14 @@ func main() {
 			{
 				installCmd := flag.NewFlagSet("install", flag.ExitOnError)
 				username := installCmd.String("u", "", "Username to Install PKr")
-				
+
 				installCmd.Parse(os.Args[3:])
 				if *username == "" {
 					fmt.Println("Error: Username is required for install")
 					fmt.Println(`Usage: PKr -cli install -u="username"`)
 					return
 				}
-				
+
 				fmt.Println("Creating User: ", *username)
 				err := root.Install(*username)
 				if err != nil {
@@ -255,13 +256,13 @@ func main() {
 		case "clone":
 			{
 				cloneCmd := flag.NewFlagSet("clone", flag.ExitOnError)
-				
+
 				workspace_ip := cloneCmd.String("ip", "", "(*) Clone Workspace IP")
 				workspace_name := cloneCmd.String("wn", "", "(*) Workspace Name")
 				workspace_password := cloneCmd.String("wp", "", "(*) Workspace Password ")
 
 				cloneCmd.Parse(os.Args[3:])
-				if *workspace_ip == "" && *workspace_name == "" && *workspace_password == ""{
+				if *workspace_ip == "" && *workspace_name == "" && *workspace_password == "" {
 					fmt.Println("Error: Workspace IP and Name and Password required")
 					cloneCmd.Usage()
 					return
@@ -284,14 +285,14 @@ func main() {
 			{
 				initCmd := flag.NewFlagSet("init", flag.ExitOnError)
 				workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
-				
+
 				initCmd.Parse(os.Args[3:])
-				if *workspace_password == ""{
+				if *workspace_password == "" {
 					fmt.Println("Error: Workspace Password required")
 					initCmd.Usage()
 					return
 				}
-				
+
 				if err := root.Init(*workspace_password); err != nil {
 					fmt.Println("Error Occured in Initialize a New Workspace")
 					fmt.Printf("error: %v\n", err)
