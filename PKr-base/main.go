@@ -8,6 +8,7 @@ import (
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"ButterHost69/PKr-base/services"
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -29,10 +30,14 @@ var (
 )
 
 func Init() {
+
+	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode")
 	IP_ADDR = os.Getenv("PKR-IP")
 	if IP_ADDR == "" {
 		IP_ADDR = ":9000"
 	}
+
+	
 }
 
 // TODO: [ ] Write "Push" Command notification server
@@ -42,16 +47,6 @@ func main() {
 	lis, err := net.Listen("tcp", IP_ADDR)
 	if err != nil {
 		fmt.Println("Error: ", err) // [ ]: For Debugging Only
-
-		// FIXME: Take PORTS as flag
-		// [ ]: Here, I'm using 9001 PORT if PORT 9000 is already used
-		// [ ]: Use some better method to select an PORT
-		IP_ADDR = ":9001"
-		lis, err = net.Listen("tcp", IP_ADDR)
-		if err != nil {
-			services.AddUserLogEntry(err)
-			os.Exit(1)
-		}
 	}
 
 	grpcServer := grpc.NewServer()
@@ -59,6 +54,7 @@ func main() {
 
 	pb.RegisterBackgroundServiceServer(grpcServer, &backgroundService)
 	fmt.Println("Server Started")
+	fmt.Println("Server running on: " + IP_ADDR)
 
 	// TODO: [ ] Test this code, neither human test nor code test done....
 	// All The functions written with it are not tested
