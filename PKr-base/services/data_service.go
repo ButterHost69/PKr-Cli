@@ -40,7 +40,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	zipped_hash := strings.Split(zipped_file_name, ".")[0]
 
 	fmt.Println("Data Service Hash File Name: " + zipped_file_name)
-	if err != nil {	
+	if err != nil {
 		logdata := fmt.Sprintf("Could Not Zip The File\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
@@ -211,8 +211,10 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string, worksp
 	if err != nil {
 		models.AddLogEntry(workspace_name, err)
 		errorchan <- err
+		os.Exit(1)
 	}
 
+	fmt.Println("Data Server Started on", port) // [ ] Debug
 	logdata = fmt.Sprintf("Started Listening to the Port: %v", str_port)
 	models.AddLogEntry(workspace_name, logdata)
 
@@ -243,6 +245,7 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string, worksp
 	portchan <- port
 
 	wg.Wait()
+	fmt.Println("Data Transfer Done ... Closing Data Server") // [ ] Debug
 	models.AddLogEntry(workspace_name, "Data Transfer Done... Closing Data Server")
 	grpcServer.GracefulStop()
 }

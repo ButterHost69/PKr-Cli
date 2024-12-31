@@ -3,7 +3,6 @@ package dialer
 import (
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
-	"ButterHost69/PKr-base/services"
 	"context"
 	"fmt"
 	"time"
@@ -21,7 +20,7 @@ func ScanForUpdatesOnStart() error {
 	if err != nil {
 		log_entry := "cannot read from workspace config file\nError: " + err.Error() + "\nSource: ScanForUpdatesOnStart() Dialer\n"
 		fmt.Println(log_entry) // [ ]: Debugging
-		services.AddUserLogEntry(log_entry)
+		// [ ]: Log Entry in Log file
 		return err
 	}
 
@@ -30,7 +29,7 @@ func ScanForUpdatesOnStart() error {
 		if err != nil {
 			log_entry := fmt.Sprintf("error while scanning for updates on start with %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
 			fmt.Println(log_entry) // [ ]: Debugging
-			services.AddUserLogEntry(log_entry)
+			// [ ]: Log Entry in Log file
 			continue
 		}
 
@@ -48,18 +47,24 @@ func ScanForUpdatesOnStart() error {
 			if err == context.DeadlineExceeded {
 				log_entry := fmt.Sprintf("error from sender while scanning for updates on start with %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer", getWorkspace, "Context Deadline Exceeded, NO RESPONSE FROM SERVER, INVALID ADDRESS(MAYBE)\n")
 				fmt.Println(log_entry) // [ ]: Debugging
-				services.AddUserLogEntry(log_entry)
+				// [ ]: Log Entry in Log file
 				continue
 			}
 			log_entry := fmt.Sprintf("error from sender while scanning for updates on start with %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
 			fmt.Println(log_entry) // [ ]: Debugging
-			services.AddUserLogEntry(log_entry)
+			// [ ]: Log Entry in Log file
 			continue
 		}
 
 		if res.NewUpdates {
-			// [ ]: Pull New Data from clients
 			fmt.Printf("New Data is Available: %#v\n", getWorkspace) // [ ]: Debugging
+			err := PullData(getWorkspace.WorkspaceName)
+			if err != nil {
+				log_entry := fmt.Sprintf("error while pulling new updates from %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
+				fmt.Println(log_entry) // [ ]: Debugging
+				// [ ]: Log Entry in Log file
+				continue
+			}
 			continue
 		}
 		fmt.Printf("No New Data is Available: %#v\n", getWorkspace) // [ ]: Debugging

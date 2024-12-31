@@ -2,6 +2,7 @@ package services
 
 import (
 	// "ButterHost69/PKr-base/encrypt"
+	"ButterHost69/PKr-base/dialer"
 	"ButterHost69/PKr-base/encrypt"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
@@ -150,15 +151,10 @@ func (s *BackgroundServer) NotifyPush(ctx context.Context, request *pb.NotifyPus
 	workspace_name := request.WorkspaceName
 
 	log_entry := "NEW UPDATE IN FILES OF " + workspace_name
-	models.AddLogEntry(workspace_name, log_entry) // [ ] Idk why this line isn't working maybe cuz log.txt isn't generated
+	models.AddUsersLogEntry(log_entry) // [ ] Idk why this line isn't working maybe cuz log.txt isn't generated
+	fmt.Println(log_entry)             // [ ] Debugging
 
-	fmt.Println(log_entry) // [ ] Remove this line, just for debugging
-
-	// [ ] Fetch the new data
-
-	// [ ] Compare Hashes
-
-	return &pb.NotifyPushResponse{Response: 200}, nil
+	return &pb.NotifyPushResponse{Response: 200}, dialer.PullData(workspace_name)
 }
 
 func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *pb.ScanForUpdatesRequest) (*pb.ScanForUpdatesResponse, error) {
@@ -193,4 +189,33 @@ func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *p
 		return &pb.ScanForUpdatesResponse{NewUpdates: false}, nil
 	}
 	return &pb.ScanForUpdatesResponse{NewUpdates: true}, nil
+}
+
+func (s *BackgroundServer) PullData(ctx context.Context, request *pb.PullDataRequest) (*pb.PullDataResponse, error) {
+	// Start New Data grpc Server and Transfer Data
+	portchan := make(chan int)
+	errorchan := make(chan error)
+
+	workspacePath, err := models.GetWorkspaceFilePath(request.WorkspaceName)
+	if err != nil {
+		log_entry := fmt.Sprintf("cannot get workspace's file path\nError: %s\nSource: PullData() Handler", err.Error())
+		models.AddLogEntry(request.WorkspaceName, log_entry)
+		fmt.Println(log_entry) // [ ]: Debug
+		return nil, err
+	}
+
+	go StartDataServer(120*time.Minute, request.WorkspaceName, workspacePath, portchan, errorchan)
+	select {
+	case port_num := <-portchan:
+		return &pb.PullDataResponse{
+			Port: int32(port_num),
+		}, nil
+	case err := <-errorchan:
+		log_entry := fmt.Sprintf("cannot get workspace's file path\nError: %s\nSource: PullData() Handler", err.Error())
+		models.AddLogEntry(request.WorkspaceName, log_entry)
+		fmt.Println(log_entry) // [ ]: Debug
+		return &pb.PullDataResponse{
+			Port: 0000,
+		}, err
+	}
 }

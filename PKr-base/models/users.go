@@ -48,9 +48,9 @@ type GetWorkspaceFolder struct {
 }
 
 type UsersConfig struct {
-	User           	string	      	`json:"user"`
-	BasePort		string	  		`json:"base_port"`
-	AllConnections []Connections 	`json:"all_connections"`
+	User           string        `json:"user"`
+	BasePort       string        `json:"base_port"`
+	AllConnections []Connections `json:"all_connections"`
 
 	Sendworkspaces []WorkspaceFolder    `json:"send_workspace"`
 	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
@@ -372,6 +372,32 @@ func UpdateBasePort(port string) error {
 
 	file.BasePort = port
 	err = writeToUserConfigFile(file)
-	
+
 	return err
+}
+
+// Update Last Hash (Used during Pulls)
+func UpdateGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string, last_hash string) error {
+	// WorkspaceName		string		`json:"workspace_name"`
+	// WorkspacePath    	string		`json:"workspace_path"`
+	// WorkspcaceIP			string		`json:"workspace_ip"`
+	// LastHash				string		`json:"last_hash"`
+
+	userConfig, err := ReadFromUserConfigFile()
+	if err != nil {
+		return err
+	}
+
+	for idx := range userConfig.GetWorkspaces {
+		if userConfig.GetWorkspaces[idx].WorkspaceName == workspace_name {
+			userConfig.GetWorkspaces[idx].LastHash = last_hash
+			break
+		}
+	}
+
+	if err := writeToUserConfigFile(userConfig); err != nil {
+		return err
+	}
+
+	return nil
 }

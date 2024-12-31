@@ -2,6 +2,7 @@ package encrypt
 
 import (
 	// "bytes"
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -11,7 +12,7 @@ import (
 
 // import "path/filepath"
 
-func AESGenerakeKey(length int)([]byte, error) {
+func AESGenerakeKey(length int) ([]byte, error) {
 	// keep length 16, 24, 32 -> 128, 192, 256 respectively
 	key := make([]byte, length)
 	if _, err := io.ReadFull(rand.Reader, key); err != nil {
@@ -21,7 +22,7 @@ func AESGenerakeKey(length int)([]byte, error) {
 	return key, nil
 }
 
-func AESGenerateIV()([]byte, error) {
+func AESGenerateIV() ([]byte, error) {
 	iv := make([]byte, aes.BlockSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, err
@@ -30,7 +31,7 @@ func AESGenerateIV()([]byte, error) {
 	return iv, nil
 }
 
-func AESEncrypt(source_filepath string, destination_filepath string ,key []byte, IV []byte) (error) {
+func AESEncrypt(source_filepath string, destination_filepath string, key []byte, IV []byte) error {
 	inputFile, err := os.Open(source_filepath)
 	if err != nil {
 		return err
@@ -60,7 +61,7 @@ func AESEncrypt(source_filepath string, destination_filepath string ,key []byte,
 }
 
 // func AESDecrypt(){}
-// Needs Work... Later Me will do it 
+// Needs Work... Later Me will do it
 func decryptFile(filename string, key []byte, iv []byte) error {
 	inputFile, err := os.Open(filename)
 	if err != nil {
@@ -88,4 +89,40 @@ func decryptFile(filename string, key []byte, iv []byte) error {
 	}
 
 	return nil
+}
+
+// Take file in []byte, key and iv in string
+//
+// Returns []byte
+func AESDecrypt(data []byte, key, iv string) ([]byte, error) {
+	// Convert key and IV from string to []byte
+	// keyBytes, err := hex.DecodeString(key)
+	// if err != nil {
+	// 	return nil, errors.New("invalid key format")
+	// }
+
+	// ivBytes, err := hex.DecodeString(iv)
+	// if err != nil {
+	// 	return nil, errors.New("invalid IV format")
+	// }
+
+	// Create the AES cipher
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a new stream for decryption
+	stream := cipher.NewCTR(block, []byte(iv))
+
+	// Create a buffer to hold the decrypted data
+	var decryptedData bytes.Buffer
+	writer := &cipher.StreamWriter{S: stream, W: &decryptedData}
+
+	// Write the decrypted data to the buffer
+	if _, err := writer.Write(data); err != nil {
+		return nil, err
+	}
+
+	return decryptedData.Bytes(), nil
 }
