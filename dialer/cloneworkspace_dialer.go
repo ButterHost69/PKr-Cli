@@ -1,20 +1,14 @@
 package dialer
 
 import (
-	"archive/zip"
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/ButterHost69/PKr-cli/encrypt"
+	"github.com/ButterHost69/PKr-cli/filetracker"
 	"github.com/ButterHost69/PKr-cli/models"
 	"github.com/ButterHost69/PKr-cli/pb"
 	"google.golang.org/grpc"
@@ -81,88 +75,6 @@ func getMyIP() (string, error) {
 	return localAddr.IP.String(), nil
 }
 
-func UnzipData(src, dest string) error {
-	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
-	zipper, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer zipper.Close()
-	totalfiles := 0
-	for count, file := range zipper.File {
-		if file.FileInfo().IsDir() {
-			continue
-		} else {
-			dir, _ := filepath.Split(file.Name)
-			if dir != "" {
-				if err := os.MkdirAll(dir, 0777); err != nil {
-					return err
-				}
-			}
-			unzipfile, err := os.Create(file.Name)
-			if err != nil {
-				return err
-			}
-			defer unzipfile.Close()
-
-			content, err := file.Open()
-			if err != nil {
-				return err
-			}
-			defer content.Close()
-
-			_, err = io.Copy(unzipfile, content)
-			if err != nil {
-				return err
-			}
-			totalfiles += 1
-			fmt.Printf("%d] File: %s\n", count, unzipfile.Name())
-		}
-	}
-	fmt.Printf("\nTotal Files Recieved: %d\n", totalfiles)
-	return nil
-}
-
-func t_UnzipData(src, dest string) error {
-	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
-	zipped_data, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	zipped_data.Close()
-
-	for _, file := range zipped_data.File {
-		if file.FileInfo().IsDir() {
-			continue
-		}
-
-		filepath := filepath.Join(dest, file.Name)
-		if err := os.MkdirAll(filepath, 0777); err != nil {
-			return nil
-		}
-
-		f, err := os.Create(filepath)
-		if err != nil {
-			return nil
-		}
-		defer f.Close()
-
-		content, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer content.Close()
-
-		_, err = io.Copy(f, content)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s", f.Name())
-	}
-
-	return nil
-}
-
 func GetData(workspace_name, workspace_only_ip, port string, workspacePath string) error {
 	// Get Data, Key, IV
 	// Decrypt Key, IV
@@ -177,6 +89,8 @@ func GetData(workspace_name, workspace_only_ip, port string, workspacePath strin
 	if err != nil {
 		return err
 	}
+
+	// [ ] : Send Port, from UserConfig File
 	my_ip = my_ip + ":9000"
 	// Comment This Later
 	fmt.Println("IP: " + my_ip)
@@ -239,34 +153,18 @@ func GetData(workspace_name, workspace_only_ip, port string, workspacePath strin
 		return err
 	}
 
-	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
-	zip_file_path := workspacePath + "\\.PKr\\" + zipFileName
-	zippedfile, err := os.Create(zip_file_path)
-	if err != nil {
-		return err
-	}
-	defer zippedfile.Close()
-
-	zippedfile.Write(data)
-
-	// Delete all files in the GetWorkspace Dir except for .PKr
-	files, err := ioutil.ReadDir(workspacePath)
-	if err != nil {
+	zip_file_path := workspacePath + "\\.PKr\\" + last_hash + ".zip"
+	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		return err
 	}
 
-	fmt.Printf("Deleting All Files at: %s\n\n", workspacePath)
-	for _, file := range files {
-		if file.Name() != ".PKr" && file.Name() != "PKr-base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp" {
-			if err = os.RemoveAll(path.Join([]string{workspacePath, file.Name()}...)); err != nil {
-				return err
-			}
-		}
+	if err = filetracker.CleanFilesFromWorkspace(workspacePath); err != nil {
+		return err
 	}
 
 	// Unzip Content
 	// unzip_file_path := getworkspace.WorkspacePath
-	if err = UnzipData(zip_file_path, workspacePath+"\\"); err != nil {
+	if err = filetracker.UnzipData(zip_file_path, workspacePath+"\\"); err != nil {
 		return err
 	}
 

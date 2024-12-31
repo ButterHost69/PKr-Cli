@@ -158,3 +158,45 @@ func ZipData(workspace_path string) (string, error) {
 	fmt.Println("New Zip File Path: " + fullHashFilePath)
 	return hashFileName, nil
 }
+
+func UnzipData(src, dest string) error {
+	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
+	zipper, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer zipper.Close()
+	totalfiles := 0
+	for count, file := range zipper.File {
+		if file.FileInfo().IsDir() {
+			continue
+		} else {
+			dir, _ := filepath.Split(file.Name)
+			if dir != "" {
+				if err := os.MkdirAll(dir, 0777); err != nil {
+					return err
+				}
+			}
+			unzipfile, err := os.Create(file.Name)
+			if err != nil {
+				return err
+			}
+			defer unzipfile.Close()
+
+			content, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer content.Close()
+
+			_, err = io.Copy(unzipfile, content)
+			if err != nil {
+				return err
+			}
+			totalfiles += 1
+			fmt.Printf("%d] File: %s\n", count, unzipfile.Name())
+		}
+	}
+	fmt.Printf("\nTotal Files Recieved: %d\n", totalfiles)
+	return nil
+}
