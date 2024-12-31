@@ -9,38 +9,36 @@ import (
 	"os"
 	"path/filepath"
 
-
 	fake "github.com/brianvoe/gofakeit/v7"
-
 )
 
 type PKRConfig struct {
-	WorkspaceName 	string			`json:"workspace_name"`
-	AllConnections	[]Connection	`json:"all_connections"`
-	LastHash 		string		`json:"last_hash"`
+	WorkspaceName  string       `json:"workspace_name"`
+	AllConnections []Connection `json:"all_connections"`
+	LastHash       string       `json:"last_hash"`
 }
 
 type Connection struct {
-	Username      	string 		`json:"username"`
-	CurrentIP     	string 		`json:"current_ip"`
-	CurrentPort   	string 		`json:"current_port"`
-	PublicKeyPath 	string 		`json:"public_key_path"`
+	Username      string `json:"username"`
+	CurrentIP     string `json:"current_ip"`
+	CurrentPort   string `json:"current_port"`
+	PublicKeyPath string `json:"public_key_path"`
 }
 
 const (
-	WORKSPACE_PKR_DIR = ".PKr"
-	LOGS_PKR_FILE_PATH = WORKSPACE_PKR_DIR + "\\logs.txt"
+	WORKSPACE_PKR_DIR          = ".PKr"
+	LOGS_PKR_FILE_PATH         = WORKSPACE_PKR_DIR + "\\logs.txt"
 	WORKSPACE_CONFIG_FILE_PATH = WORKSPACE_PKR_DIR + "\\workspaceConfig.json"
 )
 
-func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string) (error){
+func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string) error {
 	pkr_config_file_path := workspace_file_path + "\\" + WORKSPACE_CONFIG_FILE_PATH
 	if _, err := os.Stat(pkr_config_file_path); os.IsExist(err) {
 		fmt.Println("~ workspaceConfig.jso already Exists")
 		return err
 	}
 
-	pkrconf := PKRConfig {
+	pkrconf := PKRConfig{
 		WorkspaceName: workspace_name,
 	}
 
@@ -60,8 +58,8 @@ func CreatePKRConfigIfNotExits(workspace_name string, workspace_file_path string
 	return nil
 }
 
-func AddConnectionToPKRConfigFile(workspace_config_path string, connection Connection) (error){
-	pkrConfig, err := readFromPKRConfigFile(workspace_config_path)
+func AddConnectionToPKRConfigFile(workspace_config_path string, connection Connection) error {
+	pkrConfig, err := ReadFromPKRConfigFile(workspace_config_path)
 	if err != nil {
 		return err
 	}
@@ -85,24 +83,24 @@ func CreateSlug() string {
 	return gamerTag[g]
 }
 
-func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string)(string, error) {
-	pkrconfig, err := readFromPKRConfigFile(workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH)
+func GetConnectionsPublicKeyUsingIP(workspace_path, ipaddr string) (string, error) {
+	pkrconfig, err := ReadFromPKRConfigFile(workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH)
 	if err != nil {
 		return "", err
 	}
 
-	for _, connection := range(pkrconfig.AllConnections){
+	for _, connection := range pkrconfig.AllConnections {
 		if connection.CurrentIP == ipaddr {
 			return connection.PublicKeyPath, nil
 		}
 	}
 
-	return "",fmt.Errorf("no such ip exists : %v", ipaddr)
+	return "", fmt.Errorf("no such ip exists : %v", ipaddr)
 }
 
 func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
 	keyPath := workspace_keys_path + "\\" + CreateSlug() + ".pem"
-	file, err := os.OpenFile(keyPath,  os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	file, err := os.OpenFile(keyPath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +119,7 @@ func StorePublicKeys(workspace_keys_path string, key string) (string, error) {
 	return fullpath, nil
 }
 
-func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
+func ReadFromPKRConfigFile(workspace_config_path string) (PKRConfig, error) {
 	file, err := os.Open(workspace_config_path)
 	if err != nil {
 		AddUsersLogEntry("error in opening PKR config file.... pls check if .PKr/workspaceConfig.json available ")
@@ -141,7 +139,7 @@ func readFromPKRConfigFile(workspace_config_path string) (PKRConfig, error){
 	return pkrConfig, nil
 }
 
-func writeToPKRConfigFile(workspace_config_path string, newPKRConfing PKRConfig) (error){
+func writeToPKRConfigFile(workspace_config_path string, newPKRConfing PKRConfig) error {
 	jsonData, err := json.MarshalIndent(newPKRConfing, "", "	")
 	// fmt.Println(jsonData)
 	if err != nil {
@@ -163,7 +161,7 @@ func writeToPKRConfigFile(workspace_config_path string, newPKRConfing PKRConfig)
 
 // Logs Entry of all the events occurred related to the workspace
 // Also Creates the Log File by default
-func AddLogEntry(workspace_name string, log_entry any) (error){
+func AddLogEntry(workspace_name string, log_entry any) error {
 	workspace_path, err := GetWorkspaceFilePath(workspace_name)
 	if err != nil {
 		return err
@@ -172,18 +170,17 @@ func AddLogEntry(workspace_name string, log_entry any) (error){
 	// Adds the ".Pkr/logs.txt"
 	workspace_path += "\\" + LOGS_PKR_FILE_PATH
 
-	// Opens or Creates the Log File 
-	file, err := os.OpenFile(workspace_path,  os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	// Opens or Creates the Log File
+	file, err := os.OpenFile(workspace_path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return err
 	}
-	
+
 	defer file.Close()
 	log.SetOutput(file)
 	log.Println(log_entry)
 	// log.Println(log_entry, log.LstdFlags)
 
-		
 	return nil
 }
 
@@ -193,18 +190,17 @@ func AddNewPushToConfig(workspace_name, zipfile_path string) error {
 		return err
 	}
 
-	workspace_path = workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH 
+	workspace_path = workspace_path + "\\" + WORKSPACE_CONFIG_FILE_PATH
 	// fmt.Println("[LOG DELETE LATER]Workspace Path: ", workspace_path)
-	
-	workspace_json, err := readFromPKRConfigFile(workspace_path)
+
+	workspace_json, err := ReadFromPKRConfigFile(workspace_path)
 	if err != nil {
-		return fmt.Errorf("could not add entry to config file.\nError: %v", err)
+		return fmt.Errorf("could not read from config file.\nError: %v", err)
 	}
 
 	workspace_json.LastHash = zipfile_path
 
-	if err := writeToPKRConfigFile(workspace_path, workspace_json)
-	err != nil {
+	if err := writeToPKRConfigFile(workspace_path, workspace_json); err != nil {
 		return fmt.Errorf("error in writing the update hash to file: %s.\nError: %v", workspace_path, err)
 	}
 	return nil

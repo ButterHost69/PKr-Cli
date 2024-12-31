@@ -1,0 +1,39 @@
+Feature:
+    IP:PORT Address in User configs
+
+Problem:
+    IP:PORT Address of Pkr-Base(Service) should be stored in User configs instead of Pkr-Cli or Data Service's IP:PORT Address
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Feature:
+    Push Notification IP:PORT Problems
+
+Problem:
+    -> When a Receiver requests data from Sender using Pkr-Cli with suppose A.B.C.D:8001 IP Address
+    -> Now the sender logs IP of Pkr-Cli instead of Pkr-Base(Service) as a Receiver in his user configs
+    -> While notifying users about new pushed data, it notifies the user based on their IP Address of Pkr-Cli not Pkr-Base(Service)
+
+Feasible Solutions:
+    -> Make the PORT Address of Pkr-Base constant throughout all users. Not Appropriate Approach but works while development
+    -> While exchanging Public Keys or Data, also exchange the PORT Address of each other's Pkr-Base(Service)
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+Feature:
+    Data Transfer with Virtual Machine
+
+Problem:
+    To get our own IP Address, DNS lookup is used
+    But while requesting to the Virtual Machine, a private IP(192.168.137.1) is used
+
+Feasible Solutions:
+    There must be some flag or field provided so user can enter their own IP Address
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+Future Features:
+    -> Auto Update Services & User Interface, e.g. Crowd Strike

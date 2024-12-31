@@ -163,7 +163,7 @@ func t_UnzipData(src, dest string) error {
 	return nil
 }
 
-func GetData(workspace_name, workspace_ip, port string, workspacePath string) error {
+func GetData(workspace_name, workspace_only_ip, port string, workspacePath string) error {
 	// Get Data, Key, IV
 	// Decrypt Key, IV
 	// Decrypt Data
@@ -172,7 +172,7 @@ func GetData(workspace_name, workspace_ip, port string, workspacePath string) er
 	// Unzip data on the GetFolder
 	// Store Last Hash into Config Files
 
-	new_addr := workspace_ip + port
+	workspace_ip_with_port := workspace_only_ip + port
 	my_ip, err := getMyIP()
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ func GetData(workspace_name, workspace_ip, port string, workspacePath string) er
 	// Comment This Later
 	fmt.Println("IP: " + my_ip)
 	// ...
-	conn, err := grpc.NewClient(new_addr, grpc.WithInsecure())
+	conn, err := grpc.NewClient(workspace_ip_with_port, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
@@ -270,7 +270,7 @@ func GetData(workspace_name, workspace_ip, port string, workspacePath string) er
 		return err
 	}
 
-	if err = models.AddGetWorkspaceFolderToUserConfig(workspace_name, workspacePath, workspace_ip, last_hash); err != nil {
+	if err = models.AddGetWorkspaceFolderToUserConfig(workspace_name, workspacePath, workspace_ip_with_port, last_hash); err != nil {
 		return fmt.Errorf("error in adding GetConnection to the Main User Config Folder.\nerror:%v", err)
 	}
 

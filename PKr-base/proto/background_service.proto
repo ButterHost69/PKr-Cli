@@ -18,6 +18,7 @@ service BackgroundService {
 
     rpc NotifyPush (NotifyPushRequest) returns (NotifyPushResponse);
 
+    rpc ScanForUpdatesOnStart(ScanForUpdatesRequest) returns (ScanForUpdatesResponse);
 }
 
 message PublicKey {
@@ -54,6 +55,15 @@ message NotifyPushRequest {
 
 message NotifyPushResponse {
     int32 response = 1; // 200 [Valid ??]
+}
+
+message ScanForUpdatesRequest {
+    string workspace_name = 1;
+    string last_hash = 2;
+}
+
+message ScanForUpdatesResponse {
+    bool newUpdates = 1;
 }
 
 service DataService {
