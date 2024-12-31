@@ -29,7 +29,7 @@ func GetPublicKey(workspace_ip string) ([]byte, error) {
 	defer conn.Close()
 
 	client := pb.NewBackgroundServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 5)	
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 	defer cancel()
 
 	response, err := client.GetPublicKey(ctx, &emptypb.Empty{})
@@ -40,7 +40,7 @@ func GetPublicKey(workspace_ip string) ([]byte, error) {
 	return response.Key, nil
 }
 
-func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password, port string, public_key []byte)(int, error){
+func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password, port string, public_key []byte) (int, error) {
 	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 	if err != nil {
 		return 0, err
@@ -48,17 +48,17 @@ func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password
 	defer conn.Close()
 
 	client := pb.NewBackgroundServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute * 5)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 	defer cancel()
 
 	response, err := client.InitNewWorkSpaceConnection(ctx, &pb.InitRequest{
 		WorkspaceName: workspace_name,
-		Username: "",
-		Password: workspace_password,
-		PublicKey: public_key,
-		Port: port,
+		Username:      "",
+		Password:      workspace_password,
+		PublicKey:     public_key,
+		Port:          port,
 	})
-	
+
 	if err != nil {
 		return 0, err
 	}
@@ -70,8 +70,8 @@ func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password
 	return int(response.Port), nil
 }
 
-func getMyIP()(string, error){
-	conn, err := net.Dial("udp","8.8.8.8:80")
+func getMyIP() (string, error) {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		return "nil", err
 	}
@@ -81,7 +81,7 @@ func getMyIP()(string, error){
 	return localAddr.IP.String(), nil
 }
 
-func UnzipData(src, dest string)(error){
+func UnzipData(src, dest string) error {
 	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
 	zipper, err := zip.OpenReader(src)
 	if err != nil {
@@ -104,26 +104,26 @@ func UnzipData(src, dest string)(error){
 				return err
 			}
 			defer unzipfile.Close()
-			
+
 			content, err := file.Open()
 			if err != nil {
 				return err
 			}
 			defer content.Close()
-			
+
 			_, err = io.Copy(unzipfile, content)
 			if err != nil {
 				return err
 			}
 			totalfiles += 1
-			fmt.Printf("%d] File: %s\n",count, unzipfile.Name())
-		}	
+			fmt.Printf("%d] File: %s\n", count, unzipfile.Name())
+		}
 	}
 	fmt.Printf("\nTotal Files Recieved: %d\n", totalfiles)
 	return nil
 }
 
-func t_UnzipData(src, dest string)(error) {
+func t_UnzipData(src, dest string) error {
 	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
 	zipped_data, err := zip.OpenReader(src)
 	if err != nil {
@@ -140,7 +140,7 @@ func t_UnzipData(src, dest string)(error) {
 		if err := os.MkdirAll(filepath, 0777); err != nil {
 			return nil
 		}
-		
+
 		f, err := os.Create(filepath)
 		if err != nil {
 			return nil
@@ -152,7 +152,7 @@ func t_UnzipData(src, dest string)(error) {
 			return err
 		}
 		defer content.Close()
-		
+
 		_, err = io.Copy(f, content)
 		if err != nil {
 			return err
@@ -163,16 +163,17 @@ func t_UnzipData(src, dest string)(error) {
 	return nil
 }
 
-func GetData(workspace_name, workspace_ip, port string)(error){
+func GetData(workspace_name, workspace_ip, port string, workspacePath string) error {
 	// Get Data, Key, IV
 	// Decrypt Key, IV
 	// Decrypt Data
 	// Store Zip
 	// Clear the GetFolder except .PKr
 	// Unzip data on the GetFolder
+	// Store Last Hash into Config Files
 
 	new_addr := workspace_ip + port
-	my_ip, err := getMyIP() 
+	my_ip, err := getMyIP()
 	if err != nil {
 		return err
 	}
@@ -180,29 +181,31 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 	// Comment This Later
 	fmt.Println("IP: " + my_ip)
 	// ...
-	conn, err := grpc.NewClient(new_addr, grpc.WithInsecure())	
+	conn, err := grpc.NewClient(new_addr, grpc.WithInsecure())
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
 	client := pb.NewDataServiceClient(conn)
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Hour)
 	defer cancel()
 
 	stream, err := client.GetData(ctx, &pb.DataRequest{
 		WorkspaceName: workspace_name,
-		ConnectionIp: my_ip,
+		ConnectionIp:  my_ip,
 	})
-	
+
 	if err != nil {
 		return err
 	}
 
-	var data_bytes 	[]byte
-	var key_bytes	[]byte
-	var iv_bytes	[]byte
+	var data_bytes []byte
+	var key_bytes []byte
+	var iv_bytes []byte
+
+	var last_hash string
 	for {
 		data, err := stream.Recv()
 		if err != nil {
@@ -212,10 +215,12 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 		if data.Filetype == 0 {
 			data_bytes = append(data_bytes, data.Chunk...)
 		} else if data.Filetype == 1 {
-				key_bytes = append(key_bytes, data.Chunk...)
+			key_bytes = append(key_bytes, data.Chunk...)
 		} else if data.Filetype == 2 {
 			iv_bytes = append(iv_bytes, data.Chunk...)
 			break
+		} else if data.Filetype == 3 {
+			last_hash = string(data.Chunk)
 		}
 	}
 
@@ -224,7 +229,7 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 		return err
 	}
 
-	decrypted_iv , err:= encrypt.DecryptData(string(iv_bytes))
+	decrypted_iv, err := encrypt.DecryptData(string(iv_bytes))
 	if err != nil {
 		return err
 	}
@@ -234,13 +239,8 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 		return err
 	}
 
-	getworkspace, err := models.GetGetWorkspaceFolder(workspace_name)
-	if err != nil {
-		return err
-	}
-
 	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
-	zip_file_path := getworkspace.WorkspacePath + "\\.PKr\\" + 	zipFileName
+	zip_file_path := workspacePath + "\\.PKr\\" + zipFileName
 	zippedfile, err := os.Create(zip_file_path)
 	if err != nil {
 		return err
@@ -250,15 +250,15 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 	zippedfile.Write(data)
 
 	// Delete all files in the GetWorkspace Dir except for .PKr
-	files, err := ioutil.ReadDir(getworkspace.WorkspacePath)
+	files, err := ioutil.ReadDir(workspacePath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Deleting All Files at: %s\n\n", getworkspace.WorkspacePath)
-	for _, file:= range files{
-		if file.Name() != ".PKr" && file.Name() != "PKr-base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp"{
-			if err = os.RemoveAll(path.Join([]string{getworkspace.WorkspacePath, file.Name()}...)); err != nil {
+	fmt.Printf("Deleting All Files at: %s\n\n", workspacePath)
+	for _, file := range files {
+		if file.Name() != ".PKr" && file.Name() != "PKr-base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp" {
+			if err = os.RemoveAll(path.Join([]string{workspacePath, file.Name()}...)); err != nil {
 				return err
 			}
 		}
@@ -266,8 +266,12 @@ func GetData(workspace_name, workspace_ip, port string)(error){
 
 	// Unzip Content
 	// unzip_file_path := getworkspace.WorkspacePath
-	if err = UnzipData(zip_file_path, getworkspace.WorkspacePath + "\\"); err != nil {
+	if err = UnzipData(zip_file_path, workspacePath+"\\"); err != nil {
 		return err
+	}
+
+	if err = models.AddGetWorkspaceFolderToUserConfig(workspace_name, workspacePath, workspace_ip, last_hash); err != nil {
+		return fmt.Errorf("error in adding GetConnection to the Main User Config Folder.\nerror:%v", err)
 	}
 
 	return nil

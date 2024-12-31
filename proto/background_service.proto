@@ -66,6 +66,6 @@ message DataRequest {
 }
 
 message Data {
-    uint32 filetype = 1; // Data[0] or AES Key[1] or AES IV[2]
+    uint32 filetype = 1; // Data[0] or AES Key[1] or AES IV[2] or Last Hash [3]
     bytes chunk = 2;
 }

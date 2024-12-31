@@ -28,10 +28,10 @@ type ConnectionInfo struct {
 }
 
 type SendWorkspaceFolder struct {
-	WorkspaceName     	string `json:"workspace_name"`
-	WorkspacePath     	string `json:"workspace_path"`
-	WorkSpacePassword 	string `json:"workspace_password"`
-	ServerIP			string `json:"server_ip"`
+	WorkspaceName     string `json:"workspace_name"`
+	WorkspacePath     string `json:"workspace_path"`
+	WorkSpacePassword string `json:"workspace_password"`
+	ServerIP          string `json:"server_ip"`
 	// ConnectionSlugs []string `json:"connection_slug"`
 }
 
@@ -39,6 +39,7 @@ type GetWorkspaceFolder struct {
 	WorkspaceName string `json:"workspace_name"`
 	WorkspacePath string `json:"workspace_path"`
 	WorkspcaceIP  string `json:"workspace_ip"`
+	LastHash      string `json:"last_hash"`
 }
 
 type Files struct {
@@ -51,8 +52,8 @@ type UsersConfig struct {
 	User           string        `json:"user"`
 	AllConnections []Connections `json:"all_connections"`
 
-	Sendworkspaces []SendWorkspaceFolder    `json:"send_workspace"`
-	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
+	Sendworkspaces []SendWorkspaceFolder `json:"send_workspace"`
+	GetWorkspaces  []GetWorkspaceFolder  `json:"get_workspace"`
 }
 
 // For server
@@ -67,11 +68,11 @@ type BetterGetWorkspace struct {
 }
 
 const (
-	ROOT_DIR     = "tmp"
-	MY_KEYS_PATH = ROOT_DIR + "\\mykeys"
-	CONFIG_FILE  = ROOT_DIR + "\\userConfig.json"
-	SERVER_CONFIG_FILE  = ROOT_DIR + "\\serverConfig.json"
-	LOG_FILE     = ROOT_DIR + "\\logs.txt"
+	ROOT_DIR           = "tmp"
+	MY_KEYS_PATH       = ROOT_DIR + "\\mykeys"
+	CONFIG_FILE        = ROOT_DIR + "\\userConfig.json"
+	SERVER_CONFIG_FILE = ROOT_DIR + "\\serverConfig.json"
+	LOG_FILE           = ROOT_DIR + "\\logs.txt"
 )
 
 var (
@@ -116,11 +117,11 @@ func CreateUserIfNotExists(username string) error {
 		}
 
 		if err = encrypt.StorePrivateKeyInFile(MY_KEYS_PATH+"/privatekey.pem", private_key); err != nil {
-			return fmt.Errorf("error could not store private keys.\nError:%v",err)
+			return fmt.Errorf("error could not store private keys.\nError:%v", err)
 		}
 
 		if err = encrypt.StorePublicKeyInFile(MY_KEYS_PATH+"/publickey.pem", public_key); err != nil {
-			return fmt.Errorf("error could not store public keys.\nError:%v",err)
+			return fmt.Errorf("error could not store public keys.\nError:%v", err)
 		}
 
 		// fmt.Printf(" ~ Created User : %s\n", username)
@@ -337,23 +338,23 @@ func IfSendWorkspaceExits(workspace_name string) bool {
 		return false
 	}
 
-	for _, workspace  := range sendWorkspaceFolder {
-		if workspace.WorkspaceName == workspace_name{
+	for _, workspace := range sendWorkspaceFolder {
+		if workspace.WorkspaceName == workspace_name {
 			return true
 		}
 	}
 	return false
 }
 
-func GetSendWorkspace(workspace_name string) SendWorkspaceFolder  {
+func GetSendWorkspace(workspace_name string) SendWorkspaceFolder {
 	userConfigFile, err := ReadFromUserConfigFile()
 	if err != nil {
 		fmt.Println("error in reading from the userConfig File")
 		return SendWorkspaceFolder{}
 	}
 
-	for _, workspace  := range userConfigFile.Sendworkspaces {
-		if workspace.WorkspaceName == workspace_name{
+	for _, workspace := range userConfigFile.Sendworkspaces {
+		if workspace.WorkspaceName == workspace_name {
 			return workspace
 		}
 	}
@@ -367,8 +368,8 @@ func AddServerToWorkpace(workspace_name, server_ip string) bool {
 		return false
 	}
 
-	for i, workspace  := range userConfigFile.Sendworkspaces {
-		if workspace.WorkspaceName == workspace_name{
+	for i, workspace := range userConfigFile.Sendworkspaces {
+		if workspace.WorkspaceName == workspace_name {
 			userConfigFile.Sendworkspaces[i].ServerIP = server_ip
 
 			if err != writeToUserConfigFile(userConfigFile) {
@@ -381,6 +382,7 @@ func AddServerToWorkpace(workspace_name, server_ip string) bool {
 	}
 	return false
 }
+
 // func ValidateConnection(connSlug string, connPassword string) bool {
 // 	userConfigFile, err := readFromUserConfigFile()
 // 	if err != nil {
@@ -414,10 +416,11 @@ func AddUsersLogEntry(workspace_name string, log_entry string) error {
 	return nil
 }
 
-func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string) error {
+func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip string, last_hash string) error {
 	// WorkspaceName		string		`json:"workspace_name"`
 	// WorkspacePath    	string		`json:"workspace_path"`
 	// WorkspcaceIP			string		`json:"workspace_ip"`
+	// LastHash				string		`json:"last_hash"`
 
 	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
@@ -427,6 +430,7 @@ func AddGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace
 		WorkspaceName: workspace_name,
 		WorkspacePath: workspace_path,
 		WorkspcaceIP:  workspace_ip,
+		LastHash:      last_hash,
 	}
 	userConfig.GetWorkspaces = append(userConfig.GetWorkspaces, connection)
 

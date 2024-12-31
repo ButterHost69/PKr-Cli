@@ -466,7 +466,7 @@ type Data struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Filetype uint32 `protobuf:"varint,1,opt,name=filetype,proto3" json:"filetype,omitempty"` // Data[0] or AES Key[1] or AES IV[2]
+	Filetype uint32 `protobuf:"varint,1,opt,name=filetype,proto3" json:"filetype,omitempty"` // Data[0] or AES Key[1] or AES IV[2] or Last Hash [3]
 	Chunk    []byte `protobuf:"bytes,2,opt,name=chunk,proto3" json:"chunk,omitempty"`
 }
 

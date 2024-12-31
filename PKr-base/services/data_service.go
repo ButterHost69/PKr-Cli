@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+
 	// "log"
 
 	// "io/ioutil"
@@ -95,25 +96,25 @@ func ZipppData(workspace_path string) (string, error) {
 		})
 }
 
-func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string)(error){
+func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string) error {
 	files, err := ioutil.ReadDir(dirpath)
 	if err != nil {
 		// log.Println(err)
 		return err
 	}
 
-	for _, file := range(files) {
-		// Comment This Later ... Only For Debugging 
+	for _, file := range files {
+		// Comment This Later ... Only For Debugging
 		// models.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
 		// ..........
-		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp"{
+		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
 			continue
 		} else if !file.IsDir() {
 			content, err := os.ReadFile(dirpath + file.Name())
-			
+
 			if err != nil {
 				// log.Println(err)
-				return err		
+				return err
 			}
 
 			file, err := writer.Create(relativepath + file.Name())
@@ -125,7 +126,7 @@ func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string)(erro
 		} else if file.IsDir() {
 			newDirPath := dirpath + file.Name() + "\\"
 			newRelativePath := relativepath + file.Name() + "\\"
-			
+
 			addFilesToZip(writer, newDirPath, newRelativePath)
 		}
 	}
@@ -144,16 +145,15 @@ func ZipData(workspace_path string) (string, error) {
 
 	defer zip_file.Close()
 
+	writer := zip.NewWriter(zip_file)
 
-	writer := zip.NewWriter(zip_file) 
-
-	// cwd, err := os.Getwd() 
+	// cwd, err := os.Getwd()
 	// if err != nil {
 	// 	log.Println(err)
-	// 	return		
+	// 	return
 	// }
 
-	addFilesToZip(writer, workspace_path + "\\" , "" )
+	addFilesToZip(writer, workspace_path+"\\", "")
 
 	if err = writer.Close(); err != nil {
 		return "", err
@@ -187,7 +187,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	}
 
 	generate_hash = generate_hash + ".zip"
-	if err  = os.Rename(server.workspace_path + "\\.PKr\\" + zipped_filepath, server.workspace_path + "\\.PKr\\" + generate_hash); err != nil {
+	if err = os.Rename(server.workspace_path+"\\.PKr\\"+zipped_filepath, server.workspace_path+"\\.PKr\\"+generate_hash); err != nil {
 		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", generate_hash, zipped_filepath, err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
@@ -215,29 +215,26 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
-	
+
 	models.AddLogEntry(request.WorkspaceName, "AES Keys Generated")
 
 	zipped_filepath = server.workspace_path + "\\.PKr\\" + generate_hash
 	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
-		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v\nFilePath: %v", err,zipped_filepath)
+		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v\nFilePath: %v", err, zipped_filepath)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
 
-	
 	models.AddLogEntry(request.WorkspaceName, "Zip AES is Encrypted")
 
-	
-	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path , request.ConnectionIp)
+	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path, request.ConnectionIp)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Find Users Public Key\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
 
-	
 	publicKey, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Read Users Public Key\nError: %v", err)
@@ -245,7 +242,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	
 	encrypt_key, err := encrypt.EncryptData(string(key), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt Key\nError: %v", err)
@@ -253,7 +249,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 		return err
 	}
 
-	
 	encrypt_iv, err := encrypt.EncryptData(string(iv), string(publicKey))
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt IV\nError: %v", err)
@@ -269,7 +264,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	}
 	defer encrypt_file.Close()
 
-
 	models.AddLogEntry(request.WorkspaceName, "AES Keys Encrypted")
 
 	buff := make([]byte, 2048)
@@ -277,6 +271,15 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 
 	// logdata = fmt.Sprintf()
 	models.AddLogEntry(request.WorkspaceName, "Sending Chunks...")
+
+	// Sending Last Hash with File Type = 3
+	temp_gen_hash := strings.Split(generate_hash, ".")[0]
+	chunk := []byte(temp_gen_hash)
+	if err := stream.Send(&pb.Data{Filetype: 3, Chunk: chunk}); err != nil {
+		logdata := fmt.Sprintf("Could Not Send Encrypted File\nError: %v", err)
+		models.AddLogEntry(request.WorkspaceName, logdata)
+		return err
+	}
 
 	// Send the File
 	for {
@@ -332,7 +335,7 @@ func isPortInUse(port int) bool {
 	return true
 }
 
-func StartDataServer(time_till_wait time.Duration, workspace_name string,workspace_path string, portchan chan int, errorchan chan error){
+func StartDataServer(time_till_wait time.Duration, workspace_name string, workspace_path string, portchan chan int, errorchan chan error) {
 	// Pass the port using channels
 	// Look into it later, i mean soon, after the DataServer soon[]
 
@@ -348,13 +351,13 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string,workspa
 
 	// Register and Start gRPC Server
 	str_port := strconv.Itoa(port)
-	
+
 	logdata := fmt.Sprintf("Port Number: %v Has Been Selected For Data Transfer", str_port)
 	models.AddLogEntry(workspace_name, logdata)
-	
+
 	lis, err := net.Listen("tcp", ":"+str_port)
 	if err != nil {
-		models.AddLogEntry(workspace_name ,err)
+		models.AddLogEntry(workspace_name, err)
 		errorchan <- err
 	}
 
@@ -375,7 +378,7 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string,workspa
 	go func() {
 		// Add Serve With Time Out Later
 		if err := grpcServer.Serve(lis); err != nil {
-			models.AddLogEntry(workspace_name,err)
+			models.AddLogEntry(workspace_name, err)
 			models.AddLogEntry(workspace_name, "Closing Data Server")
 			errorchan <- err
 			os.Exit(1)
@@ -386,7 +389,7 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string,workspa
 	models.AddLogEntry(workspace_name, logdata)
 
 	portchan <- port
-	
+
 	wg.Wait()
 	models.AddLogEntry(workspace_name, "Data Transfer Done... Closing Data Server")
 	grpcServer.GracefulStop()
