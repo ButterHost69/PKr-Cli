@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func GenerateHash(file_path string) (string, error) {
+func GenerateHashWithFilePath(file_path string) (string, error) {
 	
   f, err := os.Open(file_path)
   if err != nil {
@@ -18,6 +18,16 @@ func GenerateHash(file_path string) (string, error) {
 
   h := sha256.New()
   if _, err := io.Copy(h, f); err != nil {
+    log.Fatal(err)
+  }
+
+  hash := h.Sum(nil)
+  return fmt.Sprintf("%x", hash), nil
+}
+
+func GenerateHashWithFileIO(file *os.File) (string, error) {	
+  h := sha256.New()
+  if _, err := io.Copy(h, file); err != nil {
     log.Fatal(err)
   }
 

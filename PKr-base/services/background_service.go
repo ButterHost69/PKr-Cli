@@ -155,5 +155,8 @@ func (s *BackgroundServer) NotifyPush(ctx context.Context, request *pb.NotifyPus
 
 	// [ ] Fetch the new data
 
+	// [ ] Compare Hashes
+
 	return &pb.NotifyPushResponse{Response: 200}, nil
 }
+

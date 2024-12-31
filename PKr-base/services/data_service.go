@@ -2,25 +2,18 @@ package services
 
 import (
 	"ButterHost69/PKr-base/encrypt"
+	"ButterHost69/PKr-base/filetracker"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
-	"archive/zip"
+	"strings"
+
 	"fmt"
 	"io"
-	"io/ioutil"
-
-	// "log"
-
-	// "io/ioutil"
-	"path/filepath"
-	"strings"
-	"sync"
-
-	// "context"
 	"math/rand"
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	// "github.com/brianvoe/gofakeit/v7/source"
@@ -33,135 +26,6 @@ type DataServer struct {
 	workspace_path string
 }
 
-// I dont Know if this works. Check it later
-// I copied From : https://gosamples.dev/zip-file/
-// CHEECHK THIISS LAAATTERRR
-// Running This Function Twice Makes a Zip File Whose Size keeps increasing until the Entire Disk
-// is filled
-// Dont USE THISSSSS
-func ZipppData(workspace_path string) (string, error) {
-	// 2024-01-20.zip
-	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
-
-	file, err := os.Create(workspace_path + "\\.PKr\\" + zipFileName)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	writer := zip.NewWriter(file)
-
-	// This Might Break in Linux...
-	return zipFileName, filepath.Walk(workspace_path,
-		func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			header, err := zip.FileInfoHeader(info)
-			if err != nil {
-				return err
-			}
-
-			header.Method = zip.Deflate
-
-			relPath, err := filepath.Rel(filepath.Dir(workspace_path), path)
-			if err != nil {
-				return err
-			}
-			header.Name = relPath
-
-			if info.IsDir() {
-				header.Name += "/"
-			}
-
-			headerWriter, err := writer.CreateHeader(header)
-			if err != nil {
-				return err
-			}
-
-			if info.IsDir() {
-				return nil
-			}
-
-			f, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-
-			defer f.Close()
-
-			_, err = io.Copy(headerWriter, f)
-			return err
-		})
-}
-
-func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string) error {
-	files, err := ioutil.ReadDir(dirpath)
-	if err != nil {
-		// log.Println(err)
-		return err
-	}
-
-	for _, file := range files {
-		// Comment This Later ... Only For Debugging
-		// models.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
-		// ..........
-		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
-			continue
-		} else if !file.IsDir() {
-			content, err := os.ReadFile(dirpath + file.Name())
-
-			if err != nil {
-				// log.Println(err)
-				return err
-			}
-
-			file, err := writer.Create(relativepath + file.Name())
-			if err != nil {
-				// log.Println(err)
-				return err
-			}
-			file.Write(content)
-		} else if file.IsDir() {
-			newDirPath := dirpath + file.Name() + "\\"
-			newRelativePath := relativepath + file.Name() + "\\"
-
-			addFilesToZip(writer, newDirPath, newRelativePath)
-		}
-	}
-
-	return nil
-}
-
-func ZipData(workspace_path string) (string, error) {
-	zipFileName := strings.Split(time.Now().String(), " ")[0] + ".zip"
-
-	zip_file, err := os.Create(workspace_path + "\\.PKr\\" + zipFileName)
-	if err != nil {
-		// models.AddLogEntry(workspace_name, err)
-		return "", err
-	}
-
-	defer zip_file.Close()
-
-	writer := zip.NewWriter(zip_file)
-
-	// cwd, err := os.Getwd()
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return
-	// }
-
-	addFilesToZip(writer, workspace_path+"\\", "")
-
-	if err = writer.Close(); err != nil {
-		return "", err
-	}
-
-	return zipFileName, nil
-}
-
 func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService_GetDataServer) error {
 
 	// 1. Zip Data [x]
@@ -172,28 +36,16 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	// 4. Send / Stream Data [X]
 
 	// workspace_path + "\\.PKr\\" + zipFileName
-	zipped_filepath, err := ZipData(server.workspace_path)
-	if err != nil {
+	zipped_file_name, err := filetracker.ZipData(server.workspace_path)
+	zipped_hash := strings.Split(zipped_file_name, ".")[0]
+
+	if err != nil {	
 		logdata := fmt.Sprintf("Could Not Zip The File\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
 
-	generate_hash, err := encrypt.GenerateHash(server.workspace_path + "\\.PKr\\" + zipped_filepath)
-	if err != nil {
-		logdata := fmt.Sprintf("Could Not Generate Hash Name for the Zip File\nError: %v", err)
-		models.AddLogEntry(request.WorkspaceName, logdata)
-		return err
-	}
-
-	generate_hash = generate_hash + ".zip"
-	if err = os.Rename(server.workspace_path+"\\.PKr\\"+zipped_filepath, server.workspace_path+"\\.PKr\\"+generate_hash); err != nil {
-		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", generate_hash, zipped_filepath, err)
-		models.AddLogEntry(request.WorkspaceName, logdata)
-		return err
-	}
-
-	err = models.AddNewPushToConfig(request.WorkspaceName, strings.Split(generate_hash, ".")[0])
+	err = models.AddNewPushToConfig(request.WorkspaceName, zipped_hash)
 	if err != nil {
 		logdata := fmt.Sprintf("could add entry to PKR config file.\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
@@ -218,7 +70,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 
 	models.AddLogEntry(request.WorkspaceName, "AES Keys Generated")
 
-	zipped_filepath = server.workspace_path + "\\.PKr\\" + generate_hash
+	zipped_filepath := server.workspace_path + "\\.PKr\\" + zipped_file_name
 	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
 		logdata := fmt.Sprintf("Could Not Encrypt File\nError: %v\nFilePath: %v", err, zipped_filepath)
@@ -273,8 +125,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	models.AddLogEntry(request.WorkspaceName, "Sending Chunks...")
 
 	// Sending Last Hash with File Type = 3
-	temp_gen_hash := strings.Split(generate_hash, ".")[0]
-	chunk := []byte(temp_gen_hash)
+	chunk := []byte(zipped_hash)
 	if err := stream.Send(&pb.Data{Filetype: 3, Chunk: chunk}); err != nil {
 		logdata := fmt.Sprintf("Could Not Send Encrypted File\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)
