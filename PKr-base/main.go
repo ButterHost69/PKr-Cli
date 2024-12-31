@@ -36,17 +36,15 @@ func Init() {
 	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode")
 	flag.Parse()
 
-	fmt.Println("IP_ADDR:", IP_ADDR)
-
-	if IP_ADDR != "" {
-		return
-	}
-
-	IP_ADDR = os.Getenv("PKR-IP")
+	// If ip is Not Provided during execution as flags check ENV
 	if IP_ADDR == "" {
-		IP_ADDR = ":9000"
+		IP_ADDR = os.Getenv("PKR-IP")
+		if IP_ADDR == "" {
+			IP_ADDR = ":9000"
+		}
 	}
 
+	fmt.Println("IP_ADDR:", IP_ADDR)
 	models.UpdateBasePort(IP_ADDR)
 }
 
