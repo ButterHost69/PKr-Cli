@@ -26,6 +26,12 @@ func GenerateHashWithFilePath(file_path string) (string, error) {
 }
 
 func GenerateHashWithFileIO(file *os.File) (string, error) {	
+
+  _, err := file.Seek(0,0)
+  if err != nil {
+    return "", err
+  }
+
   h := sha256.New()
   if _, err := io.Copy(h, file); err != nil {
     log.Fatal(err)

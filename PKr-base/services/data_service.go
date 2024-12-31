@@ -39,6 +39,7 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	zipped_file_name, err := filetracker.ZipData(server.workspace_path)
 	zipped_hash := strings.Split(zipped_file_name, ".")[0]
 
+	fmt.Println("Data Service Hash File Name: " + zipped_file_name)
 	if err != nil {	
 		logdata := fmt.Sprintf("Could Not Zip The File\nError: %v", err)
 		models.AddLogEntry(request.WorkspaceName, logdata)

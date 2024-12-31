@@ -30,7 +30,7 @@ var (
 	IP_ADDR string
 )
 
-// [ ]: Suggest possible options if user enters invalid parameters
+
 // README: Pkr-base.exe -ip :9001
 func Init() {
 	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode")
@@ -46,6 +46,8 @@ func Init() {
 	if IP_ADDR == "" {
 		IP_ADDR = ":9000"
 	}
+
+	models.UpdateBasePort(IP_ADDR)
 }
 
 // TODO: [ ] Write "Push" Command notification server

@@ -48,8 +48,9 @@ type GetWorkspaceFolder struct {
 }
 
 type UsersConfig struct {
-	User           string        `json:"user"`
-	AllConnections []Connections `json:"all_connections"`
+	User           	string	      	`json:"user"`
+	BasePort		string	  		`json:"base_port"`
+	AllConnections []Connections 	`json:"all_connections"`
 
 	Sendworkspaces []WorkspaceFolder    `json:"send_workspace"`
 	GetWorkspaces  []GetWorkspaceFolder `json:"get_workspace"`
@@ -361,4 +362,16 @@ func AddUsersLogEntry(log_entry any) error {
 	log.Println(log_entry)
 
 	return nil
+}
+
+func UpdateBasePort(port string) error {
+	file, err := ReadFromUserConfigFile()
+	if err != nil {
+		return err
+	}
+
+	file.BasePort = port
+	err = writeToUserConfigFile(file)
+	
+	return err
 }

@@ -125,7 +125,7 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
-
+	fmt.Println("OLD Zip File Path: " + fullZipPath)
 
 	writer := zip.NewWriter(zip_file)
 
@@ -136,6 +136,7 @@ func ZipData(workspace_path string) (string, error) {
 	}
 
 	hashFileName, err := encrypt.GenerateHashWithFileIO(zip_file)
+	// hashFileName, err := encrypt.GenerateHashWithFilePath(fullZipPath)
 	if err != nil {
 		return "", err
 	}
@@ -154,5 +155,6 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
+	fmt.Println("New Zip File Path: " + fullHashFilePath)
 	return hashFileName, nil
 }
