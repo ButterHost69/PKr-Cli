@@ -5,6 +5,7 @@
 package main
 
 import (
+	"ButterHost69/PKr-base/dialer"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"ButterHost69/PKr-base/services"
@@ -86,10 +87,13 @@ func main() {
 			time.Sleep(5 * time.Minute)
 		}
 	}()
+
+	// [ ] Look for a better way to call this function instead of using go-routines
+	dialer.ScanForUpdatesOnStart()
+
 	if err := grpcServer.Serve(lis); err != nil {
 		services.AddUserLogEntry(err)
 		services.AddUserLogEntry("Closing Listening Server")
 		os.Exit(1)
 	}
-
 }

@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -160,3 +161,36 @@ func (s *BackgroundServer) NotifyPush(ctx context.Context, request *pb.NotifyPus
 	return &pb.NotifyPushResponse{Response: 200}, nil
 }
 
+func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *pb.ScanForUpdatesRequest) (*pb.ScanForUpdatesResponse, error) {
+	// [ ] Check whether Workspace name is valid, log properly
+	// Check whether Receiver's Hash is latest or not
+	// Return true if there're new updates else false
+
+	workspaceName := request.WorkspaceName
+	receiverHash := request.LastHash
+
+	workspacePath, err := models.GetWorkspaceFilePath(workspaceName)
+	if err != nil {
+		log_entry := "cannot get path of workspace\nError: " + err.Error() + "\nSource: ScanForUpdatesOnStart() Handler" + err.Error()
+		log.Println(log_entry)
+		models.AddLogEntry(workspaceName, log_entry)
+		return nil, err
+	}
+	workspacePath = workspacePath + "\\" + models.WORKSPACE_CONFIG_FILE_PATH
+
+	workspace_config, err := models.ReadFromPKRConfigFile(workspacePath)
+	if err != nil {
+		log_entry := "cannot read from workspace config file\nError: " + err.Error() + "\nSource: ScanForUpdatesOnStart() Handler" + err.Error()
+		log.Println(log_entry)
+		models.AddLogEntry(workspaceName, log_entry)
+		return nil, err
+	}
+
+	// [ ] Debugging
+	fmt.Println("Last Hash: ", workspace_config.LastHash)
+	fmt.Println("Receiver Hash: ", receiverHash)
+	if workspace_config.LastHash == receiverHash {
+		return &pb.ScanForUpdatesResponse{NewUpdates: false}, nil
+	}
+	return &pb.ScanForUpdatesResponse{NewUpdates: true}, nil
+}
