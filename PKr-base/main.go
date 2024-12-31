@@ -27,13 +27,17 @@ import (
 // )
 
 var (
-	IP_ADDR string
+	IP_ADDR 			string
+	LOG_IN_TERMINAL		bool
+	LOG_LEVEL			int
 )
 
 
 // README: Pkr-base.exe -ip :9001
 func Init() {
-	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode")
+	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode.")
+	flag.BoolVar(&LOG_IN_TERMINAL, "lt", false, "Log Events in Terminal.")
+	flag.IntVar(&LOG_LEVEL, "ll", 0, "Set Log Levels.")
 	flag.Parse()
 
 	// If ip is Not Provided during execution as flags check ENV
