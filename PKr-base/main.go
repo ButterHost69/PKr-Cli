@@ -29,15 +29,22 @@ var (
 	IP_ADDR string
 )
 
+// [ ]: Suggest possible options if user enters invalid parameters
+// README: Pkr-base.exe -ip :9001
 func Init() {
-
 	flag.StringVar(&IP_ADDR, "ip", "", "Use Application in TUI Mode")
+	flag.Parse()
+
+	fmt.Println("IP_ADDR:", IP_ADDR)
+
+	if IP_ADDR != "" {
+		return
+	}
+
 	IP_ADDR = os.Getenv("PKR-IP")
 	if IP_ADDR == "" {
 		IP_ADDR = ":9000"
 	}
-
-	
 }
 
 // TODO: [ ] Write "Push" Command notification server
