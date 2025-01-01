@@ -3,7 +3,6 @@ package logger
 import "os"
 
 type LogLevel int
-type acceptedLogLevel map[LogLevel]bool
 
 const (
 	InfoLevel LogLevel = iota
@@ -28,6 +27,22 @@ func (ll LogLevel) String() string {
 	return logLevelName[ll]
 }
 
+func IntToLog(level int) LogLevel {
+	var logLevel LogLevel
+	switch level {
+	case 0:
+		logLevel = InfoLevel
+	case 1:
+		logLevel = DebugLevel
+	case 2:
+		logLevel = CriticalLevel
+	default:
+		logLevel = NoneLevel
+	}
+
+	return logLevel
+}
+
 // [ ] Find a Way to Avoid Frequent Read and Writes... IDK How ? Maybe its not possible ?
 
 func logToFile(filepath, log string) error {
@@ -38,7 +53,7 @@ func logToFile(filepath, log string) error {
 	}
 
 	defer file.Close()
-	if _, err := file.Write([]byte(log)); err != nil {
+	if _, err := file.Write([]byte(log + "\n")); err != nil {
 		return err
 	}
 

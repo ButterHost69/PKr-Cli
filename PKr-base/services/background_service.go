@@ -3,6 +3,7 @@ package services
 import (
 	// "ButterHost69/PKr-base/encrypt"
 	"ButterHost69/PKr-base/encrypt"
+	"ButterHost69/PKr-base/logger"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
@@ -19,6 +20,8 @@ import (
 
 type BackgroundServer struct {
 	pb.UnimplementedBackgroundServiceServer
+	WorkspaceLogger	*logger.WorkspaceLogger
+	UserConfingLogger	*logger.UserLogger
 }
 
 func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Empty) (*pb.PublicKey, error) {

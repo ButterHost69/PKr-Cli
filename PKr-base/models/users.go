@@ -375,3 +375,12 @@ func UpdateBasePort(port string) error {
 	
 	return err
 }
+
+func GetAllGetWorkspaces() ([]GetWorkspaceFolder, error) {
+	file, err := ReadFromUserConfigFile()
+	if err != nil {
+		return []GetWorkspaceFolder{}, err
+	}
+
+	return file.GetWorkspaces, err
+}

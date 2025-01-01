@@ -28,7 +28,7 @@ func (ul *UserLogger) SetLogLevel(logLevel LogLevel) {
 }
 
 
-func (ul *UserLogger) Info(workspace_name string, log any){
+func (ul *UserLogger) Info(log any){
 	slog := fmt.Sprintf("[Info] %v\n", log)
 	if ul.printToTerminal {
 		fmt.Printf("[Info] %v\n", log)
@@ -41,10 +41,10 @@ func (ul *UserLogger) Info(workspace_name string, log any){
 	}
 }
 
-func (ul *UserLogger) Debug(workspace_name string, log any){
-	slog := fmt.Sprintf("[Info] %v\n", log)
+func (ul *UserLogger) Debug(log any){
+	slog := fmt.Sprintf("[Debug] %v\n", log)
 	if ul.printToTerminal {
-		fmt.Printf("[Info] %v\n", log)
+		fmt.Printf("[Debug] %v\n", log)
 	}
 
 	if ul.acceptedLevel >= DebugLevel {
@@ -54,10 +54,10 @@ func (ul *UserLogger) Debug(workspace_name string, log any){
 	}
 }
 
-func (ul *UserLogger) Critical(workspace_name string, log any){
-	slog := fmt.Sprintf("[Info] %v\n", log)
+func (ul *UserLogger) Critical(log any){
+	slog := fmt.Sprintf("[Critical] %v\n", log)
 	if ul.printToTerminal {
-		fmt.Printf("[Info] %v\n", log)
+		fmt.Printf("[Critical] %v\n", log)
 	}
 
 	if ul.acceptedLevel >= CriticalLevel {

@@ -21,9 +21,11 @@ import (
 // TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
 
 var (
-	TUI                    bool
-	CLI                    bool
-	BACKGROUND_SERVER_PORT int
+	TUI                    	bool
+	CLI                    	bool
+	BACKGROUND_SERVER_PORT 	int
+	LOG_IN_TERMINAL			bool
+	LOG_LEVEL				int
 )
 
 func Init() {
@@ -36,6 +38,9 @@ func Init() {
 
 	flag.BoolVar(&TUI, "tui", false, "Use Application in TUI Mode")
 	flag.BoolVar(&CLI, "cli", false, "Use Application in CLI Mode")
+	flag.BoolVar(&LOG_IN_TERMINAL, "lt", false, "Log Events in Terminal.")
+	flag.IntVar(&LOG_LEVEL, "ll", 4, "Set Log Levels.") // 4 -> No Logs
+
 	flag.Parse()
 }
 
