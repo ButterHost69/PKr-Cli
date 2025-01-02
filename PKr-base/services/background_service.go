@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -20,7 +19,7 @@ import (
 
 type BackgroundServer struct {
 	pb.UnimplementedBackgroundServiceServer
-	WorkspaceLogger	*logger.WorkspaceLogger
+	WorkspaceLogger		*logger.WorkspaceLogger
 	UserConfingLogger	*logger.UserLogger
 }
 
@@ -30,15 +29,16 @@ func (s *BackgroundServer) GetPublicKey(ctx context.Context, request *emptypb.Em
 	ip := p.Addr.String()
 	if err != nil {
 		logentry := "Could Not Provide Public Key To IP: " + ip
-		models.AddUsersLogEntry(logentry)
-		models.AddUsersLogEntry(err)
-
+		s.UserConfingLogger.Debug(logentry)
+		s.UserConfingLogger.Debug(err)
+		
 		return &pb.PublicKey{
 			Key: nil,
 		}, err
 	}
 	logentry := "Successfully Provided Public Key To IP: " + ip
-	models.AddUsersLogEntry(logentry)
+	// models.AddUsersLogEntry(logentry)
+	s.UserConfingLogger.Info(logentry)
 
 	return &pb.PublicKey{
 		Key: []byte(keyData),
@@ -75,8 +75,11 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 
 	// UNCOMMENT THIS SHIT --------
 	if err != nil {
-		AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
-		AddUserLogEntry(err)
+		// AddUserLogEntry("Failed to Init Workspace Connection for User IP: " + ip)
+		// AddUserLogEntry(err)
+		s.UserConfingLogger.Debug("Failed to Init Workspace Connection for User IP: " + ip)
+		s.UserConfingLogger.Debug(err)
+
 		return &pb.InitResponse{
 			Response: 4000,
 			Port:     0000,
@@ -86,7 +89,8 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 	// Authenticates Workspace Name and Password and Get the Workspace File Path
 	file_path := models.AuthenticateWorkspaceInfo(request.WorkspaceName, password)
 	if file_path == "" {
-		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
+		// models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
+		s.WorkspaceLogger.Debug(request.Username, "Failed to Init Workspace Connection for User IP: "+ip)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port:     0000,
@@ -100,8 +104,10 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 	// Save Public Key
 	publicKey, err := base64.StdEncoding.DecodeString(string(request.PublicKey))
 	if err != nil {
-		models.AddLogEntry(request.WorkspaceName, "Failed to convert key to Base64 for User IP: "+ip)
-		models.AddLogEntry(request.WorkspaceName, err)
+		s.WorkspaceLogger.Debug(request.Username, "Failed to convert key to Base64 for User IP: "+ip)
+		s.WorkspaceLogger.Debug(request.Username, err)
+		// models.AddLogEntry(request.WorkspaceName, "Failed to convert key to Base64 for User IP: "+ip)
+		// models.AddLogEntry(request.WorkspaceName, err)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port:     0000,
@@ -110,8 +116,10 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 
 	keysPath, err := models.StorePublicKeys(file_path+"\\.PKr\\keys\\", string(publicKey))
 	if err != nil {
-		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
-		models.AddLogEntry(request.WorkspaceName, err)
+		// models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
+		// models.AddLogEntry(request.WorkspaceName, err)
+		s.WorkspaceLogger.Debug(request.Username, "Failed to Init Workspace Connection for User IP: "+ip)
+		s.WorkspaceLogger.Debug(request.Username, err)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port:     0000,
@@ -121,14 +129,17 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 	// Store the New Connection in the .PKr Config file
 	connection.PublicKeyPath = keysPath
 	if err := models.AddConnectionToPKRConfigFile(file_path+"\\.PKr\\workspaceConfig.json", connection); err != nil {
-		models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
-		models.AddLogEntry(request.WorkspaceName, err)
+		// models.AddLogEntry(request.WorkspaceName, "Failed to Init Workspace Connection for User IP: "+ip)
+		// models.AddLogEntry(request.WorkspaceName, err)
+		s.WorkspaceLogger.Debug(request.Username, "Failed to Init Workspace Connection for User IP: "+ip)
+		s.WorkspaceLogger.Debug(request.Username, err)
 		return &pb.InitResponse{
 			Response: 4000,
 			Port:     0000,
 		}, err
 	}
-	models.AddLogEntry(request.WorkspaceName, fmt.Sprintf("Added User with IP: %v to the Connection List", ip))
+	// models.AddLogEntry(request.WorkspaceName, fmt.Sprintf("Added User with IP: %v to the Connection List", ip))
+	s.WorkspaceLogger.Info(request.Username, fmt.Sprintf("Added User with IP: %v to the Connection List", ip))
 
 	// Start New Data grpc Server and Transfer Data
 	portchan := make(chan int)
@@ -154,8 +165,7 @@ func (s *BackgroundServer) NotifyPush(ctx context.Context, request *pb.NotifyPus
 
 	log_entry := "NEW UPDATE IN FILES OF " + workspace_name
 	models.AddLogEntry(workspace_name, log_entry) // [ ] Idk why this line isn't working maybe cuz log.txt isn't generated
-
-	fmt.Println(log_entry) // [ ] Remove this line, just for debugging
+	s.WorkspaceLogger.Debug(workspace_name, log_entry)
 
 	// [ ] Fetch the new data
 
@@ -175,8 +185,10 @@ func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *p
 	workspacePath, err := models.GetWorkspaceFilePath(workspaceName)
 	if err != nil {
 		log_entry := "cannot get path of workspace\nError: " + err.Error() + "\nSource: ScanForUpdatesOnStart() Handler" + err.Error()
-		log.Println(log_entry)
-		models.AddLogEntry(workspaceName, log_entry)
+		// log.Println(log_entry)
+		// models.AddLogEntry(workspaceName, log_entry)
+
+		s.WorkspaceLogger.Debug(workspaceName, log_entry)
 		return nil, err
 	}
 	workspacePath = workspacePath + "\\" + models.WORKSPACE_CONFIG_FILE_PATH
@@ -184,14 +196,20 @@ func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *p
 	workspace_config, err := models.ReadFromPKRConfigFile(workspacePath)
 	if err != nil {
 		log_entry := "cannot read from workspace config file\nError: " + err.Error() + "\nSource: ScanForUpdatesOnStart() Handler" + err.Error()
-		log.Println(log_entry)
-		models.AddLogEntry(workspaceName, log_entry)
+		// log.Println(log_entry)
+		// models.AddLogEntry(workspaceName, log_entry)
+
+		s.WorkspaceLogger.Debug(workspaceName, log_entry)
 		return nil, err
 	}
 
 	// [ ] Debugging
-	fmt.Println("Last Hash: ", workspace_config.LastHash)
-	fmt.Println("Receiver Hash: ", receiverHash)
+	// fmt.Println("Last Hash: ", workspace_config.LastHash)
+	// fmt.Println("Receiver Hash: ", receiverHash)
+
+	s.WorkspaceLogger.Info(workspaceName, fmt.Sprintf("Last Hash: %v", workspace_config.LastHash))
+	s.WorkspaceLogger.Info(workspaceName, fmt.Sprintf("Receiver Hash: %v", receiverHash))
+
 	if workspace_config.LastHash == receiverHash {
 		return &pb.ScanForUpdatesResponse{NewUpdates: false}, nil
 	}
