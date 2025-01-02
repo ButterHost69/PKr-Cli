@@ -125,8 +125,6 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
-
-
 	writer := zip.NewWriter(zip_file)
 
 	addFilesToZip(writer, workspace_path+"\\", "")
@@ -141,13 +139,13 @@ func ZipData(workspace_path string) (string, error) {
 	}
 
 	zip_file.Close()
-	
+
 	hashFileName = hashFileName + ".zip"
 	fullHashFilePath := workspace_path + "\\.PKr\\" + hashFileName
 
 	workspace_split := strings.Split(workspace_path, "\\")
-	workspace_name := workspace_split[len(workspace_split) - 1]
-	
+	workspace_name := workspace_split[len(workspace_split)-1]
+
 	if err = os.Rename(fullZipPath, fullHashFilePath); err != nil {
 		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", fullHashFilePath, fullZipPath, err)
 		models.AddLogEntry(workspace_name, logdata)
@@ -155,4 +153,46 @@ func ZipData(workspace_path string) (string, error) {
 	}
 
 	return hashFileName, nil
+}
+
+func UnzipData(src, dest string) error {
+	fmt.Printf("Unzipping Files: %s\n\t to %s\n", src, dest)
+	zipper, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer zipper.Close()
+	totalfiles := 0
+	for count, file := range zipper.File {
+		if file.FileInfo().IsDir() {
+			continue
+		} else {
+			dir, _ := filepath.Split(file.Name)
+			if dir != "" {
+				if err := os.MkdirAll(dir, 0777); err != nil {
+					return err
+				}
+			}
+			unzipfile, err := os.Create(file.Name)
+			if err != nil {
+				return err
+			}
+			defer unzipfile.Close()
+
+			content, err := file.Open()
+			if err != nil {
+				return err
+			}
+			defer content.Close()
+
+			_, err = io.Copy(unzipfile, content)
+			if err != nil {
+				return err
+			}
+			totalfiles += 1
+			fmt.Printf("%d] File: %s\n", count, unzipfile.Name())
+		}
+	}
+	fmt.Printf("\nTotal Files Recieved: %d\n", totalfiles)
+	return nil
 }

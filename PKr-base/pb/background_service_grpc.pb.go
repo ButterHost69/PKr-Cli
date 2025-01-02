@@ -25,6 +25,7 @@ const (
 	BackgroundService_GetWorkspace_FullMethodName               = "/background_service.BackgroundService/GetWorkspace"
 	BackgroundService_NotifyPush_FullMethodName                 = "/background_service.BackgroundService/NotifyPush"
 	BackgroundService_ScanForUpdatesOnStart_FullMethodName      = "/background_service.BackgroundService/ScanForUpdatesOnStart"
+	BackgroundService_PullData_FullMethodName                   = "/background_service.BackgroundService/PullData"
 )
 
 // BackgroundServiceClient is the client API for BackgroundService service.
@@ -39,6 +40,7 @@ type BackgroundServiceClient interface {
 	GetWorkspace(ctx context.Context, in *WorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error)
 	NotifyPush(ctx context.Context, in *NotifyPushRequest, opts ...grpc.CallOption) (*NotifyPushResponse, error)
 	ScanForUpdatesOnStart(ctx context.Context, in *ScanForUpdatesRequest, opts ...grpc.CallOption) (*ScanForUpdatesResponse, error)
+	PullData(ctx context.Context, in *PullDataRequest, opts ...grpc.CallOption) (*PullDataResponse, error)
 }
 
 type backgroundServiceClient struct {
@@ -99,6 +101,16 @@ func (c *backgroundServiceClient) ScanForUpdatesOnStart(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *backgroundServiceClient) PullData(ctx context.Context, in *PullDataRequest, opts ...grpc.CallOption) (*PullDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PullDataResponse)
+	err := c.cc.Invoke(ctx, BackgroundService_PullData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackgroundServiceServer is the server API for BackgroundService service.
 // All implementations must embed UnimplementedBackgroundServiceServer
 // for forward compatibility
@@ -111,6 +123,7 @@ type BackgroundServiceServer interface {
 	GetWorkspace(context.Context, *WorkspaceRequest) (*GetWorkspaceResponse, error)
 	NotifyPush(context.Context, *NotifyPushRequest) (*NotifyPushResponse, error)
 	ScanForUpdatesOnStart(context.Context, *ScanForUpdatesRequest) (*ScanForUpdatesResponse, error)
+	PullData(context.Context, *PullDataRequest) (*PullDataResponse, error)
 	mustEmbedUnimplementedBackgroundServiceServer()
 }
 
@@ -132,6 +145,9 @@ func (UnimplementedBackgroundServiceServer) NotifyPush(context.Context, *NotifyP
 }
 func (UnimplementedBackgroundServiceServer) ScanForUpdatesOnStart(context.Context, *ScanForUpdatesRequest) (*ScanForUpdatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ScanForUpdatesOnStart not implemented")
+}
+func (UnimplementedBackgroundServiceServer) PullData(context.Context, *PullDataRequest) (*PullDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PullData not implemented")
 }
 func (UnimplementedBackgroundServiceServer) mustEmbedUnimplementedBackgroundServiceServer() {}
 
@@ -236,6 +252,24 @@ func _BackgroundService_ScanForUpdatesOnStart_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BackgroundService_PullData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PullDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackgroundServiceServer).PullData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BackgroundService_PullData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackgroundServiceServer).PullData(ctx, req.(*PullDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BackgroundService_ServiceDesc is the grpc.ServiceDesc for BackgroundService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -262,6 +296,10 @@ var BackgroundService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ScanForUpdatesOnStart",
 			Handler:    _BackgroundService_ScanForUpdatesOnStart_Handler,
+		},
+		{
+			MethodName: "PullData",
+			Handler:    _BackgroundService_PullData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
