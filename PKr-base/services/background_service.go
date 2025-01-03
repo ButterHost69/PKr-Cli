@@ -146,7 +146,7 @@ func (s *BackgroundServer) InitNewWorkSpaceConnection(ctx context.Context, reque
 	portchan := make(chan int)
 	errorchan := make(chan error)
 
-	go StartDataServer(120*time.Minute, request.WorkspaceName, file_path, portchan, errorchan)
+	go StartDataServer(120*time.Minute, request.WorkspaceName, file_path, portchan, errorchan, s.WorkspaceLogger, s.UserConfingLogger)
 	select {
 	case port_num := <-portchan:
 		return &pb.InitResponse{
@@ -230,7 +230,7 @@ func (s *BackgroundServer) PullData(ctx context.Context, request *pb.PullDataReq
 		return nil, err
 	}
 
-	go StartDataServer(120*time.Minute, request.WorkspaceName, workspacePath, portchan, errorchan)
+	go StartDataServer(120*time.Minute, request.WorkspaceName, workspacePath, portchan, errorchan, s.WorkspaceLogger, s.UserConfingLogger)
 	select {
 	case port_num := <-portchan:
 		return &pb.PullDataResponse{
