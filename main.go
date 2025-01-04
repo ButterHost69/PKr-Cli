@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ButterHost69/PKr-cli/logger"
 	"github.com/ButterHost69/PKr-cli/root"
 )
 
@@ -28,6 +29,16 @@ var (
 	LOG_LEVEL				int
 )
 
+var (
+	workspace_logger	*logger.WorkspaceLogger
+	userconfing_logger	*logger.UserLogger
+)
+
+const (
+	ROOT_DIR     = "..\\tmp"
+	LOG_FILE = ROOT_DIR + "\\logs.txt"
+)
+
 func Init() {
 	// flag.IntVar(&BACKGROUND_SERVER_PORT, "ip", 9000, "Other Users BACKGROUND Port")
 	value := os.Getenv("PKR-IP")
@@ -42,6 +53,15 @@ func Init() {
 	flag.IntVar(&LOG_LEVEL, "ll", 4, "Set Log Levels.") // 4 -> No Logs
 
 	flag.Parse()
+
+	workspace_logger = logger.InitWorkspaceLogger()
+	userconfing_logger = logger.InitUserLogger(LOG_FILE)
+
+	workspace_logger.SetLogLevel(logger.IntToLog(LOG_LEVEL))
+	userconfing_logger.SetLogLevel(logger.IntToLog(LOG_LEVEL))
+
+	workspace_logger.SetPrintToTerminal(LOG_IN_TERMINAL)
+	userconfing_logger.SetPrintToTerminal(LOG_IN_TERMINAL)
 }
 
 func PrintMode() {
@@ -124,7 +144,7 @@ func main() {
 				workspace_name := workspace_namel[len(workspace_namel)-1]
 				fmt.Println("Pushing Workpace: ", workspace_name)
 
-				success, err := root.Push(workspace_name)
+				success, err := root.Push(workspace_name, workspace_logger)
 				if err != nil {
 					fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
 					fmt.Println(err)

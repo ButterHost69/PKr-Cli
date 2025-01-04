@@ -225,8 +225,9 @@ func (s *BackgroundServer) PullData(ctx context.Context, request *pb.PullDataReq
 	workspacePath, err := models.GetWorkspaceFilePath(request.WorkspaceName)
 	if err != nil {
 		log_entry := fmt.Sprintf("cannot get workspace's file path\nError: %s\nSource: PullData() Handler", err.Error())
-		models.AddLogEntry(request.WorkspaceName, log_entry)
-		fmt.Println(log_entry) // [ ]: Debug
+		// models.AddLogEntry(request.WorkspaceName, log_entry)
+		// fmt.Println(log_entry) // [ ]: Debug
+		s.WorkspaceLogger.Debug(request.WorkspaceName, log_entry)
 		return nil, err
 	}
 
@@ -238,8 +239,9 @@ func (s *BackgroundServer) PullData(ctx context.Context, request *pb.PullDataReq
 		}, nil
 	case err := <-errorchan:
 		log_entry := fmt.Sprintf("cannot get workspace's file path\nError: %s\nSource: PullData() Handler", err.Error())
-		models.AddLogEntry(request.WorkspaceName, log_entry)
-		fmt.Println(log_entry) // [ ]: Debug
+		// models.AddLogEntry(request.WorkspaceName, log_entry)
+		// fmt.Println(log_entry) // [ ]: Debug
+		s.WorkspaceLogger.Debug(request.WorkspaceName, log_entry)
 		return &pb.PullDataResponse{
 			Port: 0000,
 		}, err

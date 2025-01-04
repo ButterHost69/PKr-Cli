@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ButterHost69/PKr-cli/models"
+	"github.com/ButterHost69/PKr-cli/logger"
 	"github.com/ButterHost69/PKr-cli/pb"
 	"google.golang.org/grpc"
 )
@@ -33,14 +33,15 @@ import (
 // }
 
 // [ ] Test Function
-func PushToConnections(workspace_name string, connnection_ip []string) int {
+func PushToConnections(workspace_name string, connnection_ip []string, workspace_logger *logger.WorkspaceLogger) int {
 	successful_count := 0
 
 	for _, workspace_ip := range connnection_ip {
 		conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 		if err != nil {
 			err_log := "Failed to Establish Connection with " + workspace_ip + " while sending Push Notification"
-			models.AddLogEntry(workspace_name, err_log)
+			// models.AddLogEntry(workspace_name, err_log)
+			workspace_logger.Info(workspace_name, err_log)
 			continue
 		}
 
@@ -54,7 +55,8 @@ func PushToConnections(workspace_name string, connnection_ip []string) int {
 
 		if err != nil {
 			err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
-			models.AddLogEntry(workspace_name, err_log)
+			// models.AddLogEntry(workspace_name, err_log)
+			workspace_logger.Info(workspace_name, err_log)
 			continue
 		}
 

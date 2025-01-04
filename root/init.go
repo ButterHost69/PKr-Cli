@@ -49,17 +49,17 @@ func Init(workspace_password string) error {
 		return fmt.Errorf("could Not Create .PKr/PKRConfig.json.\nError: %v", err)
 	}
 
-	log := "Workspace '" + workspaceName + "' Created"
+	// log := "Workspace '" + workspaceName + "' Created"
 
-	// Add Entry to the Main File ??? I dont know the Main file path of rn /tmp dir
-	if err := models.AddUsersLogEntry(workspaceName, log); err != nil {
-		return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
-	}
+	// // Add Entry to the Main File ??? I dont know the Main file path of rn /tmp dir
+	// if err := models.AddUsersLogEntry(workspaceName, log); err != nil {
+	// 	return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
+	// }
 
-	// Add Entry to Workspace logs
-	if err := models.AddLogEntry(workspaceName, log); err != nil {
-		return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
-	}
+	// // Add Entry to Workspace logs
+	// if err := models.AddLogEntry(workspaceName, log); err != nil {
+	// 	return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
+	// }
 	
 	return nil
 }
