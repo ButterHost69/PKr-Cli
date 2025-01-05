@@ -1,6 +1,9 @@
 package logger
 
-import "os"
+import (
+	"os"
+	"time"
+)
 
 type LogLevel int
 
@@ -43,6 +46,14 @@ func IntToLog(level int) LogLevel {
 	return logLevel
 }
 
+func getDateAndTime()string{
+	currentTime := time.Now()
+
+	layout := "02/01/2006 15:04:05"
+
+	return	currentTime.Format(layout)
+}
+
 // [ ] Find a Way to Avoid Frequent Read and Writes... IDK How ? Maybe its not possible ?
 
 func logToFile(filepath, log string) error {
@@ -52,8 +63,9 @@ func logToFile(filepath, log string) error {
 		return err
 	}
 
+	dateTime := getDateAndTime()
 	defer file.Close()
-	if _, err := file.Write([]byte(log + "\n")); err != nil {
+	if _, err := file.Write([]byte("[" + dateTime + "]"+log + "\n")); err != nil {
 		return err
 	}
 
