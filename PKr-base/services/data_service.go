@@ -26,7 +26,7 @@ type DataServer struct {
 	wg             *sync.WaitGroup
 	workspace_path string
 
-	Workspace_Logger *logger.WorkspaceLogger
+	Workspace_Logger  *logger.WorkspaceLogger
 	UserConfig_Logger *logger.UserLogger
 }
 
@@ -92,7 +92,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	// models.AddLogEntry(request.WorkspaceName, "Zip AES is Encrypted")
 	server.Workspace_Logger.Info(request.WorkspaceName, "Zip AES is Encrypted")
 
-
 	publicKeyPath, err := models.GetConnectionsPublicKeyUsingIP(server.workspace_path, request.ConnectionIp)
 	if err != nil {
 		logdata := fmt.Sprintf("Could Not Find Users Public Key\nError: %v", err)
@@ -137,7 +136,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	// models.AddLogEntry(request.WorkspaceName, "AES Keys Encrypted")
 	server.Workspace_Logger.Info(request.WorkspaceName, "AES Keys Encrypted")
 
-
 	buff := make([]byte, 2048)
 	chunknumber := 1
 
@@ -145,13 +143,11 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	// models.AddLogEntry(request.WorkspaceName, "Sending Chunks...")
 	server.Workspace_Logger.Info(request.WorkspaceName, "Sending Chunks...")
 
-
 	// Sending Last Hash with File Type = 3
 	chunk := []byte(zipped_hash)
 	if err := stream.Send(&pb.Data{Filetype: 3, Chunk: chunk}); err != nil {
-		logdata := fmt.Sprintf("Could Not Send Encrypted File\nError: %v", err)
-		// models.AddLogEntry(request.WorkspaceName, logdata)
-		server.Workspace_Logger.Critical(request.WorkspaceName, logdata)
+		logdata := fmt.Sprintf("Could Not Send Last Hash\nError: %v", err)
+		models.AddLogEntry(request.WorkspaceName, logdata)
 		return err
 	}
 
@@ -202,7 +198,6 @@ func (server *DataServer) GetData(request *pb.DataRequest, stream pb.DataService
 	// models.AddLogEntry(request.WorkspaceName, logdata)
 	server.Workspace_Logger.Info(request.WorkspaceName, logdata)
 
-
 	server.wg.Done()
 	return nil
 }
@@ -237,7 +232,6 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string, worksp
 	// models.AddLogEntry(workspace_name, logdata)
 	workspace_logger.Info(workspace_name, logdata)
 
-
 	lis, err := net.Listen("tcp", ":"+str_port)
 	if err != nil {
 		// models.AddLogEntry(workspace_name, err)
@@ -246,22 +240,21 @@ func StartDataServer(time_till_wait time.Duration, workspace_name string, worksp
 		os.Exit(1)
 	}
 
-	logdata = fmt.Sprintf("Data Server Started on %d", port) 
+	logdata = fmt.Sprintf("Data Server Started on %d", port)
 	workspace_logger.Info(workspace_name, logdata)
 
 	logdata = fmt.Sprintf("Started Listening to the Port: %v", str_port)
 	// models.AddLogEntry(workspace_name, logdata)
 	workspace_logger.Info(workspace_name, logdata)
 
-
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	grpcServer := grpc.NewServer()
 	dataServer := DataServer{
-		wg:             &wg,
-		workspace_path: workspace_path,
-		Workspace_Logger: workspace_logger,
+		wg:                &wg,
+		workspace_path:    workspace_path,
+		Workspace_Logger:  workspace_logger,
 		UserConfig_Logger: userconfig_logger,
 	}
 
