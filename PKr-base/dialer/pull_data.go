@@ -3,6 +3,7 @@ package dialer
 import (
 	"ButterHost69/PKr-base/encrypt"
 	"ButterHost69/PKr-base/filetracker"
+	"ButterHost69/PKr-base/logger"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
@@ -29,7 +30,7 @@ func getMyIP() (string, error) {
 }
 
 func getData(workspace_ip, workspace_path, workspace_name string) error {
-	fmt.Println("Connecting to Data Server ...") // [ ] Debug
+	// fmt.Println("Connecting to Data Server ...") // [ ] Debug
 	my_ip, err := getMyIP()
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func getData(workspace_ip, workspace_path, workspace_name string) error {
 		return err
 	}
 
-	fmt.Printf("Deleting All Files at: %s\n\n", workspace_path)
+	// fmt.Printf("Deleting All Files at: %s\n\n", workspace_path)
 	for _, file := range files {
 		if file.Name() != ".PKr" && file.Name() != "PKr-base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp" {
 			if err = os.RemoveAll(path.Join([]string{workspace_path, file.Name()}...)); err != nil {
@@ -131,17 +132,18 @@ func getData(workspace_ip, workspace_path, workspace_name string) error {
 	if err = models.UpdateGetWorkspaceFolderToUserConfig(workspace_name, workspace_path, workspace_ip, last_hash); err != nil {
 		return fmt.Errorf("error in adding GetConnection to the Main User Config Folder.\nerror:%v", err)
 	}
-	fmt.Println("Data Transfer Completed ...") // [ ] Debug
+	// fmt.Println("Data Transfer Completed ...") // [ ] Debug
 	return nil
 }
 
-func PullData(workspace_name string) error {
+func PullData(userConfig_log *logger.UserLogger, workspace_name string) error {
 	fmt.Println("Sending Pull Data Request ...") // [ ]: Debug
 	user_config, err := models.ReadFromUserConfigFile()
 	if err != nil {
 		log_entry := fmt.Sprintf("cannot read from user config\nError: %s\nSource: PullData() Dialer", err.Error())
-		models.AddUsersLogEntry(log_entry)
-		fmt.Println(log_entry)
+		// models.AddUsersLogEntry(log_entry)
+		// fmt.Println(log_entry)
+		userConfig_log.Debug(log_entry)
 		return err
 	}
 
@@ -156,16 +158,18 @@ func PullData(workspace_name string) error {
 	}
 	if workspace_ip == "" {
 		log_entry := "invalid workspace name\nSource: PullData() Dialer"
-		models.AddUsersLogEntry(log_entry)
-		fmt.Println(log_entry)
+		// models.AddUsersLogEntry(log_entry)
+		// fmt.Println(log_entry)
+		userConfig_log.Debug(log_entry)
 		return fmt.Errorf("invalid workspace name")
 	}
 
 	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 	if err != nil {
 		log_entry := fmt.Sprintf("cannot connect to pull data handler\nError: %s\nSource: PullData() Dialer", err.Error())
-		models.AddUsersLogEntry(log_entry)
-		fmt.Println(log_entry)
+		// models.AddUsersLogEntry(log_entry)
+		// fmt.Println(log_entry)
+		userConfig_log.Debug(log_entry)
 		return err
 	}
 	defer conn.Close()
@@ -179,12 +183,14 @@ func PullData(workspace_name string) error {
 	res, err := client.PullData(ctx, &pb.PullDataRequest{
 		WorkspaceName: workspace_name,
 	})
-	fmt.Println("Assigned PORT:", res.Port)
+	log :=  fmt.Sprintf("Assigned PORT:", res.Port)
+	userConfig_log.Info(log)
 
 	if err != nil {
 		log_entry := fmt.Sprintf("error from server(pull data handler)\nError: %s\nSource: PullData() Dialer", err.Error())
-		models.AddUsersLogEntry(log_entry)
-		fmt.Println(log_entry)
+		// models.AddUsersLogEntry(log_entry)
+		// fmt.Println(log_entry)
+		userConfig_log.Debug(log_entry)
 		return err
 	}
 
@@ -192,8 +198,14 @@ func PullData(workspace_name string) error {
 	only_ip := strings.Split(workspace_ip, ":")[0]
 	data_service_ip := fmt.Sprintf("%s:%d", only_ip, port_int)
 
-	fmt.Println("PORT:", port_int)
-	fmt.Println("Only IP: ", only_ip)
-	fmt.Println("IP Address:", data_service_ip)
+	log = fmt.Sprintf("PORT:", port_int)
+	userConfig_log.Info(log)
+
+	log = fmt.Sprintf("Only IP: ", only_ip)
+	userConfig_log.Info(log)
+
+	log = fmt.Sprintf("IP Address:", data_service_ip)
+	userConfig_log.Info(log)
+
 	return getData(data_service_ip, workspace_path, workspace_name)
 }

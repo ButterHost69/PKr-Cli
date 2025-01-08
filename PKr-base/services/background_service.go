@@ -165,14 +165,14 @@ func (s *BackgroundServer) NotifyPush(ctx context.Context, request *pb.NotifyPus
 	workspace_name := request.WorkspaceName
 
 	log_entry := "NEW UPDATE IN FILES OF " + workspace_name
-	models.AddLogEntry(workspace_name, log_entry) // [ ] Idk why this line isn't working maybe cuz log.txt isn't generated
+	// models.AddLogEntry(workspace_name, log_entry) // [ ] Idk why this line isn't working maybe cuz log.txt isn't generated
 	s.WorkspaceLogger.Debug(workspace_name, log_entry)
 
 	// [ ] Fetch the new data
 
 	// [ ] Compare Hashes
 
-	return &pb.NotifyPushResponse{Response: 200}, dialer.PullData(workspace_name)
+	return &pb.NotifyPushResponse{Response: 200}, dialer.PullData(s.UserConfingLogger, workspace_name)
 }
 
 func (s *BackgroundServer) ScanForUpdatesOnStart(ctx context.Context, request *pb.ScanForUpdatesRequest) (*pb.ScanForUpdatesResponse, error) {
