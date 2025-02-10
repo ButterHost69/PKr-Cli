@@ -22,20 +22,20 @@ import (
 // TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
 
 var (
-	TUI                    	bool
-	CLI                    	bool
-	BACKGROUND_SERVER_PORT 	int
-	LOG_IN_TERMINAL			bool
-	LOG_LEVEL				int
+	TUI                    bool
+	CLI                    bool
+	BACKGROUND_SERVER_PORT int
+	LOG_IN_TERMINAL        bool
+	LOG_LEVEL              int
 )
 
 var (
-	workspace_logger	*logger.WorkspaceLogger
-	userconfing_logger	*logger.UserLogger
+	workspace_logger   *logger.WorkspaceLogger
+	userconfing_logger *logger.UserLogger
 )
 
 const (
-	ROOT_DIR     = "..\\tmp"
+	ROOT_DIR = "..\\tmp"
 	LOG_FILE = ROOT_DIR + "\\logs.txt"
 )
 
@@ -70,6 +70,7 @@ func PrintMode() {
 	fmt.Println("	2] `PKr -cli` -> For Command Line Interface. Requires Input as flags")
 }
 
+// [ ]: Add PUSH Command Info
 func PrintArguments() {
 	fmt.Printf("Required Minimum 3 Args\n\n")
 	fmt.Println("Valid Parameters:")

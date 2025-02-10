@@ -1,6 +1,7 @@
 package dialer
 
 import (
+	"ButterHost69/PKr-base/logger"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
@@ -58,7 +59,8 @@ func ScanForUpdatesOnStart() error {
 
 		if res.NewUpdates {
 			fmt.Printf("New Data is Available: %#v\n", getWorkspace) // [ ]: Debugging
-			err := PullData(getWorkspace.WorkspaceName)
+			user_logger := &logger.UserLogger{}
+			err := PullData(user_logger, getWorkspace.WorkspaceName)
 			if err != nil {
 				log_entry := fmt.Sprintf("error while pulling new updates from %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
 				fmt.Println(log_entry) // [ ]: Debugging
