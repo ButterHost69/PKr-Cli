@@ -1,6 +1,7 @@
 package dialer
 
 import (
+	"ButterHost69/PKr-base/logger"
 	"ButterHost69/PKr-base/models"
 	"ButterHost69/PKr-base/pb"
 	"context"
@@ -12,7 +13,7 @@ import (
 
 // [ ]: Problem with IP Address
 // Random PORT Address of Data Server is stored instead of PORT Address of Pkr-Base(Service)
-func ScanForUpdatesOnStart() error {
+func ScanForUpdatesOnStart(userConfig_log *logger.UserLogger) error {
 	// Read all Get Workspaces from User Config & send request to check
 	// whether there's new update or not
 
@@ -58,7 +59,7 @@ func ScanForUpdatesOnStart() error {
 
 		if res.NewUpdates {
 			fmt.Printf("New Data is Available: %#v\n", getWorkspace) // [ ]: Debugging
-			err := PullData(getWorkspace.WorkspaceName)
+			err := PullData(userConfig_log, getWorkspace.WorkspaceName)
 			if err != nil {
 				log_entry := fmt.Sprintf("error while pulling new updates from %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
 				fmt.Println(log_entry) // [ ]: Debugging

@@ -2,10 +2,10 @@ protofiles:
 	protoc ./proto/*.proto --go_out=. --go-grpc_out=.
 
 
-BASE_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-base\PKr-base.exe
-CLI_OUTPUT=C:\Users\palas\Desktop\Projs\PKr\PKr-cli\PKr-cli.exe
+BASE_OUTPUT=/home/anorak/Desktop/Projects/PKr-cli/PKr-cli/PKr-base/PKr-base.exe
+CLI_OUTPUT=/home/anorak/Desktop/Projects/PKr-cli/PKr-cli/PKr-cli.exe
 
-TEST_DEST=C:\Users\palas\Desktop\Projs\PKr\PKr-test-runs\$(TEST)
+TEST_DEST=/home/anorak/Desktop/Projects/PKr-test-runs/$(TEST)
 TEST=Test-8
 
 build2test: clean build copy
