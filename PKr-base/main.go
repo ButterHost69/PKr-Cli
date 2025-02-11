@@ -121,7 +121,7 @@ func main() {
 	}()
 
 	// [ ] Look for a better way to call this function instead of using go-routines
-	if err = dialer.ScanForUpdatesOnStart(); err != nil {
+	if err = dialer.ScanForUpdatesOnStart(userconfing_logger); err != nil {
 		userconfing_logger.Critical(fmt.Sprintf("Error in Scan For Updates on Start.\nError: %v", err))
 	}
 
