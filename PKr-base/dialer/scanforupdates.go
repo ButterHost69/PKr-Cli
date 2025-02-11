@@ -60,6 +60,7 @@ func ScanForUpdatesOnStart(userConfig_log *logger.UserLogger) error {
 		if res.NewUpdates {
 			fmt.Printf("New Data is Available: %#v\n", getWorkspace) // [ ]: Debugging
 			err := PullData(userConfig_log, getWorkspace.WorkspaceName)
+
 			if err != nil {
 				log_entry := fmt.Sprintf("error while pulling new updates from %#v \nError: %s\nSource: ScanForUpdatesOnStart() Dialer\n", getWorkspace, err.Error())
 				fmt.Println(log_entry) // [ ]: Debugging
