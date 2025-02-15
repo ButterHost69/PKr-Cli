@@ -109,25 +109,73 @@ func main() {
 		switch cmd {
 		case "install":
 			{
-				var username, serverIP string
-				fmt.Print("Enter a Username : ")
-				fmt.Scan(&username)
-
-				fmt.Println("Enter Server IP (default- ): ")
-				fmt.Scan(&serverIP)
-
-				fmt.Printf("Okay %s, Setting Up Your System...\n", username)
+				fmt.Printf("Setting Up Your System...\n")
 				fmt.Println("This Might Take Some Time...")
 
-				err := root.Install(username, serverIP)
+				err := root.Install()
 				if err != nil {
 					fmt.Println("Could not Install PKr.")
 					fmt.Println(err)
 					return
 				}
 
-				fmt.Printf(" ~ Created User : %s\n", username)
+				fmt.Printf(" ~ PKr Installed ~ \n")
+				fmt.Println("NOTE: Add Server using - pkr -tui server add")
 				return
+			}
+
+		case "init":
+			{
+				var server_alias string
+				fmt.Println("Please Enter Server Alias: ")
+				fmt.Scan(&server_alias)
+
+				var workspace_password string
+				fmt.Print("Please Enter A Password: ")
+				fmt.Scan(&workspace_password)
+				if err := root.Init(server_alias, workspace_password); err != nil {
+					fmt.Println("Error Occured in Initialize a New Workspace")
+					fmt.Printf("error: %v\n", err)
+					return
+				}
+
+				fmt.Println("Workspace Created Successfully !!")
+				return
+			}
+
+		case "clone":
+			{
+				var workspace_ip string
+				var workspace_name string
+				var workspace_password string
+
+				fmt.Print("> Enter the Workspace IP [addr:port]: ")
+				fmt.Scan(&workspace_ip)
+
+				fmt.Print("> Enter the Workspace Name: ")
+				fmt.Scan(&workspace_name)
+
+				fmt.Print("> Enter the Workspace Password: ")
+				fmt.Scan(&workspace_password)
+
+				err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
+				if err != nil {
+					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, workspace_ip)
+					fmt.Println(err)
+					return
+				}
+
+				fmt.Printf("Successfully Cloned Workspace: %s\n", workspace_name)
+				return
+			}
+
+		case "list":
+			{
+				if err := root.List(); err != nil {
+					fmt.Println("Could Not List Workspace Info")
+					fmt.Printf("Error: %v", err)
+					return
+				}
 			}
 
 		case "uninstall":
@@ -158,62 +206,6 @@ func main() {
 				fmt.Printf("\nNotified %d Users !!\n", success)
 			}
 
-		case "clone":
-			{
-				var workspace_ip string
-				var workspace_name string
-				var workspace_password string
-
-				fmt.Print("> Enter the Workspace IP [addr:port]: ")
-				fmt.Scan(&workspace_ip)
-
-				fmt.Print("> Enter the Workspace Name: ")
-				fmt.Scan(&workspace_name)
-
-				fmt.Print("> Enter the Workspace Password: ")
-				fmt.Scan(&workspace_password)
-
-				err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
-				if err != nil {
-					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, workspace_ip)
-					fmt.Println(err)
-					return
-				}
-
-				fmt.Printf("Successfully Cloned Workspace: %s\n", workspace_name)
-				return
-			}
-
-		case "init":
-			{
-				var workspace_password string
-				fmt.Print("Please Enter A Password: ")
-				fmt.Scan(&workspace_password)
-				if err := root.Init(workspace_password); err != nil {
-					fmt.Println("Error Occured in Initialize a New Workspace")
-					fmt.Printf("error: %v\n", err)
-					return
-				}
-
-				fmt.Println("Workspace Created Successfully !!")
-				return
-			}
-
-			// list Created workspaces
-		case "list":
-			{
-				if err := root.List(); err != nil {
-					fmt.Println("Could Not List Workspace Info")
-					fmt.Printf("Error: %v", err)
-					return
-				}
-			}
-
-		// For server
-		// Mainly for IP and shit
-		// Try to make the code as swappable as possible
-		//
-		// Was working on server setup ~ check config, it is still partial
 		case "server":
 			{
 				if len(os.Args) < 4 {
@@ -222,18 +214,31 @@ func main() {
 				}
 				opts := strings.ToLower(os.Args[3])
 				switch opts {
-				case "setup":
+				case "add":
 					{
-						root.Server_Setup()
+						var server_alias, server_ip, server_username, server_password string
+						fmt.Println("Enter Server Alias: ")
+						fmt.Scan(&server_alias)
+
+						fmt.Println("Enter Server IP: ")
+						fmt.Scan(&server_ip)
+
+						fmt.Println("Enter Server Username: ")
+						fmt.Scan(&server_username)
+
+						fmt.Println("Enter Server Password: ")
+						fmt.Scan(&server_password)
+
+						root.Server_Setup(server_alias, server_ip, server_username, server_password)
 						return
 					}
 
-					// Can Name better in future
-				case "register_workspace":
-					{
-						root.Server_RegisterWorkspace()
-						return
-					}
+				// 	// Can Name better in future
+				// case "register_workspace":
+				// 	{
+				// 		root.Server_RegisterWorkspace()
+				// 		return
+				// 	}
 				default:
 					{
 						PrintServerOptions()
@@ -256,7 +261,7 @@ func main() {
 			{
 				installCmd := flag.NewFlagSet("install", flag.ExitOnError)
 				username := installCmd.String("u", "", "Username to Install PKr")
-				serverIP := installCmd.String("s", "", "Select Server IP")
+				// serverIP := installCmd.String("s", "", "Select Server IP")
 
 				// installCmd.Parse(os.Args[3:])
 				// if *username == "" {
@@ -271,14 +276,14 @@ func main() {
 					fmt.Println(`Usage: PKr -cli install -u="username" -s="<ipdarr>"`)
 					return
 				}
-				if *serverIP == "" {
-					fmt.Println("Selecting Default Server")
-					fmt.Println("Server IP: (insert-default-ip-here)")
-					return
-				}
+				// if *serverIP == "" {
+				// 	fmt.Println("Selecting Default Server")
+				// 	fmt.Println("Server IP: (insert-default-ip-here)")
+				// 	return
+				// }
 
 				fmt.Println("Creating User: ", *username)
-				err := root.Install(*username, *serverIP)
+				err := root.Install(*username)
 				if err != nil {
 					fmt.Println("Could not Install PKr.")
 					fmt.Println(err)

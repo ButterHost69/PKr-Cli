@@ -8,7 +8,8 @@ import (
 	"github.com/ButterHost69/PKr-cli/config"
 )
 
-func Init(workspace_password string) error {
+// FIXME: Not Converted
+func Init(server_alias, workspace_password string) error {
 	// [X] Register Folder to Send Workspace / Export Folder
 	// [X] Create a .PKr Folder
 	// [X] Create a Keys Folder [Will Store Other Users Public Keys]
@@ -18,7 +19,7 @@ func Init(workspace_password string) error {
 	// Check if .PKr folder already exists; if so then do nothing ...
 	// FIXME: [ ] This Doesnt Work Please Check Why Later
 	if _, err := os.Stat(".PKr"); os.IsExist(err) {
-		return fmt.Errorf(".PKr Already Exists...\nIt seems PKr is already Initialized....\nError: %v", err)
+		return fmt.Errorf(".PKr Already Exists...\nIt seems PKr is already Initialized in this Directory....\nError: %v", err)
 	}
 
 	// Create .Pkr Folder ; return if error occured

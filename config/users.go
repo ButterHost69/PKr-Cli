@@ -13,59 +13,11 @@ import (
 	// "github.com/go-delve/delve/cmd/dlv/cmds"
 )
 
-type Connections struct {
-	ConnectionSlug string `json:"connection_slug"`
-	// Password       string `json:"password"`
-	CurrentIP   string `json:"current_ip"`
-	CurrentPort string `json:"current_port"`
-}
-
-type ConnectionInfo struct {
-	// ConnectionSlug string `json:"connection_slug"`
-	Username    string `json:"username"`
-	CurrentIP   string `json:"current_ip"`
-	CurrentPort string `json:"current_port"`
-}
-
-type SendWorkspaceFolder struct {
-	WorkspaceName     string `json:"workspace_name"`
-	WorkspacePath     string `json:"workspace_path"`
-	WorkSpacePassword string `json:"workspace_password"`
-	ServerIP          string `json:"server_ip"`
-	// ConnectionSlugs []string `json:"connection_slug"`
-}
-
-type GetWorkspaceFolder struct {
-	WorkspaceName string `json:"workspace_name"`
-	WorkspacePath string `json:"workspace_path"`
-	WorkspcaceIP  string `json:"workspace_ip"`
-	LastHash      string `json:"last_hash"`
-}
-
-type Files struct {
-	FileName string `json:"file_name"`
-	FileLoc  string `json:"file_loc"`
-	FileSize string `json:"file_size"`
-}
-
-type UsersConfig struct {
-	User           string        `json:"user"`
-	AllConnections []Connections `json:"all_connections"`
-
-	Sendworkspaces []SendWorkspaceFolder `json:"send_workspace"`
-	GetWorkspaces  []GetWorkspaceFolder  `json:"get_workspace"`
-}
-
 // For server
 // Mainly for IP and shit
 // Try to make the code as swappable as possible
 //
 // Not Done
-type BetterSendWorkspace struct {
-}
-
-type BetterGetWorkspace struct {
-}
 
 const (
 	ROOT_DIR           = "tmp"
@@ -82,7 +34,7 @@ var (
 // Creates the Main tmp Folder.
 // Generates the public and private keys.
 // Generates userConfig.json.
-func CreateUserIfNotExists(username, serverIP string) error {
+func CreateUserIfNotExists(username string) error {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
 		MY_USERNAME = username
 
@@ -129,10 +81,6 @@ func CreateUserIfNotExists(username, serverIP string) error {
 	}
 
 	return fmt.Errorf("It Seems PKr is Already Installed...")
-}
-
-func AddConnection(connection_slug string, password string) {
-
 }
 
 func RegisterNewSendWorkspace(workspace_name string, workspace_path string, workspace_password string) error {
@@ -454,4 +402,29 @@ func GetGetWorkspaceFolder(workspace_name string) (GetWorkspaceFolder, error) {
 	}
 
 	return GetWorkspaceFolder{}, err
+}
+
+func AddNewServerToConfig(server_alias, server_ip, username, password string) error {
+	// serverConfig, err := readFromServerConfigFile()
+	
+	userConfig, err := ReadFromUserConfigFile()
+	if err != nil {
+		fmt.Println("Error in reading From the UserConfig File...")
+		return err
+	}
+
+	sconf := ServerConfig{
+		Username: username,
+		Password: password,
+		ServerAlias: server_alias,
+		ServerIP: server_ip,
+	}
+
+	userConfig.ServerLists = append(userConfig.ServerLists, sconf)
+	if err := writeToUserConfigFile(userConfig); err != nil {
+		fmt.Println("Error Occured in Writing To the UserConfigr File")
+		return err
+	}
+
+	return nil
 }

@@ -8,19 +8,6 @@ import (
 	"os"
 )
 
-type ServerConfig struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	ServerIP string `json:"server_ip"`
-
-	SendWorkspaces []BetterSendWorkspace `json:"send_workspace"`
-	GetWorkspaces  []BetterGetWorkspace  `json:"get_workspace"`
-}
-
-type ServerFileConfig struct {
-	ServerLists []ServerConfig `json:"server_lists"`
-}
-
 func CreateServerConfigFiles() error {
 	serverConfig := ServerFileConfig{}
 	jsonbytes, err := json.Marshal(serverConfig)
@@ -74,27 +61,27 @@ func readFromServerConfigFile() (ServerFileConfig, error) {
 	return serverConfig, nil
 }
 
-func AddNewServerToConfig(username, password, serverip string) error {
-	serverConfig, err := readFromServerConfigFile()
-	if err != nil {
-		fmt.Println("Error in reading From the ServerConfig File...")
-		return err
-	}
+// func AddNewServerToConfig(username, password, serverip string) error {
+// 	serverConfig, err := readFromServerConfigFile()
+// 	if err != nil {
+// 		fmt.Println("Error in reading From the ServerConfig File...")
+// 		return err
+// 	}
 
-	sconf := ServerConfig{
-		Username: username,
-		Password: password,
-		ServerIP: serverip,
-	}
+// 	sconf := ServerConfig{
+// 		Username: username,
+// 		Password: password,
+// 		ServerIP: serverip,
+// 	}
 
-	serverConfig.ServerLists = append(serverConfig.ServerLists, sconf)
-	if err := writeToServerConfigFile(serverConfig); err != nil {
-		fmt.Println("Error Occured in Writing To the Server File")
-		return err
-	}
+// 	serverConfig.ServerLists = append(serverConfig.ServerLists, sconf)
+// 	if err := writeToServerConfigFile(serverConfig); err != nil {
+// 		fmt.Println("Error Occured in Writing To the Server File")
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func GetServerUsernamePassword(server_ip string) (string, string, error) {
 	serverConfig, err := readFromServerConfigFile()
