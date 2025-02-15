@@ -109,14 +109,17 @@ func main() {
 		switch cmd {
 		case "install":
 			{
-				var username string
+				var username, serverIP string
 				fmt.Print("Enter a Username : ")
 				fmt.Scan(&username)
+
+				fmt.Println("Enter Server IP (default- ): ")
+				fmt.Scan(&serverIP)
 
 				fmt.Printf("Okay %s, Setting Up Your System...\n", username)
 				fmt.Println("This Might Take Some Time...")
 
-				err := root.Install(username)
+				err := root.Install(username, serverIP)
 				if err != nil {
 					fmt.Println("Could not Install PKr.")
 					fmt.Println(err)
@@ -210,7 +213,7 @@ func main() {
 		// Mainly for IP and shit
 		// Try to make the code as swappable as possible
 		//
-		// Was working on server setup ~ check models, it is still partial
+		// Was working on server setup ~ check config, it is still partial
 		case "server":
 			{
 				if len(os.Args) < 4 {
@@ -253,16 +256,29 @@ func main() {
 			{
 				installCmd := flag.NewFlagSet("install", flag.ExitOnError)
 				username := installCmd.String("u", "", "Username to Install PKr")
+				serverIP := installCmd.String("s", "", "Select Server IP")
+
+				// installCmd.Parse(os.Args[3:])
+				// if *username == "" {
+				// 	fmt.Println("Error: Username is required for install")
+				// 	fmt.Println(`Usage: PKr -cli install -u="username"`)
+				// 	return
+				// }
 
 				installCmd.Parse(os.Args[3:])
 				if *username == "" {
 					fmt.Println("Error: Username is required for install")
-					fmt.Println(`Usage: PKr -cli install -u="username"`)
+					fmt.Println(`Usage: PKr -cli install -u="username" -s="<ipdarr>"`)
+					return
+				}
+				if *serverIP == "" {
+					fmt.Println("Selecting Default Server")
+					fmt.Println("Server IP: (insert-default-ip-here)")
 					return
 				}
 
 				fmt.Println("Creating User: ", *username)
-				err := root.Install(*username)
+				err := root.Install(*username, *serverIP)
 				if err != nil {
 					fmt.Println("Could not Install PKr.")
 					fmt.Println(err)
@@ -343,7 +359,7 @@ func main() {
 		// Mainly for IP and shit
 		// Try to make the code as swappable as possible
 		//
-		// Was working on server setup ~ check models, it is still partial
+		// Was working on server setup ~ check config, it is still partial
 		// TODO: [ ] CLI remaining For server part. Flags are not taken
 		case "server":
 			{

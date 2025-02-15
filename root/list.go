@@ -3,11 +3,11 @@ package root
 import (
 	"fmt"
 
-	"github.com/ButterHost69/PKr-cli/models"
+	"github.com/ButterHost69/PKr-cli/config"
 )
 
 func List() error {
-	userConfigFile, err := models.ReadFromUserConfigFile()
+	userConfigFile, err := config.ReadFromUserConfigFile()
 	if err != nil {
 		return fmt.Errorf("could not list Workspaces...\nError: %v", err)
 	}

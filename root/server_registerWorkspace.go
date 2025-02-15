@@ -3,8 +3,8 @@ package root
 import (
 	"fmt"
 
+	"github.com/ButterHost69/PKr-cli/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
-	"github.com/ButterHost69/PKr-cli/models"
 )
 
 func Server_RegisterWorkspace() {
@@ -21,12 +21,12 @@ func Server_RegisterWorkspace() {
 	fmt.Scan(&workspace_name)
 	fmt.Print("Enter Server IP: ")
 	fmt.Scan(&server_ip)
-	ifDone := models.AddServerToWorkpace(workspace_name, server_ip)
+	ifDone := config.AddServerToWorkpace(workspace_name, server_ip)
 	if !ifDone {
 		fmt.Println("error")
 		return
 	}
-	username, password, err := models.GetServerUsernamePassword(server_ip)
+	username, password, err := config.GetServerUsernamePassword(server_ip)
 	if err != nil {
 		fmt.Printf("error Could not get Server Usernamea and Password...\nError: %v\n", err)
 		return

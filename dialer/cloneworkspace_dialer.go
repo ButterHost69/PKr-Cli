@@ -7,9 +7,9 @@ import (
 	"net"
 	"time"
 
+	"github.com/ButterHost69/PKr-cli/config"
 	"github.com/ButterHost69/PKr-cli/encrypt"
 	"github.com/ButterHost69/PKr-cli/filetracker"
-	"github.com/ButterHost69/PKr-cli/models"
 	"github.com/ButterHost69/PKr-cli/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -168,7 +168,7 @@ func GetData(workspace_name, workspace_only_ip, port string, workspacePath strin
 		return err
 	}
 
-	if err = models.AddGetWorkspaceFolderToUserConfig(workspace_name, workspacePath, workspace_ip_with_port, last_hash); err != nil {
+	if err = config.AddGetWorkspaceFolderToUserConfig(workspace_name, workspacePath, workspace_ip_with_port, last_hash); err != nil {
 		return fmt.Errorf("error in adding GetConnection to the Main User Config Folder.\nerror:%v", err)
 	}
 

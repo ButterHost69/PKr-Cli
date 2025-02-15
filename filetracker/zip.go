@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ButterHost69/PKr-cli/config"
 	"github.com/ButterHost69/PKr-cli/encrypt"
-	"github.com/ButterHost69/PKr-cli/models"
 )
 
 // I dont Know if this works. Check it later
@@ -86,7 +86,7 @@ func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string) erro
 
 	for _, file := range files {
 		// Comment This Later ... Only For Debugging
-		// models.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
+		// config.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
 		// ..........
 		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
 			continue
@@ -121,7 +121,7 @@ func ZipData(workspace_path string) (string, error) {
 
 	zip_file, err := os.Create(fullZipPath)
 	if err != nil {
-		// models.AddLogEntry(workspace_name, err)
+		// config.AddLogEntry(workspace_name, err)
 		return "", err
 	}
 
@@ -142,16 +142,16 @@ func ZipData(workspace_path string) (string, error) {
 	}
 
 	zip_file.Close()
-	
+
 	hashFileName = hashFileName + ".zip"
 	fullHashFilePath := workspace_path + "\\.PKr\\" + hashFileName
 
 	workspace_split := strings.Split(workspace_path, "\\")
-	workspace_name := workspace_split[len(workspace_split) - 1]
-	
+	workspace_name := workspace_split[len(workspace_split)-1]
+
 	if err = os.Rename(fullZipPath, fullHashFilePath); err != nil {
 		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", fullHashFilePath, fullZipPath, err)
-		models.AddLogEntry(workspace_name, logdata)
+		config.AddLogEntry(workspace_name, logdata)
 		return "", err
 	}
 

@@ -1,4 +1,4 @@
-package models
+package config
 
 import (
 	// "ButterHost69/PKr-client/encrypt"
@@ -82,7 +82,7 @@ var (
 // Creates the Main tmp Folder.
 // Generates the public and private keys.
 // Generates userConfig.json.
-func CreateUserIfNotExists(username string) error {
+func CreateUserIfNotExists(username, serverIP string) error {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
 		MY_USERNAME = username
 

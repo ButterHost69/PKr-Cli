@@ -1,11 +1,11 @@
-package models
+package config
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	// "github.com/ButterHost69/PKr-cli/models"
+	// "github.com/ButterHost69/PKr-cli/config"
 )
 
 type PKRConfig struct {

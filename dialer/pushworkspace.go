@@ -40,7 +40,7 @@ func PushToConnections(workspace_name string, connnection_ip []string, workspace
 		conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 		if err != nil {
 			err_log := "Failed to Establish Connection with " + workspace_ip + " while sending Push Notification"
-			// models.AddLogEntry(workspace_name, err_log)
+			// config.AddLogEntry(workspace_name, err_log)
 			workspace_logger.Info(workspace_name, err_log)
 			continue
 		}
@@ -55,7 +55,7 @@ func PushToConnections(workspace_name string, connnection_ip []string, workspace
 
 		if err != nil {
 			err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
-			// models.AddLogEntry(workspace_name, err_log)
+			// config.AddLogEntry(workspace_name, err_log)
 			workspace_logger.Info(workspace_name, err_log)
 			continue
 		}

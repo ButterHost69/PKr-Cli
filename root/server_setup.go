@@ -3,8 +3,8 @@ package root
 import (
 	"fmt"
 
+	"github.com/ButterHost69/PKr-cli/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
-	"github.com/ButterHost69/PKr-cli/models"
 )
 
 func Server_Setup() {
@@ -39,7 +39,7 @@ func Server_Setup() {
 	fmt.Printf("Registered to server:%s as username: %s\n", server_ip, username)
 
 	// TODO: [ ] If this function fails revert/delete the user from the server - by sending some delete request
-	err = models.AddNewServerToConfig(username, server_password, server_ip)
+	err = config.AddNewServerToConfig(username, server_password, server_ip)
 	if err != nil {
 		fmt.Println("Error Occured in Adding Server to serverConfig.json")
 		fmt.Println(err)
