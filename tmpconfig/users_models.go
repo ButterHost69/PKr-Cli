@@ -1,4 +1,4 @@
-package config
+package tmpconfig
 
 type UsersConfig struct {
 	User        string         `json:"user"`

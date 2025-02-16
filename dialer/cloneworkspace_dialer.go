@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/ButterHost69/PKr-cli/config"
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/encrypt"
 	"github.com/ButterHost69/PKr-cli/filetracker"
 	"github.com/ButterHost69/PKr-cli/pb"

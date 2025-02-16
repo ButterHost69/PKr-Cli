@@ -1,4 +1,4 @@
-package config
+package tmpconfig
 
 import (
 	// "ButterHost69/PKr-client/encrypt"
@@ -406,7 +406,7 @@ func GetGetWorkspaceFolder(workspace_name string) (GetWorkspaceFolder, error) {
 
 func AddNewServerToConfig(server_alias, server_ip, username, password string) error {
 	// serverConfig, err := readFromServerConfigFile()
-	
+
 	userConfig, err := ReadFromUserConfigFile()
 	if err != nil {
 		fmt.Println("Error in reading From the UserConfig File...")
@@ -414,10 +414,10 @@ func AddNewServerToConfig(server_alias, server_ip, username, password string) er
 	}
 
 	sconf := ServerConfig{
-		Username: username,
-		Password: password,
+		Username:    username,
+		Password:    password,
 		ServerAlias: server_alias,
-		ServerIP: server_ip,
+		ServerIP:    server_ip,
 	}
 
 	userConfig.ServerLists = append(userConfig.ServerLists, sconf)

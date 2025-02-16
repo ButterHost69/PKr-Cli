@@ -112,12 +112,12 @@ func main() {
 				fmt.Printf("Setting Up Your System...\n")
 				fmt.Println("This Might Take Some Time...")
 
-				err := root.Install()
-				if err != nil {
-					fmt.Println("Could not Install PKr.")
-					fmt.Println(err)
-					return
-				}
+				root.Install()
+				// if err != nil {
+				// 	fmt.Println("Could not Install PKr.")
+				// 	fmt.Println(err)
+				// 	return
+				// }
 
 				fmt.Printf(" ~ PKr Installed ~ \n")
 				fmt.Println("NOTE: Add Server using - pkr -tui server add")

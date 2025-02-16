@@ -8,7 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/ButterHost69/PKr-cli/config"
+	"github.com/ButterHost69/PKr-Base/config"
 )
 
 // Todo: [ ] Add record in Server Json File

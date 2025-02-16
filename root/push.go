@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ButterHost69/PKr-cli/config"
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
 	"github.com/ButterHost69/PKr-cli/filetracker"
 	"github.com/ButterHost69/PKr-cli/logger"

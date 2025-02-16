@@ -3,7 +3,7 @@ package root
 import (
 	"fmt"
 
-	"github.com/ButterHost69/PKr-cli/config"
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
 )
 

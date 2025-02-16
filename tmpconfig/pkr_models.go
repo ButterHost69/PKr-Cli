@@ -1,4 +1,4 @@
-package config
+package tmpconfig
 
 type PKRConfig struct {
 	WorkspaceName  string       `json:"workspace_name"`

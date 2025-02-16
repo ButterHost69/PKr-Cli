@@ -34,5 +34,8 @@ docker_build:
 docker_compose:
 	docker-compose up --build
 
+get_new_base:
+	go get github.com/ButterHost69/PKr-Base@latest
+
 .PHONY: build2test build copy clean protofiles
 
