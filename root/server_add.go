@@ -7,7 +7,7 @@ import (
 	"github.com/ButterHost69/PKr-cli/dialer"
 )
 
-func Server_Setup(server_alias, server_ip, server_username, server_password string) {
+func ServerAdd(server_alias, server_ip, server_username, server_password string) {
 	// [X] Create a main Server Json file in tmp(root) dir
 	// [X] Allow user to connect to multiple server
 	// [X] Store Server IP, and your username and password (user can have multiple username and password)
@@ -18,8 +18,12 @@ func Server_Setup(server_alias, server_ip, server_username, server_password stri
 		return
 	}
 
+	dialerHandler := dialer.CallHandler {
+		Lipaddr: "",
+	}
+
 	// FIXME: Register Server doesnt Work
-	username, err := dialer.RegisterServer(server_ip, server_username, server_password)
+	username, err := dialerHandler.CallRegisterUser(server_ip, server_username, server_password)
 	if err != nil {
 		fmt.Println("error Occured in Sending Request to server")
 		fmt.Println(err)

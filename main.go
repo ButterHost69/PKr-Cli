@@ -229,7 +229,7 @@ func main() {
 						fmt.Println("Enter Server Password: ")
 						fmt.Scan(&server_password)
 
-						root.Server_Setup(server_alias, server_ip, server_username, server_password)
+						root.ServerAdd(server_alias, server_ip, server_username, server_password)
 						return
 					}
 

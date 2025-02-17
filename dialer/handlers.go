@@ -50,3 +50,21 @@ func (h *CallHandler) CallRegisterWorkspace(server_ip, username, password, works
 
 	return nil
 }
+
+func (h *CallHandler) CallRegisterUser(server_ip, username, password string) (string, error) {
+	var req RegisterUserRequest
+	var res RegisterUserResponse
+
+	req.Username = username
+	req.Password = password
+	
+	if err := call(HANDLER_NAME + ".RegisterUser", req, &res, server_ip, ""); err != nil{
+		return "", fmt.Errorf("Error in Calling RPC...\nError: %v", err)
+	}
+
+	if res.Response != 200 {
+		return "", fmt.Errorf("Calling CallRegisterUser Method was not Successful.\nReturn Code - %d", res.Response)
+	}
+
+	return res.UniqueUsername, nil
+}
