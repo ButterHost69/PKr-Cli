@@ -3,7 +3,9 @@ package dialer
 import (
 	"fmt"
 	"net/rpc"
+	"strings"
 
+	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/kcp-go"
 )
 
@@ -67,4 +69,32 @@ func (h *CallHandler) CallRegisterUser(server_ip, username, password string) (st
 	}
 
 	return res.UniqueUsername, nil
+}
+
+func (h *CallHandler) CallPunchFromReciever(server_ip, recieverUsername, username, password string, port int) (string, error) {
+	var req RequestPunchFromRecieverRequest
+	var res RequestPunchFromRecieverResponse
+
+	ipaddr, err := dialer.GetMyPublicIP(port)
+	if err != nil {
+		return "", err
+	}
+
+	ip_split := strings.Split(ipaddr, ":")
+	
+	req.Username = username
+	req.Password = password
+	req.RecieversUsername = recieverUsername
+	req.SendersIP = ip_split[0] 
+	req.SendersPort = ip_split[1]
+		
+	if err := call(HANDLER_NAME + ".RegisterUser", req, &res, server_ip, ""); err != nil{
+		return "", fmt.Errorf("Error in Calling RPC...\nError: %v", err)
+	}
+
+	if res.Response != 200 {
+		return "", fmt.Errorf("Calling CallPunchFromReciever Method was not Successful.\nReturn Code - %d", res.Response)
+	}
+
+	return res.RecieversPublicIP, err
 }

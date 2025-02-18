@@ -28,3 +28,18 @@ type RegisterUserResponse struct {
 	UniqueUsername	string
 	Response		int
 }
+
+type RequestPunchFromRecieverRequest struct {
+	SendersIP   string
+	SendersPort string
+
+	Username string
+	Password string
+
+	RecieversUsername string
+}
+
+type RequestPunchFromRecieverResponse struct {
+	Response            int
+	RecieversPublicIP   string
+}
