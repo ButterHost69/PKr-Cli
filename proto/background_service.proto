@@ -30,12 +30,12 @@ message InitRequest {
     string password = 3;
     bytes public_key = 4;
     string port = 5;
-  }
+}
   
-  message InitResponse {
+message InitResponse {
     int32 response = 1; // 200 [Valid / ACK / OK] ||| 4000 [InValid / You Fucked Up Somewhere]
     int32 port = 2;
-  }
+ }
 
 message WorkspaceRequest {
     string workspace_name = 1;

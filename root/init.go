@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-cli/dialer"
+	"github.com/ButterHost69/PKr-cli/myrpc"
 )
 
 // FIXME: Not Converted
@@ -22,10 +22,9 @@ func Init(server_alias, workspace_password string) error {
 		return fmt.Errorf("could not fetch server details...\nError: %v", err)
 	}
 
-	callHandler := dialer.CallHandler{
-		Lipaddr: "",
+	callHandler := myrpc.ServerCallHandler{
+		// Lipaddr: "",
 	}
-
 
 	workspace_path, err := os.Getwd()
 	workspace_path_split := strings.Split(workspace_path, "\\")

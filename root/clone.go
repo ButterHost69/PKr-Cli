@@ -4,9 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
-
+	
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
 	"github.com/ButterHost69/PKr-cli/encrypt"
 )
@@ -17,7 +16,7 @@ import (
 // )
 // ---
 
-func Clone(BACKGROUND_SERVER_PORT int, workspace_ip, workspace_name, workspace_password string) error {
+func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) error {
 	// [X] Get Public Key From the Host Original Source PC
 	// [X]  Encrypt Password
 	// [X]  Read Our Key
@@ -28,7 +27,13 @@ func Clone(BACKGROUND_SERVER_PORT int, workspace_ip, workspace_name, workspace_p
 	// [X]  Unzip the File
 
 	// [X] Get and Encrypt Key
-	public_key, err := dialer.GetPublicKey(workspace_ip)
+
+	server, err := config.GetServerDetailsUsingServerAlias(server_alias)
+	if err != nil {
+		return fmt.Errorf("error Occured in Retrieving Public Key.\nerror:%v", err)
+	}
+
+	public_key, err := dialer.RequestPublicKey(workspace_owner_username, server.ServerIP, server.Username, server.Password)
 	if err != nil {
 		return fmt.Errorf("error Occured in Retrieving Public Key.\nerror:%v", err)
 	}
@@ -45,12 +50,17 @@ func Clone(BACKGROUND_SERVER_PORT int, workspace_ip, workspace_name, workspace_p
 		return fmt.Errorf("error Occured in Reading Our Public Key\nPlease Ensure Key is Present at ./tmp/mykeys/publickey.pem\nerror:%v", err)
 	}
 
-	base64_public_key := base64.StdEncoding.EncodeToString(my_public_key)
+	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
-	port, err := dialer.InitNewWorkSpaceConnection(workspace_ip, workspace_name, encrypted_password, strconv.Itoa(BACKGROUND_SERVER_PORT), []byte(base64_public_key))
+	// []byte(base64_public_key)
+	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key)
 	if err != nil {
 		return fmt.Errorf("error Occured in Dialing Init New Workspace Connection.\nerror:%v", err)
 	}
+	if response != 200 {
+		return fmt.Errorf("could not init new workspace")
+	}
+
 	currDir, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("error in Retrieving Current Working Directory.\nerror:%v", err)
@@ -62,13 +72,14 @@ func Clone(BACKGROUND_SERVER_PORT int, workspace_ip, workspace_name, workspace_p
 
 	fmt.Println("Initialized Workspace With the Source PC")
 
-	only_ip := strings.Split(workspace_ip, ":")[0] + ":"
-	fmt.Printf("Data Port: %d\n", port)
+	// TODO Request to GetData() Separately... Pass null string as last hash
+	// only_ip := strings.Split(workspace_ip, ":")[0] + ":"
+	// fmt.Printf("Data Port: %d\n", port)
 
-	// [ ]: // For now the workspace's path is currDir, change this later
-	if err = dialer.GetData(workspace_name, only_ip, strconv.Itoa(port), currDir); err != nil {
-		return fmt.Errorf("error: Could not Retrieve Data From the Source PC.\nerror: %v", err)
-	}
+	// // [ ]: // For now the workspace's path is currDir, change this later
+	// if err = dialer.GetData(workspace_name, only_ip, strconv.Itoa(port), currDir); err != nil {
+	// 	return fmt.Errorf("error: Could not Retrieve Data From the Source PC.\nerror: %v", err)
+	// }
 
 	return nil
 }

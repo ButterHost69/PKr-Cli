@@ -19,7 +19,7 @@ func List() error {
 
 	}
 
-	sendWorkspaces, err := config.GetAllSendtWorkspaces()
+	sendWorkspaces, err := config.GetAllSendWorkspaces()
 	if err != nil {
 		return fmt.Errorf("could not list Workspaces...\nError: %v", err)
 	}

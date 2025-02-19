@@ -2,7 +2,7 @@ package dialer
 
 import (
 	"context"
-	"errors"
+	// "errors"
 	"fmt"
 	"net"
 	"time"
@@ -12,57 +12,57 @@ import (
 	"github.com/ButterHost69/PKr-cli/filetracker"
 	"github.com/ButterHost69/PKr-cli/pb"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
+	// "google.golang.org/protobuf/types/known/emptypb"
 )
 
-func GetPublicKey(workspace_ip string) ([]byte, error) {
-	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
+// func GetPublicKey(workspace_ip string) ([]byte, error) {
+// 	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer conn.Close()
 
-	client := pb.NewBackgroundServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
-	defer cancel()
+// 	client := pb.NewBackgroundServiceClient(conn)
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+// 	defer cancel()
 
-	response, err := client.GetPublicKey(ctx, &emptypb.Empty{})
-	if err != nil {
-		return nil, err
-	}
+// 	response, err := client.GetPublicKey(ctx, &emptypb.Empty{})
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return response.Key, nil
-}
+// 	return response.Key, nil
+// }
 
-func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password, port string, public_key []byte) (int, error) {
-	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
-	if err != nil {
-		return 0, err
-	}
-	defer conn.Close()
+// func InitNewWorkSpaceConnection(workspace_ip, workspace_name, workspace_password, port string, public_key []byte) (int, error) {
+// 	conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
+// 	if err != nil {
+// 		return 0, err
+// 	}
+// 	defer conn.Close()
 
-	client := pb.NewBackgroundServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
-	defer cancel()
+// 	client := pb.NewBackgroundServiceClient(conn)
+// 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+// 	defer cancel()
 
-	response, err := client.InitNewWorkSpaceConnection(ctx, &pb.InitRequest{
-		WorkspaceName: workspace_name,
-		Username:      "",
-		Password:      workspace_password,
-		PublicKey:     public_key,
-		Port:          port,
-	})
+// 	response, err := client.InitNewWorkSpaceConnection(ctx, &pb.InitRequest{
+// 		WorkspaceName: workspace_name,
+// 		Username:      "",
+// 		Password:      workspace_password,
+// 		PublicKey:     public_key,
+// 		Port:          port,
+// 	})
 
-	if err != nil {
-		return 0, err
-	}
+// 	if err != nil {
+// 		return 0, err
+// 	}
 
-	if response.Response == 4000 {
-		return 0, errors.New("error: incorrect data/connection error")
-	}
+// 	if response.Response == 4000 {
+// 		return 0, errors.New("error: incorrect data/connection error")
+// 	}
 
-	return int(response.Port), nil
-}
+// 	return int(response.Port), nil
+// }
 
 func getMyIP() (string, error) {
 	conn, err := net.Dial("udp", "8.8.8.8:80")

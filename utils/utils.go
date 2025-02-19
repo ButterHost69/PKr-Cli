@@ -5,8 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
-	"strings"
 
 	fake "github.com/brianvoe/gofakeit/v7"
 )
@@ -23,12 +21,6 @@ func ClearScreen() {
 	cmd.Run()
 }
 
-func CreateOTP(size int) int32 {
-	mask := strings.Repeat("9", size)
-	intmask, _ := strconv.Atoi(mask)
-	return rand.Int31n(int32(intmask))
-}
-
 func CreateSlug() string {
 	var gamerTag []string
 	for i := 0; i < 1024; i++ {
@@ -38,4 +30,9 @@ func CreateSlug() string {
 	g := rand.Intn(1024)
 	// fmt.Println(g)
 	return gamerTag[g]
+}
+
+// TODO Check if provided port is not occupied
+func GetRandomPort() int {
+	return rand.Intn(16384) + 16384 
 }
