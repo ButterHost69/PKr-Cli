@@ -1,11 +1,8 @@
 package dialer
 
 import (
-	"context"
-	"time"
-
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/logger"
-	"github.com/ButterHost69/PKr-cli/pb"
 	"google.golang.org/grpc"
 )
 
@@ -33,11 +30,12 @@ import (
 // }
 
 // [ ] Test Function
-func PushToConnections(workspace_name string, connnection_ip []string, workspace_logger *logger.WorkspaceLogger) int {
+func PushToConnections(workspace_name string, connnection_ipp []config.Connection, workspace_logger *logger.WorkspaceLogger) int {
 	successful_count := 0
 
+	var connnection_ip []string
 	for _, workspace_ip := range connnection_ip {
-		conn, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
+		connection, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
 		if err != nil {
 			err_log := "Failed to Establish Connection with " + workspace_ip + " while sending Push Notification"
 			// config.AddLogEntry(workspace_name, err_log)
@@ -45,25 +43,23 @@ func PushToConnections(workspace_name string, connnection_ip []string, workspace
 			continue
 		}
 
-		client := pb.NewBackgroundServiceClient(conn)
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
-		defer cancel()
+		_ = connection
 
-		response, err := client.NotifyPush(ctx, &pb.NotifyPushRequest{
-			WorkspaceName: workspace_name,
-		})
+		// response, err := client.NotifyPush(ctx, &pb.NotifyPushRequest{
+		// 	WorkspaceName: workspace_name,
+		// })
 
-		if err != nil {
-			err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
-			// config.AddLogEntry(workspace_name, err_log)
-			workspace_logger.Info(workspace_name, err_log)
-			continue
-		}
+		// if err != nil {
+		// 	err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
+		// 	// config.AddLogEntry(workspace_name, err_log)
+		// 	workspace_logger.Info(workspace_name, err_log)
+		// 	continue
+		// }
 
-		if response.Response == 200 {
-			successful_count += 1
-		}
-		conn.Close()
+		// if response.Response == 200 {
+		// 	successful_count += 1
+		// }
+		// conn.Close()
 	}
 	return successful_count
 }

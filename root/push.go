@@ -20,6 +20,8 @@ import (
 // LATER UPDATE:
 //
 //	[X] Do the Zip and Create Hash in Memory before saving it ]
+
+// TODO MOveover to RPC and 
 func Push(workspace_name string, workspace_logger *logger.WorkspaceLogger) (int, error) {
 	workspace_path, err := config.GetWorkspaceFilePath(workspace_name)
 	if err != nil {
@@ -38,7 +40,7 @@ func Push(workspace_name string, workspace_logger *logger.WorkspaceLogger) (int,
 	}
 
 	// [ ] Notify all Connections
-	connections, err := config.GetWorkspaceConnectionsIP(workspace_path)
+	connections, err := config.GetWorkspaceConnectionsUsingPath(workspace_path)
 	if err != nil {
 		return -1, fmt.Errorf("could not get workspace connections IP.\nError: %v", err)
 	}

@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-cli/dialer"
+	// "github.com/ButterHost69/PKr-cli/dialer"
+	"github.com/ButterHost69/PKr-cli/myrpc"
 )
 
 func ServerAdd(server_alias, server_ip, server_username, server_password string) {
@@ -18,8 +19,7 @@ func ServerAdd(server_alias, server_ip, server_username, server_password string)
 		return
 	}
 
-	dialerHandler := dialer.CallHandler {
-		Lipaddr: "",
+	dialerHandler := myrpc.ServerCallHandler {
 	}
 
 	// FIXME: Register Server doesnt Work

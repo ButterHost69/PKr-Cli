@@ -32,7 +32,7 @@ func CreateSlug() string {
 	return gamerTag[g]
 }
 
-// TODO Check if provided port is not occupied
+// FIXME Check if provided port is not occupied
 func GetRandomPort() int {
 	return rand.Intn(16384) + 16384 
 }

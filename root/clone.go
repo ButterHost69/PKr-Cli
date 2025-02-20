@@ -10,12 +10,6 @@ import (
 	"github.com/ButterHost69/PKr-cli/encrypt"
 )
 
-// TODO: [ ] Temporary, Find a Better Way ---
-// const (
-// 	BACKGROUND_SERVER_PORT = 9000
-// )
-// ---
-
 func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) error {
 	// [X] Get Public Key From the Host Original Source PC
 	// [X]  Encrypt Password
@@ -52,7 +46,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
-	// []byte(base64_public_key)
 	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key)
 	if err != nil {
 		return fmt.Errorf("error Occured in Dialing Init New Workspace Connection.\nerror:%v", err)
@@ -73,14 +66,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Initialized Workspace With the Source PC")
 
 	// TODO Request to GetData() Separately... Pass null string as last hash
-	// only_ip := strings.Split(workspace_ip, ":")[0] + ":"
-	// fmt.Printf("Data Port: %d\n", port)
-
-	// // [ ]: // For now the workspace's path is currDir, change this later
-	// if err = dialer.GetData(workspace_name, only_ip, strconv.Itoa(port), currDir); err != nil {
-	// 	return fmt.Errorf("error: Could not Retrieve Data From the Source PC.\nerror: %v", err)
-	// }
-
 	res, err := dialer.RequestGetData(workspace_owner_username, server.Username, server.Password, server.ServerIP, workspace_name, workspace_password, "")
 	if err != nil {
 		return err

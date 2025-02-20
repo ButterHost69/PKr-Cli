@@ -8,6 +8,10 @@ github.com/ButterHost69/PKr-Base v0.0.0-20250218185627-84f3867ba780 h1:qCzL2qdSV
 github.com/ButterHost69/PKr-Base v0.0.0-20250218185627-84f3867ba780/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
 github.com/ButterHost69/PKr-Base v0.0.0-20250219191320-11f1072f6f53 h1:FOUGlZjuRJkALTjPU5raLSKa6t7Uty8zmgeRVIobWRQ=
 github.com/ButterHost69/PKr-Base v0.0.0-20250219191320-11f1072f6f53/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
+github.com/ButterHost69/PKr-Base v0.0.0-20250220061943-57d7135cbde1 h1:JhXpBun0+V+852O/r8RUBueJAwxYXNYqfp3JYb4uwnY=
+github.com/ButterHost69/PKr-Base v0.0.0-20250220061943-57d7135cbde1/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
+github.com/ButterHost69/PKr-Base v0.0.0-20250220160247-0f4eca2da9fa h1:r8PwHTRe1fssjYLfQ2dGnm0tIQGO27EVlX4B6uktACA=
+github.com/ButterHost69/PKr-Base v0.0.0-20250220160247-0f4eca2da9fa/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
 github.com/ButterHost69/kcp-go v1.0.4 h1:m0NCKxeRyfrap3FrSY/8hPt3rd7iSVX4Gy+s5FjBI3s=
 github.com/ButterHost69/kcp-go v1.0.4/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/brianvoe/gofakeit/v7 v7.2.1 h1:AGojgaaCdgq4Adzrd2uWdbGNDyX6MWNhHdQBraNfOHI=

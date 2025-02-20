@@ -145,12 +145,16 @@ func main() {
 
 		case "clone":
 			{
-				var workspace_ip string
+				var workspace_owner_username string
 				var workspace_name string
 				var workspace_password string
+				var server_alias string
+				
+				fmt.Print("> Enter the Workspace Owner Username: ")
+				fmt.Scan(&workspace_owner_username)
 
-				fmt.Print("> Enter the Workspace IP [addr:port]: ")
-				fmt.Scan(&workspace_ip)
+				fmt.Print("> Enter Server Alias: ")
+				fmt.Scan(&workspace_owner_username)
 
 				fmt.Print("> Enter the Workspace Name: ")
 				fmt.Scan(&workspace_name)
@@ -158,9 +162,10 @@ func main() {
 				fmt.Print("> Enter the Workspace Password: ")
 				fmt.Scan(&workspace_password)
 
-				err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
+				// err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
+				err := root.Clone(workspace_owner_username, workspace_name, workspace_password, server_alias)
 				if err != nil {
-					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, workspace_ip)
+					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, server_alias)
 					fmt.Println(err)
 					return
 				}
