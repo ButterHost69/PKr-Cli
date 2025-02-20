@@ -31,6 +31,10 @@ func RequestPublicKey(rcv_username, server_ip, my_username, my_password string) 
 
 	port := utils.GetRandomPort()
 	receivers_ip, err := callHandler.CallPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
+	if err != nil {
+		return nil, err
+	}
+
 
 	handler := myrpc.ClientCallHandler{}
 	public_key, err := handler.CallGetPublicKey(receivers_ip, fmt.Sprintf(":%d", port))

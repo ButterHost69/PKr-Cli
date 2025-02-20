@@ -81,5 +81,14 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	// 	return fmt.Errorf("error: Could not Retrieve Data From the Source PC.\nerror: %v", err)
 	// }
 
+	res, err := dialer.RequestGetData(workspace_owner_username, server.Username, server.Password, server.ServerIP, workspace_name, workspace_password, "")
+	if err != nil {
+		return err
+	}
+	
+	if res != 200 {
+		return fmt.Errorf("could not get data, response code - %s", res)
+	}
+
 	return nil
 }
