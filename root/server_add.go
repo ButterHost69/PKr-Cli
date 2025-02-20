@@ -14,13 +14,12 @@ func ServerAdd(server_alias, server_ip, server_username, server_password string)
 	// [X] Store Server IP, and your username and password (user can have multiple username and password)
 	// [X] Send Create User request to server, save to Server Json file and display the username to user at terminal
 
-	if server_alias == "" || server_ip == "" || server_username == "" || server_password == ""{
+	if server_alias == "" || server_ip == "" || server_username == "" || server_password == "" {
 		fmt.Println("ip or username or password cannot be empty")
 		return
 	}
 
-	dialerHandler := myrpc.ServerCallHandler {
-	}
+	dialerHandler := myrpc.ServerCallHandler{}
 
 	// FIXME: Register Server doesnt Work
 	username, err := dialerHandler.CallRegisterUser(server_ip, server_username, server_password)

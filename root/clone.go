@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	
+
 	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/dialer"
 	"github.com/ButterHost69/PKr-cli/encrypt"
@@ -70,7 +70,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	if err != nil {
 		return err
 	}
-	
+
 	if res != 200 {
 		return fmt.Errorf("could not get data, response code - %s", res)
 	}

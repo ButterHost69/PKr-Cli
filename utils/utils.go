@@ -34,5 +34,5 @@ func CreateSlug() string {
 
 // FIXME Check if provided port is not occupied
 func GetRandomPort() int {
-	return rand.Intn(16384) + 16384 
+	return rand.Intn(16384) + 16384
 }

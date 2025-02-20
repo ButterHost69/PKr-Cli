@@ -15,15 +15,15 @@ func (h *ClientCallHandler) CallGetPublicKey(ripaddr, lipaddr string) ([]byte, e
 	return res.PublicKey, nil
 }
 
-func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, ripaddr, lipaddr string, my_public_key []byte) (int, error){
+func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, ripaddr, lipaddr string, my_public_key []byte) (int, error) {
 	var req InitWorkspaceConnectionRequest
 	var res InitWorkspaceConnectionResponse
 
 	req.WorkspaceName = workspace_name
-	req.MyUsername    = my_username
-	req.MyPublicKey   = my_public_key
+	req.MyUsername = my_username
+	req.MyPublicKey = my_public_key
 
-	req.ServerIP          = server_ip
+	req.ServerIP = server_ip
 	req.WorkspacePassword = workspace_password
 
 	if err := call(SERVER_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, lipaddr); err != nil {
@@ -33,7 +33,7 @@ func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_us
 	return int(res.Response), nil
 }
 
-func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, ripaddr, lipaddr string) (*GetDataResponse, error){
+func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, ripaddr, lipaddr string) (*GetDataResponse, error) {
 	var req GetDataRequest
 	var res GetDataResponse
 

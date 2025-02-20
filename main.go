@@ -149,7 +149,7 @@ func main() {
 				var workspace_name string
 				var workspace_password string
 				var server_alias string
-				
+
 				fmt.Print("> Enter the Workspace Owner Username: ")
 				fmt.Scan(&workspace_owner_username)
 
@@ -259,148 +259,150 @@ func main() {
 		}
 	}
 
-	if CLI {
-		// TODO: [X] Required %s Parameter than display usage when flags are not provided, by checking if val == ""
-		switch cmd {
-		case "install":
-			{
-				installCmd := flag.NewFlagSet("install", flag.ExitOnError)
-				username := installCmd.String("u", "", "Username to Install PKr")
-				// serverIP := installCmd.String("s", "", "Select Server IP")
+	// FIXME CLI MOD IS DISABLED TEMPORARILY ....
 
-				// installCmd.Parse(os.Args[3:])
-				// if *username == "" {
-				// 	fmt.Println("Error: Username is required for install")
-				// 	fmt.Println(`Usage: PKr -cli install -u="username"`)
-				// 	return
-				// }
+	// if CLI {
+	// 	// TODO: [X] Required %s Parameter than display usage when flags are not provided, by checking if val == ""
+	// 	switch cmd {
+	// 	case "install":
+	// 		{
+	// 			installCmd := flag.NewFlagSet("install", flag.ExitOnError)
+	// 			username := installCmd.String("u", "", "Username to Install PKr")
+	// 			// serverIP := installCmd.String("s", "", "Select Server IP")
 
-				installCmd.Parse(os.Args[3:])
-				if *username == "" {
-					fmt.Println("Error: Username is required for install")
-					fmt.Println(`Usage: PKr -cli install -u="username" -s="<ipdarr>"`)
-					return
-				}
-				// if *serverIP == "" {
-				// 	fmt.Println("Selecting Default Server")
-				// 	fmt.Println("Server IP: (insert-default-ip-here)")
-				// 	return
-				// }
+	// 			// installCmd.Parse(os.Args[3:])
+	// 			// if *username == "" {
+	// 			// 	fmt.Println("Error: Username is required for install")
+	// 			// 	fmt.Println(`Usage: PKr -cli install -u="username"`)
+	// 			// 	return
+	// 			// }
 
-				fmt.Println("Creating User: ", *username)
-				err := root.Install(*username)
-				if err != nil {
-					fmt.Println("Could not Install PKr.")
-					fmt.Println(err)
-					return
-				}
+	// 			installCmd.Parse(os.Args[3:])
+	// 			if *username == "" {
+	// 				fmt.Println("Error: Username is required for install")
+	// 				fmt.Println(`Usage: PKr -cli install -u="username" -s="<ipdarr>"`)
+	// 				return
+	// 			}
+	// 			// if *serverIP == "" {
+	// 			// 	fmt.Println("Selecting Default Server")
+	// 			// 	fmt.Println("Server IP: (insert-default-ip-here)")
+	// 			// 	return
+	// 			// }
 
-				fmt.Printf(" ~ Created User : %s\n", *username)
-				return
-			}
+	// 			fmt.Println("Creating User: ", *username)
+	// 			err := root.Install(*username)
+	// 			if err != nil {
+	// 				fmt.Println("Could not Install PKr.")
+	// 				fmt.Println(err)
+	// 				return
+	// 			}
 
-		case "uninstall":
+	// 			fmt.Printf(" ~ Created User : %s\n", *username)
+	// 			return
+	// 		}
 
-		case "get":
+	// 	case "uninstall":
 
-		case "push":
+	// 	case "get":
 
-		case "clone":
-			{
-				cloneCmd := flag.NewFlagSet("clone", flag.ExitOnError)
+	// 	case "push":
 
-				workspace_ip := cloneCmd.String("ip", "", "(*) Clone Workspace IP")
-				workspace_name := cloneCmd.String("wn", "", "(*) Workspace Name")
-				workspace_password := cloneCmd.String("wp", "", "(*) Workspace Password ")
+	// 	case "clone":
+	// 		{
+	// 			cloneCmd := flag.NewFlagSet("clone", flag.ExitOnError)
 
-				cloneCmd.Parse(os.Args[3:])
-				if *workspace_ip == "" && *workspace_name == "" && *workspace_password == "" {
-					fmt.Println("Error: Workspace IP and Name and Password required")
-					cloneCmd.Usage()
-					return
-				}
+	// 			workspace_ip := cloneCmd.String("ip", "", "(*) Clone Workspace IP")
+	// 			workspace_name := cloneCmd.String("wn", "", "(*) Workspace Name")
+	// 			workspace_password := cloneCmd.String("wp", "", "(*) Workspace Password ")
 
-				err := root.Clone(BACKGROUND_SERVER_PORT, *workspace_ip, *workspace_name, *workspace_password)
-				if err != nil {
-					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", *workspace_name, *workspace_ip)
-					fmt.Println(err)
-					return
-				}
+	// 			cloneCmd.Parse(os.Args[3:])
+	// 			if *workspace_ip == "" && *workspace_name == "" && *workspace_password == "" {
+	// 				fmt.Println("Error: Workspace IP and Name and Password required")
+	// 				cloneCmd.Usage()
+	// 				return
+	// 			}
 
-				fmt.Printf("Successfully Cloned Workspace: %s\n", *workspace_name)
-				return
+	// 			err := root.Clone(BACKGROUND_SERVER_PORT, *workspace_ip, *workspace_name, *workspace_password)
+	// 			if err != nil {
+	// 				fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", *workspace_name, *workspace_ip)
+	// 				fmt.Println(err)
+	// 				return
+	// 			}
 
-			}
+	// 			fmt.Printf("Successfully Cloned Workspace: %s\n", *workspace_name)
+	// 			return
 
-		// Maybe its Done
-		case "init":
-			{
-				initCmd := flag.NewFlagSet("init", flag.ExitOnError)
-				workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
+	// 		}
 
-				initCmd.Parse(os.Args[3:])
-				if *workspace_password == "" {
-					fmt.Println("Error: Workspace Password required")
-					initCmd.Usage()
-					return
-				}
+	// 	// Maybe its Done
+	// 	case "init":
+	// 		{
+	// 			initCmd := flag.NewFlagSet("init", flag.ExitOnError)
+	// 			workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
 
-				if err := root.Init(*workspace_password); err != nil {
-					fmt.Println("Error Occured in Initialize a New Workspace")
-					fmt.Printf("error: %v\n", err)
-					return
-				}
+	// 			initCmd.Parse(os.Args[3:])
+	// 			if *workspace_password == "" {
+	// 				fmt.Println("Error: Workspace Password required")
+	// 				initCmd.Usage()
+	// 				return
+	// 			}
 
-				fmt.Println("Workspace Created Successfully !!")
-				return
-			}
+	// 			if err := root.Init(*workspace_password); err != nil {
+	// 				fmt.Println("Error Occured in Initialize a New Workspace")
+	// 				fmt.Printf("error: %v\n", err)
+	// 				return
+	// 			}
 
-			// list Created workspaces
-		case "list":
-			{
-				if err := root.List(); err != nil {
-					fmt.Println("Could Not List Workspace Info")
-					fmt.Printf("Error: %v", err)
-					return
-				}
-			}
+	// 			fmt.Println("Workspace Created Successfully !!")
+	// 			return
+	// 		}
 
-		// For server
-		// Mainly for IP and shit
-		// Try to make the code as swappable as possible
-		//
-		// Was working on server setup ~ check config, it is still partial
-		// TODO: [ ] CLI remaining For server part. Flags are not taken
-		case "server":
-			{
-				if len(os.Args) < 4 {
-					PrintServerOptions()
-					return
-				}
-				opts := strings.ToLower(os.Args[3])
-				switch opts {
-				case "setup":
-					{
-						root.Server_Setup()
-						return
-					}
+	// 		// list Created workspaces
+	// 	case "list":
+	// 		{
+	// 			if err := root.List(); err != nil {
+	// 				fmt.Println("Could Not List Workspace Info")
+	// 				fmt.Printf("Error: %v", err)
+	// 				return
+	// 			}
+	// 		}
 
-					// Can Name better in future
-				case "register_workspace":
-					{
-						root.Server_RegisterWorkspace()
-						return
-					}
-				default:
-					{
-						PrintServerOptions()
-					}
-				}
-			}
-		default:
-			{
-				PrintArguments()
-			}
-		}
-	}
+	// 	// For server
+	// 	// Mainly for IP and shit
+	// 	// Try to make the code as swappable as possible
+	// 	//
+	// 	// Was working on server setup ~ check config, it is still partial
+	// 	// TODO: [ ] CLI remaining For server part. Flags are not taken
+	// 	case "server":
+	// 		{
+	// 			if len(os.Args) < 4 {
+	// 				PrintServerOptions()
+	// 				return
+	// 			}
+	// 			opts := strings.ToLower(os.Args[3])
+	// 			switch opts {
+	// 			case "setup":
+	// 				{
+	// 					root.Server_Setup()
+	// 					return
+	// 				}
+
+	// 				// Can Name better in future
+	// 			case "register_workspace":
+	// 				{
+	// 					root.Server_RegisterWorkspace()
+	// 					return
+	// 				}
+	// 			default:
+	// 				{
+	// 					PrintServerOptions()
+	// 				}
+	// 			}
+	// 		}
+	// 	default:
+	// 		{
+	// 			PrintArguments()
+	// 		}
+	// 	}
+	// }
 }
