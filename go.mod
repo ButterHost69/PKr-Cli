@@ -22,7 +22,7 @@ require (
 )
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250220160247-0f4eca2da9fa
+	github.com/ButterHost69/PKr-Base v0.0.0-20250226110558-a5fe1c832fe2
 	github.com/ButterHost69/kcp-go v1.0.4
 	golang.org/x/net v0.32.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect

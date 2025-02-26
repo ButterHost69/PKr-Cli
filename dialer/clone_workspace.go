@@ -3,6 +3,7 @@ package dialer
 import (
 	// "errors"
 	"fmt"
+	"log"
 
 	"github.com/ButterHost69/PKr-cli/myrpc"
 	"github.com/ButterHost69/PKr-cli/utils"
@@ -33,6 +34,10 @@ func RequestPublicKey(rcv_username, server_ip, my_username, my_password string) 
 	receivers_ip, err := callHandler.CallPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
 	if err != nil {
 		return nil, err
+	}
+
+	if receivers_ip == "" {
+		log.Fatal("cannot get receiver's ip\nsource: call punch from receiver while cloning workspace")
 	}
 
 	handler := myrpc.ClientCallHandler{}

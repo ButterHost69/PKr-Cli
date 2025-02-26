@@ -72,7 +72,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	if res != 200 {
-		return fmt.Errorf("could not get data, response code - %s", res)
+		return fmt.Errorf("could not get data, response code - %d", res)
 	}
 
 	return nil

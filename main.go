@@ -154,7 +154,7 @@ func main() {
 				fmt.Scan(&workspace_owner_username)
 
 				fmt.Print("> Enter Server Alias: ")
-				fmt.Scan(&workspace_owner_username)
+				fmt.Scan(&server_alias)
 
 				fmt.Print("> Enter the Workspace Name: ")
 				fmt.Scan(&workspace_name)
