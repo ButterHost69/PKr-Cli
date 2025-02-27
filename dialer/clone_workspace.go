@@ -31,7 +31,7 @@ func RequestPublicKey(rcv_username, server_ip, my_username, my_password string) 
 	callHandler := myrpc.ServerCallHandler{}
 
 	port := utils.GetRandomPort()
-	receivers_ip, err := callHandler.CallPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
+	receivers_ip, err := callHandler.CallRequestPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func RequestInitNewWorkSpaceConnection(server_ip, my_username, my_password, rcv_
 	port := utils.GetRandomPort()
 
 	callHandler := myrpc.ServerCallHandler{}
-	receivers_ip, err := callHandler.CallPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
+	receivers_ip, err := callHandler.CallRequestPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
 
 	handler := myrpc.ClientCallHandler{}
 	lipaddr := fmt.Sprintf(":%d", port)

@@ -24,7 +24,7 @@ func RequestGetData(rcv_username, myusername, mypassword, server_ip, workspace_n
 	callHandler := myrpc.ServerCallHandler{}
 
 	port := utils.GetRandomPort()
-	receivers_ip, err := callHandler.CallPunchFromReciever(server_ip, rcv_username, myusername, mypassword, port)
+	receivers_ip, err := callHandler.CallRequestPunchFromReciever(server_ip, rcv_username, myusername, mypassword, port)
 	if err != nil {
 		return 400, err
 	}
