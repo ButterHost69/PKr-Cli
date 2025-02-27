@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	baseDialer "github.com/ButterHost69/PKr-Base/dialer"
-	"github.com/ButterHost69/PKr-cli/utils"
 )
 
 func (h *ServerCallHandler) CallRegisterWorkspace(server_ip, username, password, workspace_name string) error {
@@ -36,15 +35,15 @@ func (h *ServerCallHandler) CallRegisterUser(server_ip, username, password strin
 	req.Username = username
 	req.Password = password
 
-	port := utils.GetRandomPort()
-	my_pub_ip, err := baseDialer.GetMyPublicIP(port)
-	if err != nil {
-		return "", fmt.Errorf("cannot get public ip\nSource: CallRegisterUser")
-	}
+	// port := utils.GetRandomPort()
+	// my_pub_ip, err := baseDialer.GetMyPublicIP(port)
+	// if err != nil {
+	// 	return "", fmt.Errorf("cannot get public ip\nSource: CallRegisterUser")
+	// }
 
-	ip_split := strings.Split(my_pub_ip, ":")
-	req.PublicIP = ip_split[0]
-	req.PublicPort = ip_split[1]
+	// ip_split := strings.Split(my_pub_ip, ":")
+	// req.PublicIP = ip_split[0]
+	// req.PublicPort = ip_split[1]
 
 	if err := call(SERVER_HANDLER_NAME+".RegisterUser", req, &res, server_ip, ""); err != nil {
 		return "", fmt.Errorf("Error in Calling RPC...\nError: %v", err)
