@@ -1,17 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/ButterHost69/PKr-Base v0.0.0-20250216223149-9cf0eacdc8a6 h1:Y/AxozF8WfTHau9JArY8ytY7BAqUha7UtSuF91qWzpM=
-github.com/ButterHost69/PKr-Base v0.0.0-20250216223149-9cf0eacdc8a6/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
-github.com/ButterHost69/PKr-Base v0.0.0-20250218180843-9e5819496fba h1:602htHhIeBhD3xOQLIXdgeVv2GLbv075CXbwYu6ZNiI=
-github.com/ButterHost69/PKr-Base v0.0.0-20250218180843-9e5819496fba/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
-github.com/ButterHost69/PKr-Base v0.0.0-20250218185627-84f3867ba780 h1:qCzL2qdSVjt+PKfWAEXJ3PtAbwjixnjr0RNypKeYfZg=
-github.com/ButterHost69/PKr-Base v0.0.0-20250218185627-84f3867ba780/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
-github.com/ButterHost69/PKr-Base v0.0.0-20250219191320-11f1072f6f53 h1:FOUGlZjuRJkALTjPU5raLSKa6t7Uty8zmgeRVIobWRQ=
-github.com/ButterHost69/PKr-Base v0.0.0-20250219191320-11f1072f6f53/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
-github.com/ButterHost69/PKr-Base v0.0.0-20250220061943-57d7135cbde1 h1:JhXpBun0+V+852O/r8RUBueJAwxYXNYqfp3JYb4uwnY=
-github.com/ButterHost69/PKr-Base v0.0.0-20250220061943-57d7135cbde1/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
-github.com/ButterHost69/PKr-Base v0.0.0-20250220160247-0f4eca2da9fa h1:r8PwHTRe1fssjYLfQ2dGnm0tIQGO27EVlX4B6uktACA=
-github.com/ButterHost69/PKr-Base v0.0.0-20250220160247-0f4eca2da9fa/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
 github.com/ButterHost69/PKr-Base v0.0.0-20250226110558-a5fe1c832fe2 h1:spVzrJ8USqbo84R03oq29k6TDC4DPCFbKet7oXZmxlU=
 github.com/ButterHost69/PKr-Base v0.0.0-20250226110558-a5fe1c832fe2/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
 github.com/ButterHost69/kcp-go v1.0.4 h1:m0NCKxeRyfrap3FrSY/8hPt3rd7iSVX4Gy+s5FjBI3s=

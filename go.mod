@@ -7,7 +7,6 @@ toolchain go1.23.4
 require (
 	github.com/brianvoe/gofakeit/v7 v7.2.1
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.5
 )
 
 require (
@@ -19,6 +18,7 @@ require (
 	github.com/templexxx/xorsimd v0.4.3 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	golang.org/x/crypto v0.30.0 // indirect
+	google.golang.org/protobuf v1.36.5 // indirect
 )
 
 require (
