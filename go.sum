@@ -4,6 +4,8 @@ github.com/ButterHost69/PKr-Base v0.0.0-20250226110558-a5fe1c832fe2 h1:spVzrJ8US
 github.com/ButterHost69/PKr-Base v0.0.0-20250226110558-a5fe1c832fe2/go.mod h1:VS4aT9PJSalS/B/5/QwUGA8NqMF55RA/2MZ/e5VwHo0=
 github.com/ButterHost69/kcp-go v1.0.4 h1:m0NCKxeRyfrap3FrSY/8hPt3rd7iSVX4Gy+s5FjBI3s=
 github.com/ButterHost69/kcp-go v1.0.4/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
+github.com/ButterHost69/kcp-go v1.0.8 h1:+DjUQCcE/bod85WQDGSYVsRw05lY99MMIc5H/2adNSc=
+github.com/ButterHost69/kcp-go v1.0.8/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/brianvoe/gofakeit/v7 v7.2.1 h1:AGojgaaCdgq4Adzrd2uWdbGNDyX6MWNhHdQBraNfOHI=
 github.com/brianvoe/gofakeit/v7 v7.2.1/go.mod h1:QXuPeBw164PJCzCUZVmgpgHJ3Llj49jSLVkKPMtxtxA=
 github.com/ccding/go-stun v0.1.5 h1:qEM367nnezmj7dv+SdT52prv5x6HUTG3nlrjX5aitlo=

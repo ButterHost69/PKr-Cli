@@ -3,10 +3,9 @@ package dialer
 import (
 	// "errors"
 	"fmt"
-	"log"
+	"net"
 
 	"github.com/ButterHost69/PKr-cli/myrpc"
-	"github.com/ButterHost69/PKr-cli/utils"
 )
 
 // Sender Side - CLI
@@ -27,36 +26,22 @@ import (
 
 // MAYBE - Treat Get Data as Seperate Service ...
 
-func RequestPublicKey(rcv_username, server_ip, my_username, my_password string) ([]byte, error) {
-	callHandler := myrpc.ServerCallHandler{}
-
-	port := utils.GetRandomPort()
-	receivers_ip, err := callHandler.CallRequestPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
+func RequestPublicKey(receivers_ip string, udpConn *net.UDPConn) ([]byte, error) {
+	rpcClientHandler := myrpc.ClientCallHandler{}
+	public_key, err := rpcClientHandler.CallGetPublicKey(receivers_ip, udpConn)
 	if err != nil {
+		fmt.Println("Error while Calling Get Public Key\nSource: RequestPublicKey\nError:", err)
 		return nil, err
 	}
-
-	if receivers_ip == "" {
-		log.Fatal("cannot get receiver's ip\nsource: call punch from receiver while cloning workspace")
-	}
-
-	handler := myrpc.ClientCallHandler{}
-	public_key, err := handler.CallGetPublicKey(receivers_ip, fmt.Sprintf(":%d", port))
-	if err != nil {
-		return nil, err
-	}
-
 	return public_key, nil
 }
 
-func RequestInitNewWorkSpaceConnection(server_ip, my_username, my_password, rcv_username, workspace_name, workspace_password string, public_key []byte) (int, error) {
-	port := utils.GetRandomPort()
-
-	callHandler := myrpc.ServerCallHandler{}
-	receivers_ip, err := callHandler.CallRequestPunchFromReciever(server_ip, rcv_username, my_username, my_password, port)
-
-	handler := myrpc.ClientCallHandler{}
-	lipaddr := fmt.Sprintf(":%d", port)
-	response, err := handler.CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, receivers_ip, lipaddr, public_key)
+func RequestInitNewWorkSpaceConnection(server_ip, my_username, my_password, rcv_username, workspace_name, workspace_password string, public_key []byte, udpConn *net.UDPConn, workspace_owner_ip string) (int, error) {
+	rpcClientHandler := myrpc.ClientCallHandler{}
+	response, err := rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, workspace_owner_ip, public_key, udpConn)
+	if err != nil {
+		fmt.Println("Error while Requesting Init New Workspace Connection\nSource: RequestInitNewWorkSpaceConnection\nError:", err)
+		return -1, err
+	}
 	return response, err
 }

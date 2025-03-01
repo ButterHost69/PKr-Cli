@@ -1,21 +1,28 @@
 package myrpc
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"net"
+	"time"
+)
 
 // TODO - Not Important ; Take in req and res(pointer) structure as Parameters
 
-func (h *ClientCallHandler) CallGetPublicKey(ripaddr, lipaddr string) ([]byte, error) {
+func (h *ClientCallHandler) CallGetPublicKey(ripaddr string, conn *net.UDPConn) ([]byte, error) {
 	var req PublicKeyRequest
 	var res PublicKeyResponse
 
-	if err := call(SERVER_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, lipaddr); err != nil {
-		return []byte{}, fmt.Errorf("Error in Calling RPC...\nError: %v", err)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	defer cancel()
 
+	if err := callWithContextAndConn(ctx, CLIENT_BASE_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, conn); err != nil {
+		return []byte{}, fmt.Errorf("Error while Calling %s.GetPublicKey RPC\nSource: CallGetPublicKey\nError: %v", CLIENT_BASE_HANDLER_NAME, err)
+	}
 	return res.PublicKey, nil
 }
 
-func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, ripaddr, lipaddr string, my_public_key []byte) (int, error) {
+func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, ripaddr string, my_public_key []byte, udpConn *net.UDPConn) (int, error) {
 	var req InitWorkspaceConnectionRequest
 	var res InitWorkspaceConnectionResponse
 
@@ -26,7 +33,10 @@ func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_us
 	req.ServerIP = server_ip
 	req.WorkspacePassword = workspace_password
 
-	if err := call(SERVER_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, lipaddr); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	defer cancel()
+
+	if err := callWithContextAndConn(ctx, CLIENT_BASE_HANDLER_NAME+".InitNewWorkSpaceConnection", req, &res, ripaddr, udpConn); err != nil {
 		return 400, fmt.Errorf("Error in Calling RPC...\nError: %v", err)
 	}
 
@@ -43,7 +53,7 @@ func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, w
 	req.LastHash = last_hash
 	req.ServerIP = server_ip
 
-	if err := call(SERVER_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, lipaddr); err != nil {
+	if err := call(CLIENT_BASE_HANDLER_NAME+".GetData", req, &res, ripaddr, lipaddr); err != nil {
 		res.Response = 400
 		return &res, fmt.Errorf("Error in Calling RPC...\nError: %v", err)
 	}

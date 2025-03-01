@@ -1,10 +1,11 @@
 package myrpc
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"strings"
-
-	baseDialer "github.com/ButterHost69/PKr-Base/dialer"
+	"time"
 )
 
 func (h *ServerCallHandler) CallRegisterWorkspace(server_ip, username, password, workspace_name string) error {
@@ -17,7 +18,6 @@ func (h *ServerCallHandler) CallRegisterWorkspace(server_ip, username, password,
 	req.WorkspaceName = workspace_name
 
 	if err := call(SERVER_HANDLER_NAME+".RegisterWorkspace", req, &res, server_ip, ""); err != nil {
-
 		return fmt.Errorf("Error in Calling RPC...\nError: %v", err)
 	}
 
@@ -35,16 +35,6 @@ func (h *ServerCallHandler) CallRegisterUser(server_ip, username, password strin
 	req.Username = username
 	req.Password = password
 
-	// port := utils.GetRandomPort()
-	// my_pub_ip, err := baseDialer.GetMyPublicIP(port)
-	// if err != nil {
-	// 	return "", fmt.Errorf("cannot get public ip\nSource: CallRegisterUser")
-	// }
-
-	// ip_split := strings.Split(my_pub_ip, ":")
-	// req.PublicIP = ip_split[0]
-	// req.PublicPort = ip_split[1]
-
 	if err := call(SERVER_HANDLER_NAME+".RegisterUser", req, &res, server_ip, ""); err != nil {
 		return "", fmt.Errorf("Error in Calling RPC...\nError: %v", err)
 	}
@@ -56,30 +46,29 @@ func (h *ServerCallHandler) CallRegisterUser(server_ip, username, password strin
 	return res.UniqueUsername, nil
 }
 
-func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUsername, username, password string, port int) (string, error) {
+func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUsername, username, password string, myPublicIP string, conn *net.UDPConn) (string, error) {
 	var req RequestPunchFromRecieverRequest
 	var res RequestPunchFromRecieverResponse
-
-	ipaddr, err := baseDialer.GetMyPublicIP(port)
-	if err != nil {
-		return "", err
-	}
-
-	ip_split := strings.Split(ipaddr, ":")
 
 	req.Username = username
 	req.Password = password
 	req.RecieversUsername = recieverUsername
+
+	ip_split := strings.Split(myPublicIP, ":")
 	req.SendersIP = ip_split[0]
 	req.SendersPort = ip_split[1]
 
-	if err := call(SERVER_HANDLER_NAME+".RequestPunchFromReciever", req, &res, server_ip, ""); err != nil {
-		return "", fmt.Errorf("Error in Calling RPC...\nError: %v", err)
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	defer cancel()
+
+	if err := callWithContextAndConn(ctx, SERVER_HANDLER_NAME+".RequestPunchFromReciever", req, &res, server_ip, conn); err != nil {
+		return "", fmt.Errorf("Error while calling %s.RequestPunchFromReciever RPC...\nSource: CallRequestPunchFromReciever\nError: %v", SERVER_HANDLER_NAME, err)
 	}
 
 	if res.Response != 200 {
 		return "", fmt.Errorf("Calling CallPunchFromReciever Method was not Successful.\nReturn Code - %d", res.Response)
 	}
 
-	return res.RecieversPublicIP, err
+	ip_addr := fmt.Sprintf("%s:%d", res.RecieversPublicIP, res.RecieversPublicPort)
+	return ip_addr, nil
 }
