@@ -37,13 +37,13 @@ func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_us
 	defer cancel()
 
 	if err := callWithContextAndConn(ctx, CLIENT_BASE_HANDLER_NAME+".InitNewWorkSpaceConnection", req, &res, ripaddr, udpConn); err != nil {
-		return 400, fmt.Errorf("Error in Calling RPC...\nError: %v", err)
+		return 400, fmt.Errorf("Error while Calling InitNewWorkSpaceConnection RPC...\nError: %v", err)
 	}
 
 	return int(res.Response), nil
 }
 
-func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, ripaddr, lipaddr string) (*GetDataResponse, error) {
+func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, ripaddr string, udpConn *net.UDPConn) (*GetDataResponse, error) {
 	var req GetDataRequest
 	var res GetDataResponse
 
@@ -53,7 +53,10 @@ func (h *ClientCallHandler) CallGetData(myusername, server_ip, workspace_name, w
 	req.LastHash = last_hash
 	req.ServerIP = server_ip
 
-	if err := call(CLIENT_BASE_HANDLER_NAME+".GetData", req, &res, ripaddr, lipaddr); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	defer cancel()
+
+	if err := callWithContextAndConn(ctx, CLIENT_BASE_HANDLER_NAME+".GetData", req, &res, ripaddr, udpConn); err != nil {
 		res.Response = 400
 		return &res, fmt.Errorf("Error in Calling RPC...\nError: %v", err)
 	}

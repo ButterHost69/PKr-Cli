@@ -46,7 +46,7 @@ func (h *ServerCallHandler) CallRegisterUser(server_ip, username, password strin
 	return res.UniqueUsername, nil
 }
 
-func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUsername, username, password string, myPublicIP string, conn *net.UDPConn) (string, error) {
+func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUsername, username, password string, myPublicIP string) (string, error) {
 	var req RequestPunchFromRecieverRequest
 	var res RequestPunchFromRecieverResponse
 
@@ -58,7 +58,13 @@ func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUser
 	req.SendersIP = ip_split[0]
 	req.SendersPort = ip_split[1]
 
-	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+	conn, err := net.ListenUDP("udp", nil)
+	if err != nil {
+		return "", fmt.Errorf("Error while Creating New Conn for Call Request Punch From Receiver\nError:%v", err)
+	}
+	defer conn.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	if err := callWithContextAndConn(ctx, SERVER_HANDLER_NAME+".RequestPunchFromReciever", req, &res, server_ip, conn); err != nil {

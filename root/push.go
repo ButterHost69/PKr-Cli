@@ -23,7 +23,7 @@ import (
 
 // TODO MOveover to RPC and
 func Push(workspace_name string, workspace_logger *logger.WorkspaceLogger) (int, error) {
-	workspace_path, err := config.GetWorkspaceFilePath(workspace_name)
+	workspace_path, err := config.GetSendWorkspaceFilePath(workspace_name)
 	if err != nil {
 		return -1, fmt.Errorf("could find workspace.\nError: %v", err)
 	}

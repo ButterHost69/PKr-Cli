@@ -46,8 +46,10 @@ func handleConnection(conn net.Conn) {
 
 		if msg == "Punch" {
 			conn.Write([]byte("Punch ACK"))
+			fmt.Println("Connection Established with", conn.RemoteAddr().String())
 			return
 		} else if msg == "Punch ACK" {
+			fmt.Println("Connection Established with", conn.RemoteAddr().String())
 			return
 		}
 	}
@@ -73,22 +75,37 @@ func RudpNatPunching(udpConn *net.UDPConn, peerAddr string) error {
 	conn.SetReadDeadline(time.Now().Add(READ_TIMEOUT))
 
 	buff := make([]byte, 1024)
-	n, err := conn.Read(buff)
-	if err != nil {
-		if err.Error() == "timeout" {
-			// No message received within the timeout; act as User-A
-			fmt.Println("No message received. Acting as User-A (listener).")
-			conn.Close()
+	for {
+		n, err := conn.Read(buff)
+		if err != nil {
+			if err.Error() == "timeout" {
+				// No message received within the timeout; act as User-A
+				fmt.Println("No message received. Acting as User-A (listener).")
+				conn.Close()
+				break
+			} else {
+				fmt.Println("Error Reading from Dialer's Conn\nSource: RudpNatPunching\nError:", err)
+				return err
+			}
 		} else {
-			fmt.Println("Error Reading from Dialer's Conn\nSource: RudpNatPunching\nError:", err)
-			return err
+			// Message received; act as User-B
+			msg := string(buff[:n])
+
+			fmt.Printf("Received message: %s from %s. Acting as User-B (dialer).\n", msg, conn.RemoteAddr().String())
+			conn.SetReadDeadline(time.Time{})
+
+			if msg == "Punch" {
+				conn.Write([]byte("Punch ACK"))
+				fmt.Println("Connection Established with", conn.RemoteAddr().String())
+				return nil
+			} else if msg == "Punch ACK" {
+				fmt.Println("Connection Established with", conn.RemoteAddr().String())
+				return nil
+			}
+
+			handleConnection(conn)
+			return nil
 		}
-	} else {
-		// Message received; act as User-B
-		fmt.Printf("Received message: %s. Acting as User-B (dialer).\n", string(buff[:n]))
-		conn.SetReadDeadline(time.Time{})
-		handleConnection(conn)
-		return nil
 	}
 
 	// Step 3: Only for User-A
@@ -113,6 +130,52 @@ func RudpNatPunching(udpConn *net.UDPConn, peerAddr string) error {
 			return nil
 		} else {
 			fmt.Println("Ye Kutta Kyu Bhok rha h", listenConn.RemoteAddr())
+		}
+	}
+}
+
+func UdpNatPunching(conn *net.UDPConn, peerAddr string) error {
+	fmt.Println("Attempting to Dial Peer ...")
+	peerUDPAddr, err := net.ResolveUDPAddr("udp", peerAddr)
+	if err != nil {
+		fmt.Println("Error while resolving UDP Addr\nSource: UdpNatPunching\nError:", err)
+		return err
+	}
+
+	fmt.Println("Punching ", peerAddr)
+	for range PUNCH_ATTEMPTS {
+		conn.WriteToUDP([]byte("Punch"), peerUDPAddr)
+	}
+
+	var buff [512]byte
+	for {
+		n, addr, err := conn.ReadFromUDP(buff[0:])
+		if err != nil {
+			fmt.Println("Error while reading from Udp\nSource: UdpNatPunching\nError:", err)
+			continue
+		}
+		msg := string(buff[:n])
+		fmt.Printf("Received message: %s from %v\n", msg, addr)
+		fmt.Println(peerAddr == addr.String())
+
+		if addr.String() == peerAddr {
+			fmt.Println("Expected User Messaged:", addr.String())
+			if msg == "Punch" {
+				_, err = conn.WriteToUDP([]byte("Punch ACK"), peerUDPAddr)
+				if err != nil {
+					fmt.Println("Error while Writing Punch ACK\nSource: UdpNatPunching\nError:", err)
+					continue
+				}
+				fmt.Println("Connection Established with", addr.String())
+				return nil
+			} else if msg == "Punch ACK" {
+				fmt.Println("Connection Established with", addr.String())
+				return nil
+			} else {
+				fmt.Println("Something Else is in Message:", msg)
+			}
+		} else {
+			fmt.Println("Unexpected User Messaged:", addr.String())
 		}
 	}
 }

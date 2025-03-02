@@ -88,7 +88,7 @@ func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string) erro
 		// Comment This Later ... Only For Debugging
 		// config.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
 		// ..........
-		if file.Name() == ".PKr" || file.Name() == "PKr-base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
+		if file.Name() == ".PKr" || file.Name() == "PKr-Base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
 			continue
 		} else if !file.IsDir() {
 			content, err := os.ReadFile(dirpath + file.Name())
@@ -151,7 +151,7 @@ func ZipData(workspace_path string) (string, error) {
 
 	if err = os.Rename(fullZipPath, fullHashFilePath); err != nil {
 		logdata := fmt.Sprintf("could rename zip file to new hash name: %s | zipped file path: %s.\nError: %v", fullHashFilePath, fullZipPath, err)
-		config.AddLogEntry(workspace_name, logdata)
+		config.AddLogEntry(workspace_name, true, logdata)
 		return "", err
 	}
 

@@ -32,12 +32,13 @@ func call(rpcname string, args interface{}, reply interface{}, ripaddr, lipaddr 
 	return nil
 }
 
-func callWithContextAndConn(ctx context.Context, rpcname string, args interface{}, reply interface{}, ripaddr string, conn *net.UDPConn) error {
+func callWithContextAndConn(ctx context.Context, rpcname string, args interface{}, reply interface{}, ripaddr string, udpConn *net.UDPConn) error {
 	// Dial the remote address
-	kcpConn, err := kcp.DialWithConnAndOptions(ripaddr, nil, 0, 0, conn)
+	kcpConn, err := kcp.DialWithConnAndOptions(ripaddr, nil, 0, 0, udpConn)
 	if err != nil {
 		return err
 	}
+	defer kcpConn.Close()
 
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()

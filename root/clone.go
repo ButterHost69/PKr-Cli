@@ -57,19 +57,21 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	log.Println("MOIT Calling Request Punch From Receiver ...")
 
 	serverClient := myrpc.ServerCallHandler{}
-	workspace_owner_ip, err := serverClient.CallRequestPunchFromReciever(server.ServerIP, workspace_owner_username, server.Username, server.Password, myPublicIP, udpConn)
+	workspace_owner_ip, err := serverClient.CallRequestPunchFromReciever(server.ServerIP, workspace_owner_username, server.Username, server.Password, myPublicIP)
 	if err != nil {
 		return fmt.Errorf("Error Occured while Calling Request Punch From Reciever\nSource: Clone\nError:%v", err)
 	}
 	log.Println("Receivers IP:", workspace_owner_ip)
 
-	err = dialer.RudpNatPunching(udpConn, workspace_owner_ip)
+	err = dialer.UdpNatPunching(udpConn, workspace_owner_ip)
 	if err != nil {
 		return fmt.Errorf("Error Occured while Performing NAT Hole Punching\nSource: Clone\nError:%v")
 	}
+	fmt.Println("Punched Successfully ...")
+	rpcClientHandler := myrpc.ClientCallHandler{}
 
 	log.Println("Requesting Public Key ...")
-	public_key, err := dialer.RequestPublicKey(workspace_owner_ip, udpConn)
+	public_key, err := dialer.RequestPublicKey(workspace_owner_ip, udpConn, rpcClientHandler)
 	if err != nil {
 		return fmt.Errorf("error Occured in Retrieving Public Key.\nerror:%v", err)
 	}
@@ -91,7 +93,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
 	fmt.Println("Request Init New Work Space Connection START")
-	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key, udpConn, workspace_owner_ip)
+	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key, udpConn, workspace_owner_ip, rpcClientHandler)
 	if err != nil {
 		return fmt.Errorf("error Occured in Dialing Init New Workspace Connection.\nerror:%v", err)
 	}
@@ -112,7 +114,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Initialized Workspace With the Source PC END\nSending Request of Get Data ...")
 
 	// TODO Request to GetData() Separately... Pass null string as last hash
-	res, err := dialer.RequestGetData(workspace_owner_username, server.Username, server.Password, server.ServerIP, workspace_name, workspace_password, "")
+	res, err := dialer.RequestGetData(workspace_owner_ip, server.Username, server.Password, workspace_name, workspace_password, "", server.ServerIP, udpConn, rpcClientHandler)
 	if err != nil {
 		return err
 	}
