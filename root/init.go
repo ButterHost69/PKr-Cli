@@ -27,6 +27,10 @@ func Init(server_alias, workspace_password string) error {
 	}
 
 	workspace_path, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("unable to Identify The Current Working Directory Name.\nError: %v", err)
+	}
+
 	workspace_path_split := strings.Split(workspace_path, "\\")
 	workspaceName := workspace_path_split[len(workspace_path_split)-1]
 
@@ -50,9 +54,6 @@ func Init(server_alias, workspace_password string) error {
 		return fmt.Errorf("error Occured In Creating Folder Keys\nError: %v", err)
 	}
 
-	if err != nil {
-		return fmt.Errorf("unable to Identify The Current Working Directory Name.\nError: %v", err)
-	}
 
 	// Register the workspace in the main userConfig file
 	if err := config.RegisterNewSendWorkspace(server_alias, workspaceName, workspace_path, workspace_password); err != nil {

@@ -2,6 +2,7 @@ package myrpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/rpc"
@@ -19,17 +20,37 @@ func call(rpcname string, args interface{}, reply interface{}, ripaddr, lipaddr 
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
-
+	
 	c := rpc.NewClient(conn)
-	defer c.Close()
-
+	
 	err = c.Call(rpcname, args, reply)
 	if err != nil {
+		if cerr := c.Close(); cerr != nil{
+			err = errors.Join(err, cerr)
+		}
+
+		if cerr := conn.Close(); cerr != nil{
+			err = errors.Join(err, cerr)
+		}
 		return err
 	}
 
-	return nil
+	var closeErrs error
+	fmt.Println("Calling RPC Close")
+	cerr := c.Close(); 
+	if cerr != nil{
+		fmt.Println("error - ", cerr)
+		errors.Join(closeErrs, cerr)
+	}
+	
+	// fmt.Println("Calling Connection Close")
+	// cerr = conn.Close()
+	// if cerr != nil{
+	// 	fmt.Println("error - ", cerr)
+	// 	closeErrs = errors.Join(closeErrs, cerr)
+	// }
+
+	return closeErrs
 }
 
 func callWithContextAndConn(ctx context.Context, rpcname string, args interface{}, reply interface{}, ripaddr string, udpConn *net.UDPConn) error {
