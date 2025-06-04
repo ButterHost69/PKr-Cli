@@ -53,6 +53,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	if err != nil {
 		return fmt.Errorf("Error Occured while Listening to UDP\nSource: Clone\nError:%v", err)
 	}
+	defer udpConn.Close()
 
 	log.Println("MOIT Calling Request Punch From Receiver ...")
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/rpc"
+	"time"
 
 	"github.com/ButterHost69/kcp-go"
 )
@@ -38,13 +39,16 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	if err != nil {
 		return err
 	}
-	kcpConn.SetNoDelay(0, 1000, 0, 0)
+	defer kcpConn.Close()
+	kcpConn.SetNoDelay(0, 15000, 0, 0)
+	kcpConn.SetDeadline(time.Now().Add(30 * time.Second)) // Overall timeout
+	kcpConn.SetACKNoDelay(false)                          // Batch ACKs to reduce traffic
 
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()
 
 	c := rpc.NewClient(kcpConn)
-	// defer c.Close()
+	defer c.Close()
 
 	// Create a channel to handle the RPC call with context
 	done := make(chan error, 1)
