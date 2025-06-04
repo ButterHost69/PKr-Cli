@@ -65,7 +65,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	err = dialer.UdpNatPunching(udpConn, workspace_owner_ip)
 	if err != nil {
-		return fmt.Errorf("Error Occured while Performing NAT Hole Punching\nSource: Clone\nError:%v")
+		return fmt.Errorf("Error Occured while Performing NAT Hole Punching\nSource: Clone\nError:%v", err)
 	}
 	fmt.Println("Punched Successfully ...")
 	rpcClientHandler := myrpc.ClientCallHandler{}

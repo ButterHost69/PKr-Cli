@@ -33,19 +33,29 @@ func Push(workspace_name string, workspace_logger *logger.WorkspaceLogger) (int,
 	if err != nil {
 		return -1, fmt.Errorf("could not zip data.\nError: %v", err)
 	}
+	hash_zipfile = strings.Split(hash_zipfile, ".")[0]
+	fmt.Println("Zip File Created ...\nAdding New Push to Config ...")
 
-	err = config.AddNewPushToConfig(workspace_name, strings.Split(hash_zipfile, ".")[0])
+	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
 	if err != nil {
 		return -1, fmt.Errorf("could add entry to PKR config file.\nError: %v", err)
 	}
+	fmt.Println("New Push Added into Config ...\nGetting Workspace Connections Using Workspace Path ...")
 
 	// [ ] Notify all Connections
-	connections, err := config.GetWorkspaceConnectionsUsingPath(workspace_path)
+	conf, err := config.ReadFromPKRConfigFile(workspace_path + "\\.PKr\\workspaceConfig.json")
 	if err != nil {
-		return -1, fmt.Errorf("could not get workspace connections IP.\nError: %v", err)
+		return -1, fmt.Errorf("could not read from .Pkr\\workspaceConfig.json.\nError: %v", err)
+	}
+	fmt.Println("Comparing Last Hash & Hash of Current Files")
+	fmt.Println(conf.LastHash)
+	fmt.Println(hash_zipfile)
+	if conf.LastHash == hash_zipfile {
+		return 0, fmt.Errorf("no new changes detected in 'PUSH'")
 	}
 
-	success_count := dialer.PushToConnections(workspace_name, connections, workspace_logger)
+	fmt.Println("GetWorkspaceConnectionsUsingPath Done")
+	success_count := dialer.PushToConnections(workspace_name, conf.AllConnections, workspace_logger)
 
 	return success_count, nil
 	// generate_sha1 :=

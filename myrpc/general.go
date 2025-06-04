@@ -38,7 +38,7 @@ func callWithContextAndConn(ctx context.Context, rpcname string, args interface{
 	if err != nil {
 		return err
 	}
-	defer kcpConn.Close()
+	kcpConn.SetNoDelay(0, 1000, 0, 0)
 
 	// Find a Way to close the kcp conn without closing UDP Connection
 	// defer conn.Close()

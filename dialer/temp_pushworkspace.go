@@ -3,7 +3,6 @@ package dialer
 import (
 	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-cli/logger"
-	"google.golang.org/grpc"
 )
 
 // [ ] Do using Channels ->
@@ -30,36 +29,35 @@ import (
 // }
 
 // [ ] Test Function
-func PushToConnections(workspace_name string, connnection_ipp []config.Connection, workspace_logger *logger.WorkspaceLogger) int {
+func PushToConnections(workspace_name string, connections []config.Connection, workspace_logger *logger.WorkspaceLogger) int {
 	successful_count := 0
-
-	var connnection_ip []string
-	for _, workspace_ip := range connnection_ip {
-		connection, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
-		if err != nil {
-			err_log := "Failed to Establish Connection with " + workspace_ip + " while sending Push Notification"
-			// config.AddLogEntry(workspace_name, err_log)
-			workspace_logger.Info(workspace_name, err_log)
-			continue
-		}
-
-		_ = connection
-
-		// response, err := client.NotifyPush(ctx, &pb.NotifyPushRequest{
-		// 	WorkspaceName: workspace_name,
-		// })
-
-		// if err != nil {
-		// 	err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
-		// 	// config.AddLogEntry(workspace_name, err_log)
-		// 	workspace_logger.Info(workspace_name, err_log)
-		// 	continue
-		// }
-
-		// if response.Response == 200 {
-		// 	successful_count += 1
-		// }
-		// conn.Close()
-	}
 	return successful_count
+
+	// for _, workspace_ip := range connnection_ip {
+	// 	connection, err := grpc.NewClient(workspace_ip, grpc.WithInsecure())
+	// 	if err != nil {
+	// 		err_log := "Failed to Establish Connection with " + workspace_ip + " while sending Push Notification"
+	// 		// config.AddLogEntry(workspace_name, err_log)
+	// 		workspace_logger.Info(workspace_name, err_log)
+	// 		continue
+	// 	}
+
+	// 	_ = connection
+
+	// response, err := client.NotifyPush(ctx, &pb.NotifyPushRequest{
+	// 	WorkspaceName: workspace_name,
+	// })
+
+	// if err != nil {
+	// 	err_log := "Error in Response from " + workspace_ip + " while sending Push Notification"
+	// 	// config.AddLogEntry(workspace_name, err_log)
+	// 	workspace_logger.Info(workspace_name, err_log)
+	// 	continue
+	// }
+
+	// if response.Response == 200 {
+	// 	successful_count += 1
+	// }
+	// conn.Close()
+	// }
 }

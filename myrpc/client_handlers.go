@@ -17,7 +17,7 @@ func (h *ClientCallHandler) CallGetPublicKey(ripaddr string, conn *net.UDPConn) 
 	defer cancel()
 
 	if err := callWithContextAndConn(ctx, CLIENT_BASE_HANDLER_NAME+".GetPublicKey", req, &res, ripaddr, conn); err != nil {
-		return []byte{}, fmt.Errorf("Error while Calling %s.GetPublicKey RPC\nSource: CallGetPublicKey\nError: %v", CLIENT_BASE_HANDLER_NAME, err)
+		return nil, fmt.Errorf("Error while Calling %s.GetPublicKey RPC\nSource: CallGetPublicKey\nError: %v", CLIENT_BASE_HANDLER_NAME, err)
 	}
 	return res.PublicKey, nil
 }

@@ -74,6 +74,8 @@ func (h *ServerCallHandler) CallRequestPunchFromReciever(server_ip, recieverUser
 	if res.Response != 200 {
 		return "", fmt.Errorf("Calling CallPunchFromReciever Method was not Successful.\nReturn Code - %d", res.Response)
 	}
+	fmt.Println("IP Received from Server:", res.RecieversPublicIP)
+	fmt.Println("Port Received from Server:", res.RecieversPublicPort)
 
 	ip_addr := fmt.Sprintf("%s:%d", res.RecieversPublicIP, res.RecieversPublicPort)
 	return ip_addr, nil
