@@ -9,7 +9,7 @@ import (
 	"github.com/ButterHost69/PKr-cli/myrpc"
 )
 
-func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, workspace_password, last_hash, server_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler) (int, error) {
+func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, workspace_password, last_hash, server_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler, clientHandlerName string) (int, error) {
 	// Get Data, Key, IV
 	// Decrypt Key, IV
 	// Decrypt Data
@@ -20,7 +20,7 @@ func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, worksp
 
 	// FIXME Encrypt Workspace Password before Sending - Store when Calling GetPublicKey for the first time for the user
 
-	res, err := rpcClientHandler.CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, receivers_ip, udpConn)
+	res, err := rpcClientHandler.CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, receivers_ip, udpConn, clientHandlerName)
 	if err != nil {
 		return res.Response, err
 	}

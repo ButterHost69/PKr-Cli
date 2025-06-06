@@ -64,7 +64,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 	log.Println("Receivers IP:", workspace_owner_ip)
 
-	err = dialer.UdpNatPunching(udpConn, workspace_owner_ip)
+	clientHandlerName, err := dialer.UdpNatPunching(udpConn, workspace_owner_ip)
 	if err != nil {
 		return fmt.Errorf("Error Occured while Performing NAT Hole Punching\nSource: Clone\nError:%v", err)
 	}
@@ -72,7 +72,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	rpcClientHandler := myrpc.ClientCallHandler{}
 
 	log.Println("Requesting Public Key ...")
-	public_key, err := dialer.RequestPublicKey(workspace_owner_ip, udpConn, rpcClientHandler)
+	public_key, err := dialer.RequestPublicKey(workspace_owner_ip, udpConn, rpcClientHandler, clientHandlerName)
 	if err != nil {
 		return fmt.Errorf("error Occured in Retrieving Public Key.\nerror:%v", err)
 	}
@@ -94,7 +94,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
 	fmt.Println("Request Init New Work Space Connection START")
-	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key, udpConn, workspace_owner_ip, rpcClientHandler)
+	response, err := dialer.RequestInitNewWorkSpaceConnection(server.ServerIP, server.Username, server.ServerIP, workspace_owner_username, workspace_name, encrypted_password, base64_public_key, udpConn, workspace_owner_ip, rpcClientHandler, clientHandlerName)
 	if err != nil {
 		return fmt.Errorf("error Occured in Dialing Init New Workspace Connection.\nerror:%v", err)
 	}
@@ -115,7 +115,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Initialized Workspace With the Source PC END\nSending Request of Get Data ...")
 
 	// TODO Request to GetData() Separately... Pass null string as last hash
-	res, err := dialer.RequestGetData(workspace_owner_ip, server.Username, server.Password, workspace_name, workspace_password, "", server.ServerIP, udpConn, rpcClientHandler)
+	res, err := dialer.RequestGetData(workspace_owner_ip, server.Username, server.Password, workspace_name, workspace_password, "", server.ServerIP, udpConn, rpcClientHandler, clientHandlerName)
 	if err != nil {
 		return err
 	}

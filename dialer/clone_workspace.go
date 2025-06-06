@@ -26,8 +26,8 @@ import (
 
 // MAYBE - Treat Get Data as Seperate Service ...
 
-func RequestPublicKey(receivers_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler) ([]byte, error) {
-	public_key, err := rpcClientHandler.CallGetPublicKey(receivers_ip, udpConn)
+func RequestPublicKey(receivers_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler, clientHandlerName string) ([]byte, error) {
+	public_key, err := rpcClientHandler.CallGetPublicKey(receivers_ip, udpConn, clientHandlerName)
 	if err != nil {
 		fmt.Println("Error while Calling Get Public Key\nSource: RequestPublicKey\nError:", err)
 		return nil, err
@@ -35,8 +35,8 @@ func RequestPublicKey(receivers_ip string, udpConn *net.UDPConn, rpcClientHandle
 	return public_key, nil
 }
 
-func RequestInitNewWorkSpaceConnection(server_ip, my_username, my_password, rcv_username, workspace_name, workspace_password string, public_key []byte, udpConn *net.UDPConn, workspace_owner_ip string, rpcClientHandler myrpc.ClientCallHandler) (int, error) {
-	response, err := rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, workspace_owner_ip, public_key, udpConn)
+func RequestInitNewWorkSpaceConnection(server_ip, my_username, my_password, rcv_username, workspace_name, workspace_password string, public_key []byte, udpConn *net.UDPConn, workspace_owner_ip string, rpcClientHandler myrpc.ClientCallHandler, clientHandlerName string) (int, error) {
+	response, err := rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password, workspace_owner_ip, public_key, udpConn, clientHandlerName)
 	if err != nil {
 		fmt.Println("Error while Requesting Init New Workspace Connection\nSource: RequestInitNewWorkSpaceConnection\nError:", err)
 		return -1, err

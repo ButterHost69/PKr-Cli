@@ -3,6 +3,7 @@ package dialer
 import (
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/ButterHost69/kcp-go"
@@ -134,12 +135,12 @@ func RudpNatPunching(udpConn *net.UDPConn, peerAddr string) error {
 	}
 }
 
-func UdpNatPunching(conn *net.UDPConn, peerAddr string) error {
+func UdpNatPunching(conn *net.UDPConn, peerAddr string) (string, error) {
 	fmt.Println("Attempting to Dial Peer ...")
 	peerUDPAddr, err := net.ResolveUDPAddr("udp", peerAddr)
 	if err != nil {
 		fmt.Println("Error while resolving UDP Addr\nSource: UdpNatPunching\nError:", err)
-		return err
+		return "", err
 	}
 
 	fmt.Println("Punching ", peerAddr)
@@ -167,10 +168,10 @@ func UdpNatPunching(conn *net.UDPConn, peerAddr string) error {
 					continue
 				}
 				fmt.Println("Connection Established with", addr.String())
-				return nil
-			} else if msg == "Punch ACK" {
+			} else if strings.HasPrefix(msg, "Punch ACK") {
 				fmt.Println("Connection Established with", addr.String())
-				return nil
+				clientHandlerName := strings.Split(msg, ";")[1]
+				return clientHandlerName, nil
 			} else {
 				fmt.Println("Something Else is in Message:", msg)
 			}
