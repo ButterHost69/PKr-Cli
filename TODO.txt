@@ -1,3 +1,28 @@
+New PKr Problems
+
+Feature:
+    PKr-Base & PKr-cli Communication
+
+Problem:
+    PKr-Base can only share files to 1 user at a time
+    Cuz it can only start 'New Server' with 'ClientHandler' name once
+
+Feasible Solutions:
+    Either only make 1 'New Server'
+    
+    Or make 'New Server' with 'ClientHandler1' & 'ClientHandler2' for different users 
+    & pass this handler name via PKr-Server
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+TODO:
+    Pass net.UdpConn everywhere instead of *net.UdpConn or vice-versa
+
+
+=============================================================
+=============================================================
+Old PKr Problems
+
 LAST WORKING CHECKED COMMIT
 
 Feature:
