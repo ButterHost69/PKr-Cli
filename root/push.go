@@ -23,6 +23,9 @@ import (
 
 // TODO MOveover to RPC and
 func Push(workspace_name string, workspace_logger *logger.WorkspaceLogger) (int, error) {
+	// TODO: Add new field in Server named Timestamp for Ping
+	// Fetch the usernames of listeners from config(.PKr)
+	// Server notifies the Listeners that there's new update
 	workspace_path, err := config.GetSendWorkspaceFilePath(workspace_name)
 	if err != nil {
 		return -1, fmt.Errorf("could find workspace.\nError: %v", err)

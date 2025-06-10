@@ -9,7 +9,7 @@ import (
 	"github.com/ButterHost69/PKr-cli/myrpc"
 )
 
-func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, workspace_password, last_hash, server_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler, clientHandlerName string) (int, error) {
+func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, workspace_password, server_ip string, udpConn *net.UDPConn, rpcClientHandler myrpc.ClientCallHandler, clientHandlerName string) (int, error) {
 	// Get Data, Key, IV
 	// Decrypt Key, IV
 	// Decrypt Data
@@ -19,8 +19,8 @@ func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, worksp
 	// Store Last Hash into Config Files
 
 	// FIXME Encrypt Workspace Password before Sending - Store when Calling GetPublicKey for the first time for the user
-
-	res, err := rpcClientHandler.CallGetData(myusername, server_ip, workspace_name, workspace_password, last_hash, receivers_ip, udpConn, clientHandlerName)
+	// TODO: Instead of Last Hash as "", fetch it from config(ALSO CHECK IF LAST_HASH IS EVEN NEEDED)
+	res, err := rpcClientHandler.CallGetData(myusername, server_ip, workspace_name, workspace_password, "", receivers_ip, udpConn, clientHandlerName)
 	if err != nil {
 		return res.Response, err
 	}
@@ -51,7 +51,7 @@ func RequestGetData(receivers_ip, myusername, mypassword, workspace_name, worksp
 
 	workspacePath := "."
 
-	zip_file_path := workspacePath + "\\.PKr\\" + last_hash + ".zip"
+	zip_file_path := workspacePath + "\\.PKr\\" + res.NewHash + ".zip"
 	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		return 400, err
 	}

@@ -17,6 +17,7 @@ import (
 	baseDialer "github.com/ButterHost69/PKr-Base/dialer"
 )
 
+// TODO: Handle if the sender is offline
 func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) error {
 	// [X] Get Public Key From the Host Original Source PC
 	// [X]  Encrypt Password
@@ -115,7 +116,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Initialized Workspace With the Source PC END\nSending Request of Get Data ...")
 
 	// TODO Request to GetData() Separately... Pass null string as last hash
-	res, err := dialer.RequestGetData(workspace_owner_ip, server.Username, server.Password, workspace_name, workspace_password, "", server.ServerIP, udpConn, rpcClientHandler, clientHandlerName)
+	res, err := dialer.RequestGetData(workspace_owner_ip, server.Username, server.Password, workspace_name, workspace_password, server.ServerIP, udpConn, rpcClientHandler, clientHandlerName)
 	if err != nil {
 		return err
 	}
