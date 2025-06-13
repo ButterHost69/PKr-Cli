@@ -1,8 +1,8 @@
-CLI_OUTPUT="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\New-Picker-Pal\PKr-Cli\PKr-Cli.exe"
+CLI_OUTPUT="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\Picker-Pal\PKr-Cli\PKr-Cli.exe"
 
-TEST_DEST="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\New-Picker-Pal\PKr-Test\"
-TEST_MOIT="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\New-Picker-Pal\PKr-Test\Moit"
-TEST_PALAS="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\New-Picker-Pal\PKr-Test\Palas"
+TEST_DEST="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\Picker-Pal\PKr-Test\"
+TEST_MOIT="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\Picker-Pal\PKr-Test\Moit"
+TEST_PALAS="C:\Users\Lappy\OneDrive\Desktop\Cringe xD\Dim Future\Go\Picker-Pal\PKr-Test\Palas"
 
 build2test:clean build copy done
 

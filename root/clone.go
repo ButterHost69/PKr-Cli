@@ -9,7 +9,6 @@ import (
 	"net/rpc"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/ButterHost69/PKr-Cli/config"
 	"github.com/ButterHost69/PKr-Cli/dialer"
@@ -98,11 +97,9 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	}
 
 	// KCP Params for Congestion Control
-	kcp_conn.SetWindowSize(4, 128)
-	kcp_conn.SetNoDelay(1, 15000, 0, 1)
+	kcp_conn.SetWindowSize(128, 512)
+	kcp_conn.SetNoDelay(1, 20, 0, 1)
 	kcp_conn.SetACKNoDelay(false)
-	kcp_conn.SetMtu(1350)
-	kcp_conn.SetDeadline(time.Now().Add(60 * time.Second))
 
 	return client_handler_name, kcp_conn, nil
 }

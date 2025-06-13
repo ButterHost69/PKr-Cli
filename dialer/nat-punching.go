@@ -1,7 +1,7 @@
 package dialer
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"strings"
 )
@@ -12,14 +12,14 @@ const (
 )
 
 func WorkspaceListenerUdpNatHolePunching(conn *net.UDPConn, peerAddr string) (string, error) {
-	fmt.Println("Attempting to Dial Peer ...")
+	log.Println("Attempting to Dial Peer ...")
 	peerUDPAddr, err := net.ResolveUDPAddr("udp", peerAddr)
 	if err != nil {
-		fmt.Println("Error while resolving UDP Addr\nSource: UdpNatPunching\nError:", err)
+		log.Println("Error while resolving UDP Addr\nSource: UdpNatPunching\nError:", err)
 		return "", err
 	}
 
-	fmt.Println("Punching ", peerAddr)
+	log.Println("Punching ", peerAddr)
 	for range PUNCH_ATTEMPTS {
 		conn.WriteToUDP([]byte("Punch"), peerUDPAddr)
 	}
@@ -28,31 +28,33 @@ func WorkspaceListenerUdpNatHolePunching(conn *net.UDPConn, peerAddr string) (st
 	for {
 		n, addr, err := conn.ReadFromUDP(buff[0:])
 		if err != nil {
-			fmt.Println("Error while reading from Udp\nSource: UdpNatPunching\nError:", err)
+			log.Println("Error while reading from Udp\nSource: UdpNatPunching\nError:", err)
 			continue
 		}
 		msg := string(buff[:n])
-		fmt.Printf("Received message: %s from %v\n", msg, addr)
-		fmt.Println(peerAddr == addr.String())
+		log.Printf("Received message: %s from %v\n", msg, addr)
+		log.Println(peerAddr == addr.String())
 
 		if addr.String() == peerAddr {
-			fmt.Println("Expected User Messaged:", addr.String())
-			if msg == "Punch" {
+			log.Println("Expected User Messaged:", addr.String())
+			if strings.HasPrefix(msg, "Punch") {
+				clientHandlerName := strings.Split(msg, ";")[1]
 				_, err = conn.WriteToUDP([]byte("Punch ACK"), peerUDPAddr)
 				if err != nil {
-					fmt.Println("Error while Writing Punch ACK\nSource: UdpNatPunching\nError:", err)
+					log.Println("Error while Writing Punch ACK\nSource: UdpNatPunching\nError:", err)
 					continue
 				}
-				fmt.Println("Connection Established with", addr.String())
+				log.Println("Connection Established with", addr.String())
+				return clientHandlerName, nil
 			} else if strings.HasPrefix(msg, "Punch ACK") {
-				fmt.Println("Connection Established with", addr.String())
+				log.Println("Connection Established with", addr.String())
 				clientHandlerName := strings.Split(msg, ";")[1]
 				return clientHandlerName, nil
 			} else {
-				fmt.Println("Something Else is in Message:", msg)
+				log.Println("Something Else is in Message:", msg)
 			}
 		} else {
-			fmt.Println("Unexpected User Messaged:", addr.String())
+			log.Println("Unexpected User Messaged:", addr.String())
 		}
 	}
 }
