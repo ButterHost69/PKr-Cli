@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-cli/encrypt"
+	"github.com/ButterHost69/PKr-Cli/config"
+	"github.com/ButterHost69/PKr-Cli/encrypt"
 )
 
 // I dont Know if this works. Check it later
@@ -88,7 +88,7 @@ func addFilesToZip(writer *zip.Writer, dirpath string, relativepath string) erro
 		// Comment This Later ... Only For Debugging
 		// config.AddUsersLogEntry(fmt.Sprintf("File: %s", file.Name()))
 		// ..........
-		if file.Name() == ".PKr" || file.Name() == "PKr-Base.exe" || file.Name() == "PKr-cli.exe" || file.Name() == "tmp" {
+		if file.Name() == ".PKr" || file.Name() == "PKr-Base.exe" || file.Name() == "PKr-Cli.exe" || file.Name() == "tmp" {
 			continue
 		} else if !file.IsDir() {
 			content, err := os.ReadFile(dirpath + file.Name())
@@ -125,8 +125,6 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("OLD Zip File Path: " + fullZipPath)
-
 	writer := zip.NewWriter(zip_file)
 
 	addFilesToZip(writer, workspace_path+"\\", "")
@@ -155,7 +153,6 @@ func ZipData(workspace_path string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println("New Zip File Path: " + fullHashFilePath)
 	return hashFileName, nil
 }
 

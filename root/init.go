@@ -1,80 +1,124 @@
 package root
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
-	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-cli/myrpc"
+	"github.com/ButterHost69/PKr-Cli/config"
+	"github.com/ButterHost69/PKr-Cli/dialer"
+	"github.com/ButterHost69/PKr-Cli/filetracker"
+	"github.com/ButterHost69/PKr-Cli/pb"
 )
 
-// FIXME: Not Converted
-func Init(server_alias, workspace_password string) error {
-	// [X] Register Folder to Send Workspace / Export Folder
-	// [X] Create a .PKr Folder
-	// [X] Create a Keys Folder [Will Store Other Users Public Keys]
-	// [X] Create a config file -> Store Shit like User info
-	// [X] Log this entry ... [in the .PKr folder of each workspace]
-
-	server_ip, server_username, server_password, err := config.GetServerDetails(server_alias)
+func InitWorkspace(server_alias, workspace_password string) {
+	// Get Details from Config
+	server_ip, username, password, err := config.GetServerDetails(server_alias)
 	if err != nil {
-		return fmt.Errorf("could not fetch server details...\nError: %v", err)
-	}
-
-	callHandler := myrpc.ServerCallHandler{
-		// Lipaddr: "",
-	}
-
-	workspace_path, err := os.Getwd()
-	workspace_path_split := strings.Split(workspace_path, "\\")
-	workspaceName := workspace_path_split[len(workspace_path_split)-1]
-
-	if err = callHandler.CallRegisterWorkspace(server_ip, server_username, server_password, workspaceName); err != nil {
-		return fmt.Errorf("could not call register new Workspace...\nError: %v", err)
+		log.Println("Error while getting Server Details from Config:", err)
+		log.Println("Source: InitWorkspace()")
+		return
 	}
 
 	// Check if .PKr folder already exists; if so then do nothing ...
 	// FIXME: [ ] This Doesnt Work Please Check Why Later
 	if _, err := os.Stat(".PKr"); os.IsExist(err) {
-		return fmt.Errorf(".PKr Already Exists...\nIt seems PKr is already Initialized in this Directory....\nError: %v", err)
+		fmt.Println("Error:", err)
+		fmt.Println("Description: '.PKr' Already Exists...\nIt seems PKr is already Initialized in this Directory")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
 	// Create .Pkr Folder ; return if error occured
 	if err := os.Mkdir(".PKr", os.ModePerm); err != nil {
-		return fmt.Errorf("error Occured In Creating Folder .PKr\nError: %v", err)
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create '.PKr' Directory")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
 	// Create Keys Folder
 	if err := os.Mkdir(".PKr/Keys/", os.ModePerm); err != nil {
-		return fmt.Errorf("error Occured In Creating Folder Keys\nError: %v", err)
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create Keys Folder")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
+	// Get Curr Directory as Workspace Path
+	workspace_path, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("unable to Identify The Current Working Directory Name.\nError: %v", err)
+		log.Println("Error Cannot Call Getwd():", err)
+		log.Println("Source: InitWorkspace()")
+		return
+	}
+	workspace_path_split := strings.Split(workspace_path, "\\")
+	workspace_name := workspace_path_split[len(workspace_path_split)-1]
+
+	// Getting Hash of Zip File
+	hash_zipfile, err := filetracker.ZipData(workspace_path)
+	if err != nil {
+		log.Println("Error while Getting Hash of Zipped Data:", err)
+		log.Println("Source InitWorkspace()")
+		return
+	}
+	hash_zipfile = strings.Split(hash_zipfile, ".")[0]
+
+	// Create New gRPC Client
+	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create New GRPC Client")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	// Prepare gRPC Request
+	req := &pb.RegisterWorkspaceRequest{
+		Username:      username,
+		Password:      password,
+		WorkspaceName: workspace_name,
+		LastHash:      hash_zipfile,
+	}
+
+	// Request Timeout
+	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
+	defer cancelFunc()
+
+	// Sending Request ...
+	_, err = gRPC_cli_service_client.RegisterWorkspace(ctx, req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Register User")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
 	// Register the workspace in the main userConfig file
-	if err := config.RegisterNewSendWorkspace(server_alias, workspaceName, workspace_path, workspace_password); err != nil {
-		return fmt.Errorf("could Not Register The Workspace To the userConfig File.\nError: %v", err)
+	if err := config.RegisterNewSendWorkspace(server_alias, workspace_name, workspace_path, workspace_password); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Register Workspace to userConfig File")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
 	// Create the workspace config file
-	if err := config.CreatePKRConfigIfNotExits(workspaceName, workspace_path); err != nil {
-		return fmt.Errorf("could Not Create .PKr/PKRConfig.json.\nError: %v", err)
+	if err := config.CreatePKRConfigIfNotExits(workspace_name, workspace_path); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create .Pkr/PKRConfig.json")
+		fmt.Println("Source: InitWorkspace()")
+		return
 	}
 
-	// log := "Workspace '" + workspaceName + "' Created"
+	fmt.Println("Adding New Push to Config ...")
+	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
+	if err != nil {
+		fmt.Println("Error while Adding New Init to Config:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
 
-	// // Add Entry to the Main File ??? I dont know the Main file path of rn /tmp dir
-	// if err := config.AddUsersLogEntry(workspaceName, log); err != nil {
-	// 	return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
-	// }
-
-	// // Add Entry to Workspace logs
-	// if err := config.AddLogEntry(workspaceName, log); err != nil {
-	// 	return fmt.Errorf("could Not add Entry to the Users Logs File.\nError:%v", err)
-	// }
-
-	return nil
+	fmt.Println("New Workspace Registered Successfully")
 }

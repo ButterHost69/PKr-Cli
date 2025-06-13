@@ -16,7 +16,7 @@ func CleanFilesFromWorkspace(workspace_path string) error {
 
 	fmt.Printf("Deleting All Files at: %s\n\n", workspace_path)
 	for _, file := range files {
-		if file.Name() != ".PKr" && file.Name() != "PKr-Base.exe" && file.Name() != "PKr-cli.exe" && file.Name() != "tmp" {
+		if file.Name() != ".PKr" && file.Name() != "PKr-Base.exe" && file.Name() != "PKr-Cli.exe" && file.Name() != "tmp" {
 			if err = os.RemoveAll(path.Join([]string{workspace_path, file.Name()}...)); err != nil {
 				return err
 			}

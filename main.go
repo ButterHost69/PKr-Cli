@@ -1,408 +1,121 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
-	"github.com/ButterHost69/PKr-cli/logger"
-	"github.com/ButterHost69/PKr-cli/root"
+	"github.com/ButterHost69/PKr-Cli/root"
 )
 
-// TODO: [ ] While Zipping File or Unzipping files, empty directory is ignored (Moit)
-// TODO: [ ] Shift everything to flag based, support terminal inputs and CLI - Server Commands Remaining
-// TODO: [X] Refactor the code.
-//
-// TODO: [ ] Why the fuck are there two model files ?? Make it in to 1
-// TODO: [ ] Why are there print statements in files other than main.
-// TODO: [ ] Write Tests, bro why am I doing this manual... Use docker maybe to simulate the whole thing ???
-// TODO: [ ] Add verbose option that allows for prints in "inside" functions (anything aside from main)
-// TODO: [ ] Use a Better Logging Method(preferbly homemade), also logs are made partially, not everything is logged.
-
-var (
-	TUI                    bool
-	CLI                    bool
-	BACKGROUND_SERVER_PORT int
-	LOG_IN_TERMINAL        bool
-	LOG_LEVEL              int
-)
-
-var (
-	workspace_logger   *logger.WorkspaceLogger
-	userconfing_logger *logger.UserLogger
-)
-
-const (
-	ROOT_DIR = "..\\tmp"
-	LOG_FILE = ROOT_DIR + "\\logs.txt"
-)
-
-func Init() {
-	// flag.IntVar(&BACKGROUND_SERVER_PORT, "ip", 9000, "Other Users BACKGROUND Port")
-	value := os.Getenv("PKR-IP")
-	if value == "" {
-		value = ":9000"
-	}
-	BACKGROUND_SERVER_PORT, _ = strconv.Atoi(value)
-
-	flag.BoolVar(&TUI, "tui", false, "Use Application in TUI Mode")
-	flag.BoolVar(&CLI, "cli", false, "Use Application in CLI Mode")
-	flag.BoolVar(&LOG_IN_TERMINAL, "lt", false, "Log Events in Terminal.")
-	flag.IntVar(&LOG_LEVEL, "ll", 4, "Set Log Levels.") // 4 -> No Logs
-
-	flag.Parse()
-
-	workspace_logger = logger.InitWorkspaceLogger()
-	userconfing_logger = logger.InitUserLogger(LOG_FILE)
-
-	workspace_logger.SetLogLevel(logger.IntToLog(LOG_LEVEL))
-	userconfing_logger.SetLogLevel(logger.IntToLog(LOG_LEVEL))
-
-	workspace_logger.SetPrintToTerminal(LOG_IN_TERMINAL)
-	userconfing_logger.SetPrintToTerminal(LOG_IN_TERMINAL)
-}
-
-func PrintMode() {
-	fmt.Println("Must Define Mode to use PKr in")
-	fmt.Println("	1] `PKr -tui` -> For Terminal User Interface. Takes Input through stdout, requires less flags")
-	fmt.Println("	2] `PKr -cli` -> For Command Line Interface. Requires Input as flags")
-}
-
-// [ ]: Add PUSH Command Info
-func PrintArguments() {
-	fmt.Printf("Required Minimum 3 Args\n\n")
+func printArguments() {
 	fmt.Println("Valid Parameters:")
 	fmt.Println("	1] install -> Create User and Install PKr")
 	fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
 	fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
 	fmt.Println("	4] list -> List all Send and Get Workspaces")
-	fmt.Println("	5] server -> Connect With a Server to Manage Multiple Dynamic Connections")
-}
-
-func PrintServerOptions() {
-	fmt.Println("server requires additional arguments")
-	fmt.Println("Valid Arguments:")
-	fmt.Println("	1] setup -> Initialize Connection with New PKr Server")
-	fmt.Println("	2] register_workspace -> Initialize An Existing Workspace with a connected PKr Server")
+	fmt.Println("	5] push -> Push new Changes to Listeners")
 }
 
 func main() {
-	Init()
-
-	// TUI -> Takes Input from stdin and print output/errors on stdout
-	// CLI -> Input Passed as flag with command, output/errors on stdout
-	if !TUI && !CLI {
-		PrintMode()
+	if len(os.Args) < 2 {
+		printArguments()
 		return
 	}
 
-	if len(os.Args) < 3 {
-		PrintArguments()
-		return
-	}
+	cmd := strings.ToLower(os.Args[1])
 
-	cmd := strings.ToLower(os.Args[2])
-	if TUI {
-		// TODO: [ ] Check if a User is created or not before exec any command. Notify user with suggestion to install PKr first.
-		switch cmd {
-		case "install":
-			{
-				fmt.Printf("Setting Up Your System...\n")
-				fmt.Println("This Might Take Some Time...")
+	switch cmd {
+	case "install":
+		{
+			var server_alias, server_ip, username, password string
 
-				root.Install()
-				// if err != nil {
-				// 	fmt.Println("Could not Install PKr.")
-				// 	fmt.Println(err)
-				// 	return
-				// }
+			fmt.Print("> Enter Server Alias: ")
+			fmt.Scan(&server_alias)
 
-				fmt.Printf(" ~ PKr Installed ~ \n")
-				fmt.Println("NOTE: Add Server using - pkr -tui server add")
-				return
-			}
+			fmt.Print("> Enter Server IP: ")
+			fmt.Scan(&server_ip)
 
-		case "init":
-			{
-				var server_alias string
-				fmt.Println("Please Enter Server Alias: ")
-				fmt.Scan(&server_alias)
+			fmt.Print("> Enter Username: ")
+			fmt.Scan(&username)
 
-				var workspace_password string
-				fmt.Print("Please Enter A Password: ")
-				fmt.Scan(&workspace_password)
-				if err := root.Init(server_alias, workspace_password); err != nil {
-					fmt.Println("Error Occured in Initialize a New Workspace")
-					fmt.Printf("error: %v\n", err)
-					return
-				}
+			fmt.Print("> Enter Password: ")
+			fmt.Scan(&password)
 
-				fmt.Println("Workspace Created Successfully !!")
-				return
-			}
-
-		case "clone":
-			{
-				var workspace_owner_username string
-				var workspace_name string
-				var workspace_password string
-				var server_alias string
-
-				fmt.Print("> Enter the Workspace Owner Username: ")
-				fmt.Scan(&workspace_owner_username)
-
-				fmt.Print("> Enter Server Alias: ")
-				fmt.Scan(&server_alias)
-
-				fmt.Print("> Enter the Workspace Name: ")
-				fmt.Scan(&workspace_name)
-
-				fmt.Print("> Enter the Workspace Password: ")
-				fmt.Scan(&workspace_password)
-
-				// err := root.Clone(BACKGROUND_SERVER_PORT, workspace_ip, workspace_name, workspace_password)
-				err := root.Clone(workspace_owner_username, workspace_name, workspace_password, server_alias)
-				if err != nil {
-					fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", workspace_name, server_alias)
-					fmt.Println(err)
-					return
-				}
-
-				fmt.Printf("Successfully Cloned Workspace: %s\n", workspace_name)
-				return
-			}
-
-		case "list":
-			{
-				if err := root.List(); err != nil {
-					fmt.Println("Could Not List Workspace Info")
-					fmt.Printf("Error: %v", err)
-					return
-				}
-			}
-
-		case "uninstall":
-
-		case "get":
-
-		// [ ] Test this code thoroughly - Use VMWare Maybe ??
-		case "push":
-			{
-				dir, err := os.Getwd()
-				if err != nil {
-					fmt.Println("Could not Get Directory Name: ")
-					fmt.Println(err)
-					return
-				}
-
-				workspace_namel := strings.Split(dir, "\\")
-				workspace_name := workspace_namel[len(workspace_namel)-1]
-				fmt.Println("Pushing Workpace: ", workspace_name)
-
-				success, err := root.Push(workspace_name, workspace_logger)
-				if err != nil {
-					fmt.Printf("Error Occured in Pushing Workspace: %s\n", workspace_name)
-					fmt.Println(err)
-					return
-				}
-
-				fmt.Printf("\nNotified %d Users !!\n", success)
-			}
-
-		case "server":
-			{
-				if len(os.Args) < 4 {
-					PrintServerOptions()
-					return
-				}
-				opts := strings.ToLower(os.Args[3])
-				switch opts {
-				case "add":
-					{
-						var server_alias, server_ip, server_username, server_password string
-						fmt.Println("Enter Server Alias: ")
-						fmt.Scan(&server_alias)
-
-						fmt.Println("Enter Server IP: ")
-						fmt.Scan(&server_ip)
-
-						fmt.Println("Enter Server Username: ")
-						fmt.Scan(&server_username)
-
-						fmt.Println("Enter Server Password: ")
-						fmt.Scan(&server_password)
-
-						root.ServerAdd(server_alias, server_ip, server_username, server_password)
-						return
-					}
-
-				// 	// Can Name better in future
-				// case "register_workspace":
-				// 	{
-				// 		root.Server_RegisterWorkspace()
-				// 		return
-				// 	}
-				default:
-					{
-						PrintServerOptions()
-						return
-					}
-				}
-			}
-		default:
-			{
-				PrintArguments()
-				return
-			}
+			fmt.Println("Installing ...")
+			root.Install(server_alias, server_ip, username, password)
 		}
+
+	case "init":
+		{
+			var server_alias, workspace_password string
+
+			fmt.Print("> Enter Server Alias: ")
+			fmt.Scan(&server_alias)
+
+			fmt.Print("> Enter Workspace Password: ")
+			fmt.Scan(&workspace_password)
+
+			fmt.Println("Initializing New Workspace ...")
+			root.InitWorkspace(server_alias, workspace_password)
+		}
+
+	case "clone":
+		{
+			var workspace_owner_username string
+			var workspace_name string
+			var workspace_password string
+			var server_alias string
+
+			fmt.Print("> Enter the Workspace Owner Username: ")
+			fmt.Scan(&workspace_owner_username)
+
+			fmt.Print("> Enter Server Alias: ")
+			fmt.Scan(&server_alias)
+
+			fmt.Print("> Enter Workspace Name: ")
+			fmt.Scan(&workspace_name)
+
+			fmt.Print("> Enter Workspace Password: ")
+			fmt.Scan(&workspace_password)
+
+			fmt.Println("Cloning ...")
+			root.Clone(workspace_owner_username, workspace_name, workspace_password, server_alias)
+		}
+
+	case "list":
+		{
+			var server_alias string
+
+			fmt.Print("> Enter Server Alias: ")
+			fmt.Scan(&server_alias)
+			fmt.Println("Fetching All Workspaces ...")
+
+			root.ListAllWorkspaces(server_alias)
+		}
+
+	case "push":
+		{
+			var server_alias string
+
+			fmt.Print("> Enter Server Alias: ")
+			fmt.Scan(&server_alias)
+
+			current_working_directory, err := os.Getwd()
+			if err != nil {
+				fmt.Println("Could not Get Current Working Directory :", err)
+				fmt.Println("Source: main()")
+				return
+			}
+
+			current_working_directory_split := strings.Split(current_working_directory, "\\")
+			workspace_name := current_working_directory_split[len(current_working_directory_split)-1]
+
+			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
+			root.Push(workspace_name, server_alias)
+		}
+
+	default:
+		printArguments()
 	}
-
-	// FIXME CLI MOD IS DISABLED TEMPORARILY ....
-
-	// if CLI {
-	// 	// TODO: [X] Required %s Parameter than display usage when flags are not provided, by checking if val == ""
-	// 	switch cmd {
-	// 	case "install":
-	// 		{
-	// 			installCmd := flag.NewFlagSet("install", flag.ExitOnError)
-	// 			username := installCmd.String("u", "", "Username to Install PKr")
-	// 			// serverIP := installCmd.String("s", "", "Select Server IP")
-
-	// 			// installCmd.Parse(os.Args[3:])
-	// 			// if *username == "" {
-	// 			// 	fmt.Println("Error: Username is required for install")
-	// 			// 	fmt.Println(`Usage: PKr -cli install -u="username"`)
-	// 			// 	return
-	// 			// }
-
-	// 			installCmd.Parse(os.Args[3:])
-	// 			if *username == "" {
-	// 				fmt.Println("Error: Username is required for install")
-	// 				fmt.Println(`Usage: PKr -cli install -u="username" -s="<ipdarr>"`)
-	// 				return
-	// 			}
-	// 			// if *serverIP == "" {
-	// 			// 	fmt.Println("Selecting Default Server")
-	// 			// 	fmt.Println("Server IP: (insert-default-ip-here)")
-	// 			// 	return
-	// 			// }
-
-	// 			fmt.Println("Creating User: ", *username)
-	// 			err := root.Install(*username)
-	// 			if err != nil {
-	// 				fmt.Println("Could not Install PKr.")
-	// 				fmt.Println(err)
-	// 				return
-	// 			}
-
-	// 			fmt.Printf(" ~ Created User : %s\n", *username)
-	// 			return
-	// 		}
-
-	// 	case "uninstall":
-
-	// 	case "get":
-
-	// 	case "push":
-
-	// 	case "clone":
-	// 		{
-	// 			cloneCmd := flag.NewFlagSet("clone", flag.ExitOnError)
-
-	// 			workspace_ip := cloneCmd.String("ip", "", "(*) Clone Workspace IP")
-	// 			workspace_name := cloneCmd.String("wn", "", "(*) Workspace Name")
-	// 			workspace_password := cloneCmd.String("wp", "", "(*) Workspace Password ")
-
-	// 			cloneCmd.Parse(os.Args[3:])
-	// 			if *workspace_ip == "" && *workspace_name == "" && *workspace_password == "" {
-	// 				fmt.Println("Error: Workspace IP and Name and Password required")
-	// 				cloneCmd.Usage()
-	// 				return
-	// 			}
-
-	// 			err := root.Clone(BACKGROUND_SERVER_PORT, *workspace_ip, *workspace_name, *workspace_password)
-	// 			if err != nil {
-	// 				fmt.Printf("Error Occured in Cloning Workspace: %s at IP: %s\n", *workspace_name, *workspace_ip)
-	// 				fmt.Println(err)
-	// 				return
-	// 			}
-
-	// 			fmt.Printf("Successfully Cloned Workspace: %s\n", *workspace_name)
-	// 			return
-
-	// 		}
-
-	// 	// Maybe its Done
-	// 	case "init":
-	// 		{
-	// 			initCmd := flag.NewFlagSet("init", flag.ExitOnError)
-	// 			workspace_password := initCmd.String("wp", "", "(*) Workspace Password ")
-
-	// 			initCmd.Parse(os.Args[3:])
-	// 			if *workspace_password == "" {
-	// 				fmt.Println("Error: Workspace Password required")
-	// 				initCmd.Usage()
-	// 				return
-	// 			}
-
-	// 			if err := root.Init(*workspace_password); err != nil {
-	// 				fmt.Println("Error Occured in Initialize a New Workspace")
-	// 				fmt.Printf("error: %v\n", err)
-	// 				return
-	// 			}
-
-	// 			fmt.Println("Workspace Created Successfully !!")
-	// 			return
-	// 		}
-
-	// 		// list Created workspaces
-	// 	case "list":
-	// 		{
-	// 			if err := root.List(); err != nil {
-	// 				fmt.Println("Could Not List Workspace Info")
-	// 				fmt.Printf("Error: %v", err)
-	// 				return
-	// 			}
-	// 		}
-
-	// 	// For server
-	// 	// Mainly for IP and shit
-	// 	// Try to make the code as swappable as possible
-	// 	//
-	// 	// Was working on server setup ~ check config, it is still partial
-	// 	// TODO: [ ] CLI remaining For server part. Flags are not taken
-	// 	case "server":
-	// 		{
-	// 			if len(os.Args) < 4 {
-	// 				PrintServerOptions()
-	// 				return
-	// 			}
-	// 			opts := strings.ToLower(os.Args[3])
-	// 			switch opts {
-	// 			case "setup":
-	// 				{
-	// 					root.Server_Setup()
-	// 					return
-	// 				}
-
-	// 				// Can Name better in future
-	// 			case "register_workspace":
-	// 				{
-	// 					root.Server_RegisterWorkspace()
-	// 					return
-	// 				}
-	// 			default:
-	// 				{
-	// 					PrintServerOptions()
-	// 				}
-	// 			}
-	// 		}
-	// 	default:
-	// 		{
-	// 			PrintArguments()
-	// 		}
-	// 	}
-	// }
 }
