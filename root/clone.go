@@ -228,7 +228,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	fmt.Println("Calling GetData ...")
 	// Calling GetData
-	res, err := rpcClientHandler.CallGetData(username, server_ip, workspace_name, workspace_password, "", client_handler_name, rpc_client)
+	res, err := rpcClientHandler.CallGetData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetData:", err)
 		fmt.Println("Source: Clone()")
