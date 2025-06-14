@@ -17,6 +17,7 @@ import (
 	"github.com/ButterHost69/PKr-Cli/filetracker"
 	"github.com/ButterHost69/PKr-Cli/models"
 	"github.com/ButterHost69/PKr-Cli/pb"
+	"github.com/ButterHost69/PKr-Cli/utils"
 
 	"github.com/ButterHost69/kcp-go"
 )
@@ -211,36 +212,45 @@ func fetchData(workspace_owner_public_ip, workspace_name, workspace_hash string,
 		return nil, err
 	}
 	fmt.Println("Workspace Name & Hash Sent to Workspace Owner")
-	fmt.Println("Len Data Bytes:", len_data_bytes)
 
-	MAX_CHUNK_SIZE := min(DATA_CHUNK, len_data_bytes)
-	data_bytes := make([]byte, len_data_bytes)
+	CHUNK_SIZE := min(DATA_CHUNK, len_data_bytes)
+
+	fmt.Println("Len Data Bytes:", len_data_bytes)
+	fmt.Println("Len Buffer:", len_data_bytes+CHUNK_SIZE)
+	data_bytes := make([]byte, len_data_bytes+CHUNK_SIZE)
 	offset := 0
 
 	fmt.Println("Now Reading Data from Workspace Owner ...")
 	for offset < len_data_bytes {
-		// fmt.Println("Receiving Chunk Number:", offset)
-		n, err := kcp_conn.Read(data_bytes[offset : offset+MAX_CHUNK_SIZE])
+		utils.PrintProgressBar(offset, len_data_bytes, 100)
+
+		n, err := kcp_conn.Read(data_bytes[offset : offset+CHUNK_SIZE])
 		// Check for Errors on Workspace Owner's Side
 		if n < 30 {
 			msg := string(data_bytes[offset : offset+n])
 			if msg == "Incorrect Workspace Name/Hash" || msg == "Internal Server Error" {
-				fmt.Println("Error while Reading from Workspace on his/her side:", msg)
+				fmt.Println("\nError while Reading from Workspace on his/her side:", msg)
 				fmt.Println("Source: fetchData()")
 				return nil, errors.New(msg)
 			}
 		}
 
 		if err != nil {
-			fmt.Println("Error while Reading from Workspace Owner:", err)
+			fmt.Println("\nError while Reading from Workspace Owner:", err)
 			fmt.Println("Source: fetchData()")
 			return nil, err
 		}
-		// fmt.Println("Received Chunk Number:", offset)
 		offset += n
 	}
-	fmt.Println("Data Transfer Completed ...")
-	return data_bytes, nil
+	fmt.Println("\nData Transfer Completed ...")
+
+	_, err = kcp_conn.Write([]byte("Data Received"))
+	if err != nil {
+		fmt.Println("Error while Sending Data Received Message:", err)
+		fmt.Println("Source: fetchData()")
+		// Not Returning Error because, we got data, we don't care if workspace owner now is offline
+	}
+	return data_bytes[:offset], nil
 }
 
 func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) {
