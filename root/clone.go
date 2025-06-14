@@ -3,6 +3,7 @@ package root
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -14,12 +15,15 @@ import (
 	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Cli/encrypt"
 	"github.com/ButterHost69/PKr-Cli/filetracker"
+	"github.com/ButterHost69/PKr-Cli/models"
 	"github.com/ButterHost69/PKr-Cli/pb"
 
 	"github.com/ButterHost69/kcp-go"
 )
 
-func connectToAnotherUser(workspace_owner_username, server_ip, username, password string) (string, *kcp.UDPSession, error) {
+const DATA_CHUNK = 1024 // 1 KB
+
+func connectToAnotherUser(workspace_owner_username, server_ip, username, password string) (string, string, *net.UDPConn, *kcp.UDPSession, error) {
 	local_port := rand.Intn(16384) + 16384
 	fmt.Println("My Local Port:", local_port)
 
@@ -28,7 +32,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	if err != nil {
 		fmt.Println("Error while Getting my Public IP:", err)
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 	}
 	fmt.Println("My Public IP Addr:", myPublicIP)
 
@@ -42,7 +46,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 	}
 
 	// Prepare req
@@ -63,7 +67,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	if err != nil {
 		fmt.Println("Error while Requesting Punch from Receiver:", err)
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 
 	}
 	fmt.Println("Remote Addr:", res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort)
@@ -76,36 +80,39 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	if err != nil {
 		fmt.Printf("Error while Listening to %d: %v\n", local_port, err)
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 	}
 
-	client_handler_name, err := dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort)
+	workspace_owner_public_ip := res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
+	client_handler_name, err := dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_public_ip)
 	if err != nil {
 		fmt.Println("Error while Punching to Remote Addr:", err)
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 
 	}
 	fmt.Println("UDP NAT Hole Punching Completed Successfully")
 
 	// Creating KCP-Conn, KCP = Reliable UDP
-	kcp_conn, err := kcp.DialWithConnAndOptions(res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort, nil, 0, 0, udp_conn)
+	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_public_ip, nil, 0, 0, udp_conn)
 	if err != nil {
 		fmt.Println("Error while Dialing KCP Connection to Remote Addr:", err)
 		fmt.Println("Source: connectToAnotherUser()")
-		return "", nil, err
+		return "", "", nil, nil, err
 	}
 
 	// KCP Params for Congestion Control
 	kcp_conn.SetWindowSize(128, 512)
-	kcp_conn.SetNoDelay(1, 20, 0, 1)
-	kcp_conn.SetACKNoDelay(false)
+	kcp_conn.SetNoDelay(1, 10, 1, 1)
 
-	return client_handler_name, kcp_conn, nil
+	return client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, nil
 }
 
-func storeDataIntoWorkspace(res *dialer.GetDataResponse) error {
-	data_bytes := res.Data
+// TODO: Instead of writing whole data_bytes into file at once,
+// Write received encrypted data in chunks, after the transfer is completed, read from encrpyted file
+// & decrypt it
+// We can use Cipher Block Methods to decrypt & encrpyt with AES
+func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) error {
 	key_bytes := res.KeyBytes
 	iv_bytes := res.IVBytes
 
@@ -130,28 +137,110 @@ func storeDataIntoWorkspace(res *dialer.GetDataResponse) error {
 		return err
 	}
 
-	workspacePath := "."
+	// README: For PKr-Base
+	// fmt.Println("Workspace Name:", workspace_name)
+	// workspace_path, err := config.GetGetWorkspaceFilePath(workspace_name)
+	// if err != nil {
+	// 	fmt.Println("Error while Fetching Workspace Path from Config:", err)
+	// 	fmt.Println("Source: storeDataIntoWorkspace()")
+	// 	return err
+	// }
+	// fmt.Println("Workspace Path: ", workspace_path)
 
-	zip_file_path := workspacePath + "\\.PKr\\" + res.NewHash + ".zip"
+	workspace_path := "."
+
+	zip_file_path := workspace_path + "\\.PKr\\" + res.NewHash + ".zip"
 	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		fmt.Println("Error while Saving Data into '.PKr/abc.zip':", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
 	}
 
-	if err = filetracker.CleanFilesFromWorkspace(workspacePath); err != nil {
+	if err = filetracker.CleanFilesFromWorkspace(workspace_path); err != nil {
 		fmt.Println("Error while Cleaning Workspace :", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
 	}
 
 	// Unzip Content
-	if err = filetracker.UnzipData(zip_file_path, workspacePath+"\\"); err != nil {
+	if err = filetracker.UnzipData(zip_file_path, workspace_path+"\\"); err != nil {
 		fmt.Println("Error while Unzipping Data into Workspace:", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
 	}
 	return nil
+}
+
+func fetchData(workspace_owner_public_ip, workspace_name, workspace_hash string, udp_conn *net.UDPConn, len_data_bytes int) ([]byte, error) {
+	// Now Transfer Data using KCP ONLY, No RPC in chunks
+	fmt.Println("Connecting Again to Workspace Owner")
+	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_public_ip, nil, 0, 0, udp_conn)
+	if err != nil {
+		fmt.Println("Error while Dialing Workspace Owner to Get Data:", err)
+		fmt.Println("Source: fetchData()")
+		return nil, err
+	}
+	fmt.Println("Connected Successfully to Workspace Owner")
+
+	// KCP Params for Congestion Control
+	kcp_conn.SetWindowSize(128, 512)
+	kcp_conn.SetNoDelay(1, 10, 1, 1)
+
+	// Sending the Type of Session
+	kpc_buff := [3]byte{'K', 'C', 'P'}
+	_, err = kcp_conn.Write(kpc_buff[:])
+	if err != nil {
+		fmt.Println("Error while Writing the type of Session(KCP-RPC or KCP-Plain):", err)
+		fmt.Println("Source: fetchData()")
+		return nil, err
+	}
+
+	fmt.Println("Sending Workspace Name & Hash to Workspace Owner")
+	// Sending Workspace Name & Hash
+	_, err = kcp_conn.Write([]byte(workspace_name))
+	if err != nil {
+		fmt.Println("Error while Sending Workspace Name to Workspace Owner:", err)
+		fmt.Println("Source: fetchData()")
+		return nil, err
+	}
+
+	_, err = kcp_conn.Write([]byte(workspace_hash))
+	if err != nil {
+		fmt.Println("Error while Sending Workspace Name to Workspace Owner:", err)
+		fmt.Println("Source: fetchData()")
+		return nil, err
+	}
+	fmt.Println("Workspace Name & Hash Sent to Workspace Owner")
+	fmt.Println("Len Data Bytes:", len_data_bytes)
+
+	MAX_CHUNK_SIZE := min(DATA_CHUNK, len_data_bytes)
+	data_bytes := make([]byte, len_data_bytes)
+	offset := 0
+
+	fmt.Println("Now Reading Data from Workspace Owner ...")
+	for offset < len_data_bytes {
+		// fmt.Println("Receiving Chunk Number:", offset)
+		n, err := kcp_conn.Read(data_bytes[offset : offset+MAX_CHUNK_SIZE])
+		// Check for Errors on Workspace Owner's Side
+		if n < 30 {
+			msg := string(data_bytes[offset : offset+n])
+			if msg == "Incorrect Workspace Name/Hash" || msg == "Internal Server Error" {
+				fmt.Println("Error while Reading from Workspace on his/her side:", msg)
+				fmt.Println("Source: fetchData()")
+				return nil, errors.New(msg)
+			}
+		}
+
+		if err != nil {
+			fmt.Println("Error while Reading from Workspace Owner:", err)
+			fmt.Println("Source: fetchData()")
+			return nil, err
+		}
+		// fmt.Println("Received Chunk Number:", offset)
+		offset += n
+	}
+	fmt.Println("Data Transfer Completed ...")
+	return data_bytes, nil
 }
 
 func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) {
@@ -163,18 +252,55 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 
-	client_handler_name, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
+	// Register New User to Workspace
+	// New GRPC Client
+	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create New GRPC Client")
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	// Prepare req
+	register_user_to_workspace_res_req := &pb.RegisterUserToWorkspaceRequest{
+		ListenerUsername:       username,
+		ListenerPassword:       password,
+		WorkspaceName:          workspace_name,
+		WorkspaceOwnerUsername: workspace_owner_username,
+	}
+
+	// Request Timeout
+	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
+	defer cancelFunc()
+
+	// Sending Request to Server
+	_, err = gRPC_cli_service_client.RegisterUserToWorkspace(ctx, register_user_to_workspace_res_req)
+	if err != nil {
+		fmt.Println("Error while Registering User To Workspace:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	// Connecting to Workspace Owner
+	client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
 	if err != nil {
 		fmt.Println("Error while Connecting to Another User:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
-	defer kcp_conn.Close()
+
+	// Sending the Type of Session
+	rpc_buff := [3]byte{'R', 'P', 'C'}
+	_, err = kcp_conn.Write(rpc_buff[:])
+	if err != nil {
+		fmt.Println("Error while Writing the type of Session(KCP-RPC or KCP-Plain):", err)
+		fmt.Println("Source: cloneWorkspace()")
+		return
+	}
 
 	// Creating RPC Client
 	rpc_client := rpc.NewClient(kcp_conn)
-	defer rpc_client.Close()
-
 	rpcClientHandler := dialer.ClientCallHandler{}
 
 	fmt.Println("Calling Get Public Key")
@@ -226,54 +352,35 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 
-	fmt.Println("Calling GetData ...")
-	// Calling GetData
-	res, err := rpcClientHandler.CallGetData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
+	fmt.Println("Calling GetMetaData ...")
+	// Calling GetMetaData
+	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
 	if err != nil {
-		fmt.Println("Error while Calling GetData:", err)
+		fmt.Println("Error while Calling GetMetaData:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
 
-	fmt.Println("Get Data Responded, now storing files into workspace")
+	fmt.Println("Get Meta Data Responded")
+	rpc_client.Close()
+	defer kcp_conn.Close()
+
+	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.NewHash, udp_conn, res.LenData)
+	if err != nil {
+		fmt.Println("Error while Fetching Data:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	fmt.Println("Now Storing Data into Workspace ...")
 	// Store Data into workspace
-	err = storeDataIntoWorkspace(res)
+	err = storeDataIntoWorkspace(res, data_bytes)
 	if err != nil {
 		fmt.Println("Error while Storing Requested Data into Workspace:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
-
-	// Register New User to Workspace
-	// Add New Workspace Connection
-	// New GRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Create New GRPC Client")
-		fmt.Println("Source: Clone()")
-		return
-	}
-
-	// Prepare req
-	register_user_to_workspace_res_req := &pb.RegisterUserToWorkspaceRequest{
-		ListenerUsername:       username,
-		ListenerPassword:       password,
-		WorkspaceName:          workspace_name,
-		WorkspaceOwnerUsername: workspace_owner_username,
-	}
-
-	// Request Timeout
-	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
-	defer cancelFunc()
-
-	// Sending Request to Server
-	_, err = gRPC_cli_service_client.RegisterUserToWorkspace(ctx, register_user_to_workspace_res_req)
-	if err != nil {
-		fmt.Println("Error while Requesting Punch from Receiver:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
+	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
 	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, currDir, workspace_password, res.NewHash)

@@ -1,6 +1,4 @@
-package dialer
-
-type ClientCallHandler struct{}
+package models
 
 type PublicKeyRequest struct{}
 
@@ -19,7 +17,7 @@ type InitWorkspaceConnectionRequest struct {
 
 type InitWorkspaceConnectionResponse struct{}
 
-type GetDataRequest struct {
+type GetMetaDataRequest struct {
 	WorkspaceName     string
 	WorkspacePassword string
 
@@ -29,10 +27,9 @@ type GetDataRequest struct {
 	LastHash string
 }
 
-type GetDataResponse struct {
-	NewHash string
-	Data    []byte
-
+type GetMetaDataResponse struct {
+	LenData  int
 	KeyBytes []byte
 	IVBytes  []byte
+	NewHash  string
 }

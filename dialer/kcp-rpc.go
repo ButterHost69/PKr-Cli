@@ -4,11 +4,15 @@ import (
 	"context"
 	"fmt"
 	"net/rpc"
+
+	"github.com/ButterHost69/PKr-Cli/models"
 )
 
+type ClientCallHandler struct{}
+
 func (h *ClientCallHandler) CallGetPublicKey(clientHandlerName string, rpc_client *rpc.Client) ([]byte, error) {
-	var req PublicKeyRequest
-	var res PublicKeyResponse
+	var req models.PublicKeyRequest
+	var res models.PublicKeyResponse
 
 	ctx, cancel := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
 	defer cancel()
@@ -23,8 +27,8 @@ func (h *ClientCallHandler) CallGetPublicKey(clientHandlerName string, rpc_clien
 }
 
 func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_username, server_ip, workspace_password string, my_public_key []byte, clientHandlerName string, rpc_client *rpc.Client) error {
-	var req InitWorkspaceConnectionRequest
-	var res InitWorkspaceConnectionResponse
+	var req models.InitWorkspaceConnectionRequest
+	var res models.InitWorkspaceConnectionResponse
 
 	req.WorkspaceName = workspace_name
 	req.MyUsername = my_username
@@ -45,9 +49,9 @@ func (h *ClientCallHandler) CallInitNewWorkSpaceConnection(workspace_name, my_us
 	return nil
 }
 
-func (h *ClientCallHandler) CallGetData(my_username, server_ip, workspace_name, workspace_password, last_hash, clientHandlerName string, rpc_client *rpc.Client) (*GetDataResponse, error) {
-	var req GetDataRequest
-	var res GetDataResponse
+func (h *ClientCallHandler) CallGetMetaData(my_username, server_ip, workspace_name, workspace_password, last_hash, clientHandlerName string, rpc_client *rpc.Client) (*models.GetMetaDataResponse, error) {
+	var req models.GetMetaDataRequest
+	var res models.GetMetaDataResponse
 
 	req.Username = my_username
 	req.WorkspaceName = workspace_name
@@ -55,13 +59,13 @@ func (h *ClientCallHandler) CallGetData(my_username, server_ip, workspace_name, 
 	req.LastHash = last_hash
 	req.ServerIP = server_ip
 
-	ctx, cancel := context.WithTimeout(context.Background(), LONG_CONTEXT_TIMEOUT)
+	ctx, cancel := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
 	defer cancel()
 
-	rpc_name := CLIENT_BASE_HANDLER_NAME + clientHandlerName + ".GetData"
+	rpc_name := CLIENT_BASE_HANDLER_NAME + clientHandlerName + ".GetMetaData"
 	if err := CallKCP_RPC_WithContext(ctx, req, &res, rpc_name, rpc_client); err != nil {
 		fmt.Println("Error while Calling Get Data:", err)
-		fmt.Println("Source: CallGetData()")
+		fmt.Println("Source: CallGetMetaData()")
 		return nil, err
 	}
 	return &res, nil

@@ -24,7 +24,6 @@ func main() {
 	}
 
 	cmd := strings.ToLower(os.Args[1])
-
 	switch cmd {
 	case "install":
 		{
