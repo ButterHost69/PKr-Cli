@@ -25,7 +25,6 @@ func Push(workspace_name, server_alias string) {
 
 	fmt.Println("Creating Zip File ...")
 
-	// TODO: Check if Destination is Proper -- If Zips Work ; Delete Later
 	zip_destination_path := workspace_path + "\\.PKr\\Files\\Current\\"
 	hash_zipfile, err := filetracker.ZipData(workspace_path, zip_destination_path)
 	if err != nil {

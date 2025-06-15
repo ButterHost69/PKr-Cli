@@ -19,8 +19,6 @@ const (
 
 var MY_USERNAME string
 
-// FIXME: NOT IMPORTANT : Remove Prints - return stuff
-
 func CreateUserIfNotExists() {
 	if _, err := os.Stat(ROOT_DIR + "/userConfig.json"); os.IsNotExist(err) {
 		fmt.Println("!! 'tmp' No such DIR exists ")
