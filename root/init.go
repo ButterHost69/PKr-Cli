@@ -9,6 +9,7 @@ import (
 
 	"github.com/ButterHost69/PKr-Cli/config"
 	"github.com/ButterHost69/PKr-Cli/dialer"
+	"github.com/ButterHost69/PKr-Cli/encrypt"
 	"github.com/ButterHost69/PKr-Cli/filetracker"
 	"github.com/ButterHost69/PKr-Cli/pb"
 )
@@ -47,6 +48,30 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+	// Create Files Folder
+	if err := os.Mkdir(".PKr/Files/", os.ModePerm); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create Files Folder")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	// Create Current Folder
+	if err := os.Mkdir(".PKr/Files/Current/", os.ModePerm); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create Files/Current Folder")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	// Create Changes Folder
+	if err := os.Mkdir(".PKr/Files/Changes/", os.ModePerm); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create Files/Changes Folder")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
 	// Get Curr Directory as Workspace Path
 	workspace_path, err := os.Getwd()
 	if err != nil {
@@ -57,8 +82,11 @@ func InitWorkspace(server_alias, workspace_password string) {
 	workspace_path_split := strings.Split(workspace_path, "\\")
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
 
+	zip_destination_path := workspace_path + "\\.PKr\\Files\\Current\\"
+	fmt.Println("Destination For Current Snapshot: ", zip_destination_path)
+
 	// Getting Hash of Zip File
-	hash_zipfile, err := filetracker.ZipData(workspace_path)
+	hash_zipfile, err := filetracker.ZipData(workspace_path, zip_destination_path)
 	if err != nil {
 		log.Println("Error while Getting Hash of Zipped Data:", err)
 		log.Println("Source InitWorkspace()")
@@ -113,6 +141,8 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	fmt.Println("Adding New Push to Config ...")
+	fmt.Println("Current Main Hash: ", hash_zipfile)
+	
 	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error while Adding New Init to Config:", err)
@@ -120,5 +150,58 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+	fmt.Println("Encrypting Zip File...")
+
+	// Generating Key
+	fmt.Println("Generating Keys ...")
+	key, err := encrypt.AESGenerakeKey(16)
+	if err != nil {
+		fmt.Println("Failed to Generate AES Keys:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return 
+	}
+
+	// Storing Key
+	err = os.WriteFile(zip_destination_path + "AES_KEY", key, 0644)
+	if err != nil {
+		fmt.Println("Failed to Write AES Key to File:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return 
+	}
+
+	iv, err := encrypt.AESGenerateIV()
+	if err != nil {
+		fmt.Println("Failed to Generate IV Keys:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return 
+	}
+
+	// Storing IV
+	err = os.WriteFile(zip_destination_path + "AES_IV", key, 0644)
+	if err != nil {
+		fmt.Println("Failed to Write AES IV to File:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return 
+	}
+
+	// Encrypting Zip File
+	fmt.Println("Encrypting Zip and Storing for Workspace ...")
+	zipped_filepath := zip_destination_path + hash_zipfile + ".zip"
+	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
+	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
+		fmt.Println("Failed to Encrypt Data using AES:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return 
+	}
+
+	// Removing Zip File
+	err = os.Remove(zipped_filepath ) 
+	if err != nil {
+		fmt.Println("Error deleting zip file:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+	fmt.Println("Removed Zip File - ", zipped_filepath)
+	
 	fmt.Println("New Workspace Registered Successfully")
 }
