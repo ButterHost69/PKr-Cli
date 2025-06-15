@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	fake "github.com/brianvoe/gofakeit/v7"
 )
@@ -36,16 +37,8 @@ func PrintProgressBar(progress int, total int, barLength int) {
 	hashes := int(percent * float64(barLength))
 	spaces := barLength - hashes
 
-	fmt.Printf("\r[%s%s] %.2f%%",
-		repeat("#", hashes),
-		repeat(" ", spaces),
+	fmt.Printf("\r[%s%s] %.2f %%",
+		strings.Repeat("#", hashes),
+		strings.Repeat(" ", spaces),
 		percent*100)
-}
-
-func repeat(char string, count int) string {
-	result := ""
-	for range count {
-		result += char
-	}
-	return result
 }
