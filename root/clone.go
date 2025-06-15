@@ -262,36 +262,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 
-	// Register New User to Workspace
-	// New GRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Create New GRPC Client")
-		fmt.Println("Source: Clone()")
-		return
-	}
-
-	// Prepare req
-	register_user_to_workspace_res_req := &pb.RegisterUserToWorkspaceRequest{
-		ListenerUsername:       username,
-		ListenerPassword:       password,
-		WorkspaceName:          workspace_name,
-		WorkspaceOwnerUsername: workspace_owner_username,
-	}
-
-	// Request Timeout
-	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
-	defer cancelFunc()
-
-	// Sending Request to Server
-	_, err = gRPC_cli_service_client.RegisterUserToWorkspace(ctx, register_user_to_workspace_res_req)
-	if err != nil {
-		fmt.Println("Error while Registering User To Workspace:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
-
 	// Connecting to Workspace Owner
 	client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
 	if err != nil {
@@ -393,11 +363,42 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, currDir, workspace_password, res.NewHash)
+	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.NewHash)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
+
+	// Register New User to Workspace
+	// New GRPC Client
+	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create New GRPC Client")
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	// Prepare req
+	register_user_to_workspace_res_req := &pb.RegisterUserToWorkspaceRequest{
+		ListenerUsername:       username,
+		ListenerPassword:       password,
+		WorkspaceName:          workspace_name,
+		WorkspaceOwnerUsername: workspace_owner_username,
+	}
+
+	// Request Timeout
+	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
+	defer cancelFunc()
+
+	// Sending Request to Server
+	_, err = gRPC_cli_service_client.RegisterUserToWorkspace(ctx, register_user_to_workspace_res_req)
+	if err != nil {
+		fmt.Println("Error while Registering User To Workspace:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
 	fmt.Println("Clone Done")
 }
