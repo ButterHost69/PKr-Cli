@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ButterHost69/PKr-Cli/config"
+	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Cli/pb"
 )
