@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Cli/pb"
 )
 
@@ -143,15 +143,39 @@ func InitWorkspace(server_alias, workspace_password string) {
 	fmt.Println("Adding New Push to Config ...")
 	fmt.Println("Current Main Hash: ", hash_zipfile)
 	
-	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error while Adding New Init to Config:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
 
-	fmt.Println("Encrypting Zip File...")
+	fmt.Println("Generating File tree")
+	tree, err := config.GetNewTree(workspace_path)
+	if err != nil {
+		fmt.Println("Error Could not Create Tree:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
 
+	err = config.WriteToFileTree(workspace_path, tree)
+	if err != nil {
+		fmt.Println("Error Write Tree to file:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	fmt.Println("Comparing Changes And Updating to workspace Config")
+	changes := config.CompareTrees(config.FileTree{}, tree, hash_zipfile)
+	err = config.AppendWorkspaceUpdates(changes, workspace_path + "\\.PKr\\workspaceConfig.json")
+	if err != nil {
+		fmt.Println("Error Write Tree to file:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+
+	fmt.Println("Encrypting Zip File...")
 	// Generating Key
 	fmt.Println("Generating Keys ...")
 	key, err := encrypt.AESGenerakeKey(16)

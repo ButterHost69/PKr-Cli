@@ -84,7 +84,7 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 
-	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Add New Push to Config")

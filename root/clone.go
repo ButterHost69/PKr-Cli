@@ -334,7 +334,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	fmt.Println("Calling GetMetaData ...")
 	// Calling GetMetaData
-	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
+	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "None", client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetMetaData:", err)
 		fmt.Println("Source: Clone()")
@@ -345,6 +345,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	rpc_client.Close()
 	defer kcp_conn.Close()
 
+	// When Fetching Data workspace hash is provided as ""
+	// This will send the entire Workspace
 	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.NewHash, udp_conn, res.LenData)
 	if err != nil {
 		fmt.Println("Error while Fetching Data:", err)
