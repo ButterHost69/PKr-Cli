@@ -24,11 +24,16 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Check if .PKr folder already exists; if so then do nothing ...
-	// FIXME: [ ] This Doesnt Work Please Check Why Later
-	if _, err := os.Stat(".PKr"); os.IsExist(err) {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: '.PKr' Already Exists...\nIt seems PKr is already Initialized in this Directory")
-		fmt.Println("Source: InitWorkspace()")
+	_, err = os.Stat(".PKr")
+	if err == nil {
+		log.Println("'.PKr' file already exists")
+		log.Println("Workspace is already Initialized")
+		return
+	} else if os.IsNotExist(err) {
+		log.Println("'.PKr' file doesn't exists")
+	} else {
+		log.Println("Error while checking Existence of Destination file:", err)
+		log.Println("Source: InitWorkspace()")
 		return
 	}
 
@@ -142,7 +147,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 
 	fmt.Println("Adding New Push to Config ...")
 	fmt.Println("Current Main Hash: ", hash_zipfile)
-	
+
 	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error while Adding New Init to Config:", err)
@@ -158,30 +163,30 @@ func InitWorkspace(server_alias, workspace_password string) {
 	if err != nil {
 		fmt.Println("Failed to Generate AES Keys:", err)
 		fmt.Println("Source: InitWorkspace()")
-		return 
+		return
 	}
 
 	// Storing Key
-	err = os.WriteFile(zip_destination_path + "AES_KEY", key, 0644)
+	err = os.WriteFile(zip_destination_path+"AES_KEY", key, 0644)
 	if err != nil {
 		fmt.Println("Failed to Write AES Key to File:", err)
 		fmt.Println("Source: InitWorkspace()")
-		return 
+		return
 	}
 
 	iv, err := encrypt.AESGenerateIV()
 	if err != nil {
 		fmt.Println("Failed to Generate IV Keys:", err)
 		fmt.Println("Source: InitWorkspace()")
-		return 
+		return
 	}
 
 	// Storing IV
-	err = os.WriteFile(zip_destination_path + "AES_IV", key, 0644)
+	err = os.WriteFile(zip_destination_path+"AES_IV", key, 0644)
 	if err != nil {
 		fmt.Println("Failed to Write AES IV to File:", err)
 		fmt.Println("Source: InitWorkspace()")
-		return 
+		return
 	}
 
 	// Encrypting Zip File
@@ -191,17 +196,17 @@ func InitWorkspace(server_alias, workspace_password string) {
 	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
 		fmt.Println("Failed to Encrypt Data using AES:", err)
 		fmt.Println("Source: InitWorkspace()")
-		return 
+		return
 	}
 
 	// Removing Zip File
-	err = os.Remove(zipped_filepath ) 
+	err = os.Remove(zipped_filepath)
 	if err != nil {
 		fmt.Println("Error deleting zip file:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
 	fmt.Println("Removed Zip File - ", zipped_filepath)
-	
+
 	fmt.Println("New Workspace Registered Successfully")
 }
