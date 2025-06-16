@@ -1,8 +1,10 @@
 package root
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -189,15 +191,66 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	// Encrypting Zip File
+	// Encrypting Zip File in Chunks
 	fmt.Println("Encrypting Zip and Storing for Workspace ...")
 	zipped_filepath := zip_destination_path + hash_zipfile + ".zip"
-	destination_filepath := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
-	if err := encrypt.AESEncrypt(zipped_filepath, destination_filepath, key, iv); err != nil {
-		fmt.Println("Failed to Encrypt Data using AES:", err)
+	zip_enc_path := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
+
+	zipped_filepath_obj, err := os.Open(zipped_filepath)
+	if err != nil {
+		fmt.Println("Failed to Open Zipped File:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
+
+	zip_enc_file_obj, err := os.Create(zip_enc_path)
+	if err != nil {
+		fmt.Println("Failed to Create & Open Enc Zipped File:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+	defer zip_enc_file_obj.Close()
+
+	buffer := make([]byte, DATA_CHUNK)
+	reader := bufio.NewReader(zipped_filepath_obj)
+	writer := bufio.NewWriter(zip_enc_file_obj)
+
+	for {
+		n, err := reader.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				fmt.Println("File Encryption Completed ...")
+				break
+			}
+			log.Println("Error while Reading Zip File:", err)
+			log.Println("Source: InitWorkspace()")
+			return
+		}
+		if n > 0 {
+			encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
+			if err != nil {
+				fmt.Println("Failed to Encrypt Chunk:", err)
+				fmt.Println("Source: InitWorkspace()")
+				return
+			}
+
+			_, err = writer.Write(encrypted)
+			if err != nil {
+				fmt.Println("Failed to Write Chunk to File:", err)
+				fmt.Println("Source: InitWorkspace()")
+				return
+			}
+		}
+	}
+
+	// Flush buffer to disk
+	err = writer.Flush()
+	if err != nil {
+		fmt.Println("Error flushing 'writer' buffer:", err)
+		fmt.Println("Soure: InitWorkspace()")
+		return
+	}
+	zipped_filepath_obj.Close() // Close Obj now, so we can delete zip file
 
 	// Removing Zip File
 	err = os.Remove(zipped_filepath)
