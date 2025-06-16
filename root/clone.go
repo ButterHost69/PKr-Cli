@@ -112,10 +112,6 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	return client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, nil
 }
 
-// TODO: Instead of writing whole data_bytes into file at once,
-// Write received encrypted data in chunks, after the transfer is completed, read from encrpyted file
-// & decrypt it
-// We can use Cipher Block Methods to decrypt & encrpyt with AES
 func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name string, udp_conn *net.UDPConn, res models.GetMetaDataResponse) error {
 	// Decrypting AES Key
 	key, err := encrypt.DecryptData(string(res.KeyBytes))
@@ -155,6 +151,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		return err
 	}
+	defer kcp_conn.Close()
 	fmt.Println("Connected Successfully to Workspace Owner")
 
 	// KCP Params for Congestion Control
@@ -363,7 +360,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	fmt.Println("Get Meta Data Responded")
 	rpc_client.Close()
-	defer kcp_conn.Close()
+	kcp_conn.Close()
 
 	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
 	if err != nil {
