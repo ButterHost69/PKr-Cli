@@ -151,7 +151,7 @@ func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) 
 
 	workspace_path := "."
 
-	zip_file_path := filepath.Join(workspace_path, ".PKr", res.NewHash+".zip")
+	zip_file_path := filepath.Join(workspace_path, ".PKr", res.RequestHash+".zip")
 	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		fmt.Println("Error while Saving Data into '.PKr/abc.zip':", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
@@ -351,8 +351,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	// When Fetching Data workspace hash is provided as ""
 	// This will send the entire Workspace
-	fmt.Println("Recieved New Hash is: ", res.NewHash)
-	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.NewHash, udp_conn, res.LenData)
+	fmt.Println("Recieved New Hash is: ", res.RequestHash)
+	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.RequestHash, udp_conn, res.LenData)
 	if err != nil {
 		fmt.Println("Error while Fetching Data:", err)
 		fmt.Println("Source: Clone()")
@@ -370,7 +370,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.NewHash)
+	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.RequestHash)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
