@@ -9,12 +9,13 @@ import (
 	"net"
 	"net/rpc"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Cli/models"
 	"github.com/ButterHost69/PKr-Cli/pb"
 	"github.com/ButterHost69/PKr-Cli/utils"
@@ -150,7 +151,7 @@ func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) 
 
 	workspace_path := "."
 
-	zip_file_path := workspace_path + "\\.PKr\\" + res.NewHash + ".zip"
+	zip_file_path := filepath.Join(workspace_path, ".PKr", res.NewHash+".zip")
 	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		fmt.Println("Error while Saving Data into '.PKr/abc.zip':", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
@@ -164,7 +165,7 @@ func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) 
 	}
 
 	// Unzip Content
-	if err = filetracker.UnzipData(zip_file_path, workspace_path+"\\"); err != nil {
+	if err = filetracker.UnzipData(zip_file_path, filepath.Join(workspace_path, "")); err != nil {
 		fmt.Println("Error while Unzipping Data into Workspace:", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
@@ -301,7 +302,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Reading my Public Key
-	my_public_key, err := os.ReadFile("./tmp/mykeys/publickey.pem")
+	my_public_key, err := os.ReadFile(filepath.Join("tmp", "mykeys", "publickey.pem"))
 	if err != nil {
 		fmt.Println("Error while Reading Public Key:", err)
 		fmt.Println("Source: Clone()")
@@ -325,7 +326,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.MkdirAll(currDir+"\\.PKr\\", 0777)
+	err = os.MkdirAll(filepath.Join(currDir, ".PKr"), 0777)
 	if err != nil {
 		fmt.Println("Error while using MkdirAll for '.PKr' folder:", err)
 		fmt.Println("Source: Clone()")
