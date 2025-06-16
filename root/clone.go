@@ -131,27 +131,16 @@ func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) 
 		return err
 	}
 
-	data, err := encrypt.AESDecrypt(data_bytes, decrypted_key, decrypted_iv)
+	decrypted_data_bytes, err := encrypt.AESDecrypt(data_bytes, decrypted_key, decrypted_iv)
 	if err != nil {
 		fmt.Println("Error while Decrypting Data:", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
 	}
 
-	// README: For PKr-Base
-	// fmt.Println("Workspace Name:", workspace_name)
-	// workspace_path, err := config.GetGetWorkspaceFilePath(workspace_name)
-	// if err != nil {
-	// 	fmt.Println("Error while Fetching Workspace Path from Config:", err)
-	// 	fmt.Println("Source: storeDataIntoWorkspace()")
-	// 	return err
-	// }
-	// fmt.Println("Workspace Path: ", workspace_path)
-
 	workspace_path := "."
-
 	zip_file_path := workspace_path + "\\.PKr\\" + res.NewHash + ".zip"
-	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
+	if err = filetracker.SaveDataToFile(decrypted_data_bytes, zip_file_path); err != nil {
 		fmt.Println("Error while Saving Data into '.PKr/abc.zip':", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
 		return err
@@ -222,7 +211,6 @@ func fetchData(workspace_owner_public_ip, workspace_name, workspace_hash string,
 
 	fmt.Println("Now Reading Data from Workspace Owner ...")
 	for offset < len_data_bytes {
-
 		n, err := kcp_conn.Read(data_bytes[offset : offset+CHUNK_SIZE])
 		// Check for Errors on Workspace Owner's Side
 		if n < 30 {

@@ -129,7 +129,7 @@ func Push(workspace_name, server_alias string) {
 	}
 
 	// Storing IV
-	err = os.WriteFile(zip_destination_path+"AES_IV", key, 0644)
+	err = os.WriteFile(zip_destination_path+"AES_IV", iv, 0644)
 	if err != nil {
 		fmt.Println("Failed to Write AES IV to File:", err)
 		fmt.Println("Source: Push()")
@@ -158,7 +158,7 @@ func Push(workspace_name, server_alias string) {
 	old_zipped_filepath := zip_destination_path + conf.LastHash + ".enc"
 	err = os.Remove(old_zipped_filepath)
 	if err != nil {
-		fmt.Println("Error deleting zip file:", err)
+		fmt.Println("Error deleting old enc zip file:", err)
 		fmt.Println("Source: Push()")
 		return
 	}
