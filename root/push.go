@@ -20,6 +20,7 @@ func Push(workspace_name, server_alias string) {
 	workspace_path, err := config.GetSendWorkspaceFilePath(workspace_name)
 	if err != nil {
 		log.Println("Error while getting Absolute Workspace Path:", err)
+		log.Println("Workspace Name: ", workspace_name)
 		log.Println("Source: Push()")
 		return
 	}

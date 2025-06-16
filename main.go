@@ -108,7 +108,7 @@ func main() {
 			}
 
 			current_working_directory_split := strings.Split(current_working_directory, "\\")
-			workspace_name := current_working_directory_split[len(current_working_directory_split)-1]
+			workspace_name := strings.TrimSpace(current_working_directory_split[len(current_working_directory_split)-1])
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
 			root.Push(workspace_name, server_alias)

@@ -348,6 +348,13 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	// Temp Logs Remove Later
 	fmt.Print("CallGetMetaData Response: ")
+	fmt.Println("[Response] Len IVBytes: ", len(res.IVBytes))
+	fmt.Println("[Response] Len KeyBytes: ", len(res.KeyBytes))
+	fmt.Println("[Response] LenData: ", res.LenData)
+	fmt.Println("[Response] IsChanges: ", res.IsChanges)
+	fmt.Println("[Response] RequestHash: ", res.RequestHash)
+	fmt.Println("[Response] UpdatedHash: ", res.UpdatedHash)
+	fmt.Println("[Response] Updates: ", res.Updates)
 
 	// When Fetching Data workspace hash is provided as ""
 	// This will send the entire Workspace
