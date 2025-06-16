@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/ButterHost69/PKr-Cli/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
-	"github.com/ButterHost69/PKr-Cli/pb"
+	"github.com/ButterHost69/PKr-Base/config"
+	"github.com/ButterHost69/PKr-Base/dialer"
+	"github.com/ButterHost69/PKr-Base/pb"
 )
 
 func ListAllWorkspaces(server_alias string) {

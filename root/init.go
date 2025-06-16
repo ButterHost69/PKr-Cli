@@ -7,11 +7,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ButterHost69/PKr-Cli/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
-	"github.com/ButterHost69/PKr-Cli/encrypt"
-	"github.com/ButterHost69/PKr-Cli/filetracker"
-	"github.com/ButterHost69/PKr-Cli/pb"
+	"github.com/ButterHost69/PKr-Base/config"
+	"github.com/ButterHost69/PKr-Base/dialer"
+	"github.com/ButterHost69/PKr-Base/encrypt"
+	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Base/pb"
 )
 
 func InitWorkspace(server_alias, workspace_password string) {
@@ -148,7 +148,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	fmt.Println("Adding New Push to Config ...")
 	fmt.Println("Current Main Hash: ", hash_zipfile)
 
-	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error while Adding New Init to Config:", err)
 		fmt.Println("Source: InitWorkspace()")

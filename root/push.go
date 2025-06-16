@@ -7,11 +7,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ButterHost69/PKr-Cli/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
-	"github.com/ButterHost69/PKr-Cli/encrypt"
-	"github.com/ButterHost69/PKr-Cli/filetracker"
-	"github.com/ButterHost69/PKr-Cli/pb"
+	"github.com/ButterHost69/PKr-Base/config"
+	"github.com/ButterHost69/PKr-Base/dialer"
+	"github.com/ButterHost69/PKr-Base/encrypt"
+	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Base/pb"
 )
 
 func Push(workspace_name, server_alias string) {
@@ -95,7 +95,7 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 
-	err = config.AddNewPushToConfig(workspace_name, hash_zipfile)
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Add New Push to Config")

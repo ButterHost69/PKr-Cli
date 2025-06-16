@@ -11,13 +11,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ButterHost69/PKr-Cli/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
-	"github.com/ButterHost69/PKr-Cli/encrypt"
-	"github.com/ButterHost69/PKr-Cli/filetracker"
-	"github.com/ButterHost69/PKr-Cli/models"
-	"github.com/ButterHost69/PKr-Cli/pb"
-	"github.com/ButterHost69/PKr-Cli/utils"
+	"github.com/ButterHost69/PKr-Base/config"
+	"github.com/ButterHost69/PKr-Base/dialer"
+	"github.com/ButterHost69/PKr-Base/encrypt"
+	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Base/models"
+	"github.com/ButterHost69/PKr-Base/pb"
+	"github.com/ButterHost69/PKr-Base/utils"
 
 	"github.com/ButterHost69/kcp-go"
 )
