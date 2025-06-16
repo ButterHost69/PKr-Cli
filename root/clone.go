@@ -359,8 +359,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	fmt.Println("Get Meta Data Responded")
-	rpc_client.Close()
 	kcp_conn.Close()
+	rpc_client.Close()
 
 	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
 	if err != nil {
