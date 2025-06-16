@@ -201,7 +201,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Storing IV
-	err = os.WriteFile(zip_destination_path + "AES_IV", key, 0644)
+	err = os.WriteFile(zip_destination_path + "AES_IV", iv, 0644)
 	if err != nil {
 		fmt.Println("Failed to Write AES IV to File:", err)
 		fmt.Println("Source: InitWorkspace()")
