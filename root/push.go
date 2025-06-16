@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
-	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Cli/dialer"
 	"github.com/ButterHost69/PKr-Cli/pb"
 )
 
@@ -24,7 +25,7 @@ func Push(workspace_name, server_alias string) {
 	fmt.Println("Creating Zip File ...")
 
 	// TODO: Check if Destination is Proper -- If Zips Work ; Delete Later
-	destination_path := workspace_path + "\\.PKr\\Files\\Current\\"
+	destination_path := filepath.Join(workspace_path, ".PKr", "Files", "Current") + string(filepath.Separator)
 	hash_zipfile, err := filetracker.ZipData(workspace_path, destination_path)
 	if err != nil {
 		return
@@ -33,7 +34,7 @@ func Push(workspace_name, server_alias string) {
 	fmt.Println("Zip File Created")
 
 	// Reading Last Hash from Config
-	conf, err := config.ReadFromPKRConfigFile(workspace_path + "\\.PKr\\workspaceConfig.json")
+	conf, err := config.ReadFromPKRConfigFile(filepath.Join(workspace_path, ".PKr", "workspaceConfig.json"))
 	if err != nil {
 		log.Println("Error while Reading from PKr Config File:", err)
 		log.Println("Source: Push()")

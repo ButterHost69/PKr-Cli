@@ -347,6 +347,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	// When Fetching Data workspace hash is provided as ""
 	// This will send the entire Workspace
+	fmt.Println("Recieved New Hash is: ", res.NewHash)
 	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.NewHash, udp_conn, res.LenData)
 	if err != nil {
 		fmt.Println("Error while Fetching Data:", err)
