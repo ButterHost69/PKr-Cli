@@ -30,6 +30,14 @@ github.com/ButterHost69/PKr-Base v0.0.0-20250616141728-f218a1ea2255 h1:xVUBr2U3d
 github.com/ButterHost69/PKr-Base v0.0.0-20250616141728-f218a1ea2255/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
 github.com/ButterHost69/PKr-Base v0.0.0-20250616154420-a008b4a1b92a h1:UAnPZS7ZAmMyqrHXtEeCULVi1PY6HJ6mSBinbM7eiyI=
 github.com/ButterHost69/PKr-Base v0.0.0-20250616154420-a008b4a1b92a/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616180108-a47b19a444d7 h1:914H2BU7NJcSs9uAQNMjN4mz2vl51gUtxtxz4TUP3Eg=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616180108-a47b19a444d7/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616183451-641fd44b730e h1:QzW/ByyIoJAaeqZ5qwUnwl9WWKfbx1AQcgFrvyQ4mcY=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616183451-641fd44b730e/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616191032-3f6356eedbde h1:CxRWRZin72ZboFZ4ycwDB7p0qL/sTNXRURDIuOgntIU=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616191032-3f6356eedbde/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616192738-a67d9c256f8c h1:SbBXpeirLEVy3ajF1LihDuHrf1N092cRE7U2svo6LQ0=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616192738-a67d9c256f8c/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
 github.com/ButterHost69/kcp-go v1.0.10 h1:LXrttjFl8Hrmp9ebUBEDsIvIIhwNeSZyPUJ7Te0pz4o=
 github.com/ButterHost69/kcp-go v1.0.10/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/brianvoe/gofakeit/v7 v7.2.1 h1:AGojgaaCdgq4Adzrd2uWdbGNDyX6MWNhHdQBraNfOHI=

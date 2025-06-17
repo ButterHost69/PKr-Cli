@@ -15,10 +15,10 @@ import (
 	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
-	"github.com/ButterHost69/PKr-Cli/dialer"
-	"github.com/ButterHost69/PKr-Cli/models"
-	"github.com/ButterHost69/PKr-Cli/pb"
-	"github.com/ButterHost69/PKr-Cli/utils"
+	"github.com/ButterHost69/PKr-Base/dialer"
+	"github.com/ButterHost69/PKr-Base/models"
+	"github.com/ButterHost69/PKr-Base/pb"
+	"github.com/ButterHost69/PKr-Base/utils"
 
 	"github.com/ButterHost69/kcp-go"
 )
@@ -151,7 +151,7 @@ func storeDataIntoWorkspace(res *models.GetMetaDataResponse, data_bytes []byte) 
 
 	workspace_path := "."
 
-	zip_file_path := filepath.Join(workspace_path, ".PKr", res.NewHash+".zip")
+	zip_file_path := filepath.Join(workspace_path, ".PKr", res.RequestHash+".zip")
 	if err = filetracker.SaveDataToFile(data, zip_file_path); err != nil {
 		fmt.Println("Error while Saving Data into '.PKr/abc.zip':", err)
 		fmt.Println("Source: storeDataIntoWorkspace()")
@@ -346,10 +346,20 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	rpc_client.Close()
 	defer kcp_conn.Close()
 
+	// Temp Logs Remove Later
+	fmt.Print("CallGetMetaData Response: ")
+	fmt.Println("[Response] Len IVBytes: ", len(res.IVBytes))
+	fmt.Println("[Response] Len KeyBytes: ", len(res.KeyBytes))
+	fmt.Println("[Response] LenData: ", res.LenData)
+	fmt.Println("[Response] IsChanges: ", res.IsChanges)
+	fmt.Println("[Response] RequestHash: ", res.RequestHash)
+	fmt.Println("[Response] UpdatedHash: ", res.UpdatedHash)
+	fmt.Println("[Response] Updates: ", res.Updates)
+
 	// When Fetching Data workspace hash is provided as ""
 	// This will send the entire Workspace
-	fmt.Println("Recieved New Hash is: ", res.NewHash)
-	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.NewHash, udp_conn, res.LenData)
+	fmt.Println("Recieved New Hash is: ", res.RequestHash)
+	data_bytes, err := fetchData(workspace_owner_public_ip, workspace_name, res.RequestHash, udp_conn, res.LenData)
 	if err != nil {
 		fmt.Println("Error while Fetching Data:", err)
 		fmt.Println("Source: Clone()")
@@ -367,7 +377,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.NewHash)
+	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.RequestHash)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
