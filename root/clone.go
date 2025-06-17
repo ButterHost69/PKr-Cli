@@ -13,9 +13,9 @@ import (
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
+	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
-	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Base/pb"
 	"github.com/ButterHost69/PKr-Base/utils"
@@ -104,8 +104,10 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	}
 
 	// KCP Params for Congestion Control
-	kcp_conn.SetWindowSize(128, 512)
-	kcp_conn.SetNoDelay(1, 10, 1, 1)
+	kcp_conn.SetWindowSize(128, 1024)
+	kcp_conn.SetNoDelay(1, 10, 2, 1)
+	kcp_conn.SetACKNoDelay(true)
+	kcp_conn.SetDSCP(46)
 
 	return client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, nil
 }
@@ -182,11 +184,14 @@ func fetchData(workspace_owner_public_ip, workspace_name, workspace_hash string,
 		fmt.Println("Source: fetchData()")
 		return nil, err
 	}
+	defer kcp_conn.Close()
 	fmt.Println("Connected Successfully to Workspace Owner")
 
 	// KCP Params for Congestion Control
-	kcp_conn.SetWindowSize(128, 512)
-	kcp_conn.SetNoDelay(1, 10, 1, 1)
+	kcp_conn.SetWindowSize(128, 1024)
+	kcp_conn.SetNoDelay(1, 10, 2, 1)
+	kcp_conn.SetACKNoDelay(true)
+	kcp_conn.SetDSCP(46)
 
 	// Sending the Type of Session
 	kpc_buff := [3]byte{'K', 'C', 'P'}
@@ -343,8 +348,9 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	fmt.Println("Get Meta Data Responded")
+
+	kcp_conn.Close()
 	rpc_client.Close()
-	defer kcp_conn.Close()
 
 	// Temp Logs Remove Later
 	fmt.Print("CallGetMetaData Response: ")
