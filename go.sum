@@ -1,7 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/ButterHost69/PKr-Base v0.0.0-20250616154947-1caef01be444 h1:n/VlSFQJo3ZU0NWgslefsQoAdPTSI5TO3YC9VuLQPA4=
-github.com/ButterHost69/PKr-Base v0.0.0-20250616154947-1caef01be444/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616234934-dea9dc23919b h1:tFt8c6ESWgEUlrPCfQpKXRc12tQAlPy3lTTuymmE0LA=
+github.com/ButterHost69/PKr-Base v0.0.0-20250616234934-dea9dc23919b/go.mod h1:mfWQEN3s9s9U3de3IjyaRLWqA//a5xXVtrA/H+6D/gE=
 github.com/ButterHost69/kcp-go v1.0.10 h1:LXrttjFl8Hrmp9ebUBEDsIvIIhwNeSZyPUJ7Te0pz4o=
 github.com/ButterHost69/kcp-go v1.0.10/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/brianvoe/gofakeit/v7 v7.2.1 h1:AGojgaaCdgq4Adzrd2uWdbGNDyX6MWNhHdQBraNfOHI=

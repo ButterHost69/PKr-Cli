@@ -215,6 +215,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	reader := bufio.NewReader(zipped_filepath_obj)
 	writer := bufio.NewWriter(zip_enc_file_obj)
 
+	offset := 0
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil {
@@ -226,24 +227,33 @@ func InitWorkspace(server_alias, workspace_password string) {
 			log.Println("Source: InitWorkspace()")
 			return
 		}
-		if n > 0 {
-			encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
-			if err != nil {
-				fmt.Println("Failed to Encrypt Chunk:", err)
-				fmt.Println("Source: InitWorkspace()")
-				return
-			}
+		encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
+		if err != nil {
+			fmt.Println("Failed to Encrypt Chunk:", err)
+			fmt.Println("Source: InitWorkspace()")
+			return
+		}
 
-			_, err = writer.Write(encrypted)
+		_, err = writer.Write(encrypted)
+		if err != nil {
+			fmt.Println("Failed to Write Chunk to File:", err)
+			fmt.Println("Source: InitWorkspace()")
+			return
+		}
+
+		// Flush buffer to disk after 'FLUSH_AFTER_EVERY_X_CHUNK'
+		if offset%FLUSH_AFTER_EVERY_X_MB == 0 {
+			err = writer.Flush()
 			if err != nil {
-				fmt.Println("Failed to Write Chunk to File:", err)
-				fmt.Println("Source: InitWorkspace()")
+				fmt.Println("Error flushing 'writer' after X KB/MB buffer:", err)
+				fmt.Println("Soure: InitWorkspace()")
 				return
 			}
 		}
+		offset += n
 	}
 
-	// Flush buffer to disk
+	// Flush buffer to disk at end
 	err = writer.Flush()
 	if err != nil {
 		fmt.Println("Error flushing 'writer' buffer:", err)

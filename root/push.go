@@ -150,14 +150,14 @@ func Push(workspace_name, server_alias string) {
 	zipped_filepath_obj, err := os.Open(zipped_filepath)
 	if err != nil {
 		fmt.Println("Failed to Open Zipped File:", err)
-		fmt.Println("Source: InitWorkspace()")
+		fmt.Println("Source: Push()")
 		return
 	}
 
 	zip_enc_file_obj, err := os.Create(zip_enc_path)
 	if err != nil {
 		fmt.Println("Failed to Create & Open Enc Zipped File:", err)
-		fmt.Println("Source: InitWorkspace()")
+		fmt.Println("Source: Push()")
 		return
 	}
 	defer zip_enc_file_obj.Close()
@@ -166,6 +166,7 @@ func Push(workspace_name, server_alias string) {
 	reader := bufio.NewReader(zipped_filepath_obj)
 	writer := bufio.NewWriter(zip_enc_file_obj)
 
+	offset := 0
 	for {
 		n, err := reader.Read(buffer)
 		if err != nil {
@@ -174,31 +175,40 @@ func Push(workspace_name, server_alias string) {
 				break
 			}
 			log.Println("Error while Reading Zip File:", err)
-			log.Println("Source: InitWorkspace()")
+			log.Println("Source: Push()")
 			return
 		}
-		if n > 0 {
-			encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
-			if err != nil {
-				fmt.Println("Failed to Encrypt Chunk:", err)
-				fmt.Println("Source: InitWorkspace()")
-				return
-			}
+		encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
+		if err != nil {
+			fmt.Println("Failed to Encrypt Chunk:", err)
+			fmt.Println("Source: Push()")
+			return
+		}
 
-			_, err = writer.Write(encrypted)
+		_, err = writer.Write(encrypted)
+		if err != nil {
+			fmt.Println("Failed to Write Chunk to File:", err)
+			fmt.Println("Source: Push()")
+			return
+		}
+
+		// Flush buffer to disk after 'FLUSH_AFTER_EVERY_X_CHUNK'
+		if offset%FLUSH_AFTER_EVERY_X_MB == 0 {
+			err = writer.Flush()
 			if err != nil {
-				fmt.Println("Failed to Write Chunk to File:", err)
-				fmt.Println("Source: InitWorkspace()")
+				fmt.Println("Error flushing 'writer' after X KB/MB buffer:", err)
+				fmt.Println("Soure: Push()")
 				return
 			}
 		}
+		offset += n
 	}
 
-	// Flush buffer to disk
+	// Flush buffer to disk at end
 	err = writer.Flush()
 	if err != nil {
 		fmt.Println("Error flushing 'writer' buffer:", err)
-		fmt.Println("Soure: InitWorkspace()")
+		fmt.Println("Soure: Push()")
 		return
 	}
 	zipped_filepath_obj.Close() // Close Obj now, so we can delete zip file

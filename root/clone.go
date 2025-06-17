@@ -16,6 +16,7 @@ import (
 	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+	"github.com/ButterHost69/PKr-Base/handler"
 	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Base/pb"
 	"github.com/ButterHost69/PKr-Base/utils"
@@ -23,7 +24,8 @@ import (
 	"github.com/ButterHost69/kcp-go"
 )
 
-const DATA_CHUNK = 1024 // 1 KB
+const DATA_CHUNK = handler.DATA_CHUNK
+const FLUSH_AFTER_EVERY_X_MB = handler.FLUSH_AFTER_EVERY_X_MB
 
 func connectToAnotherUser(workspace_owner_username, server_ip, username, password string) (string, string, *net.UDPConn, *kcp.UDPSession, error) {
 	local_port := rand.Intn(16384) + 16384
@@ -130,7 +132,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 
 	workspace_path := "."
-	zip_file_path := workspace_path + "\\.PKr\\" + res.NewHash + ".zip"
+	zip_file_path := workspace_path + "\\.PKr\\" + res.UpdatedHash + ".zip"
 
 	// Create Zip File
 	zip_file_obj, err := os.Create(zip_file_path)
@@ -178,7 +180,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		return err
 	}
 
-	_, err = kcp_conn.Write([]byte(res.NewHash))
+	_, err = kcp_conn.Write([]byte(res.UpdatedHash))
 	if err != nil {
 		fmt.Println("Error while Sending Workspace Name to Workspace Owner:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
@@ -226,12 +228,22 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 			return err
 		}
 
+		// Flush buffer to disk after 'FLUSH_AFTER_EVERY_X_CHUNK'
+		if offset%FLUSH_AFTER_EVERY_X_MB == 0 {
+			err = writer.Flush()
+			if err != nil {
+				fmt.Println("Error flushing 'writer' after X KB/MB buffer:", err)
+				fmt.Println("Soure: fetchAndStoreDataIntoWorkspace()")
+				return err
+			}
+		}
+
 		offset += n
 		utils.PrintProgressBar(offset, res.LenData, 100)
 	}
 	fmt.Println("\nData Transfer Completed ...")
 
-	// Flush buffer to disk
+	// Flush buffer to disk at the end
 	err = writer.Flush()
 	if err != nil {
 		fmt.Println("Error flushing 'writer' buffer:", err)
@@ -371,7 +383,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.NewHash)
+	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.UpdatedHash)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
