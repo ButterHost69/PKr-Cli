@@ -1,11 +1,8 @@
 package root
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,22 +18,22 @@ func InitWorkspace(server_alias, workspace_password string) {
 	// Get Details from Config
 	server_ip, username, password, err := config.GetServerDetails(server_alias)
 	if err != nil {
-		log.Println("Error while getting Server Details from Config:", err)
-		log.Println("Source: InitWorkspace()")
+		fmt.Println("Error while getting Server Details from Config:", err)
+		fmt.Println("Source: InitWorkspace()")
 		return
 	}
 
 	// Check if .PKr folder already exists; if so then do nothing ...
 	_, err = os.Stat(".PKr")
 	if err == nil {
-		log.Println("'.PKr' file already exists")
-		log.Println("Workspace is already Initialized")
+		fmt.Println("'.PKr' file already exists")
+		fmt.Println("Workspace is already Initialized")
 		return
 	} else if os.IsNotExist(err) {
-		log.Println("'.PKr' file doesn't exists")
+		fmt.Println("'.PKr' file doesn't exists")
 	} else {
-		log.Println("Error while checking Existence of Destination file:", err)
-		log.Println("Source: InitWorkspace()")
+		fmt.Println("Error while checking Existence of Destination file:", err)
+		fmt.Println("Source: InitWorkspace()")
 		return
 	}
 
@@ -49,7 +46,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Create Keys Folder
-	if err := os.Mkdir(".PKr/Keys/", os.ModePerm); err != nil {
+	if err := os.Mkdir(filepath.Join(".PKr", "Keys"), os.ModePerm); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create Keys Folder")
 		fmt.Println("Source: InitWorkspace()")
@@ -57,7 +54,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Create Files Folder
-	if err := os.Mkdir(".PKr/Files/", os.ModePerm); err != nil {
+	if err := os.Mkdir(filepath.Join(".PKr", "Files"), os.ModePerm); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create Files Folder")
 		fmt.Println("Source: InitWorkspace()")
@@ -65,7 +62,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Create Current Folder
-	if err := os.Mkdir(".PKr/Files/Current/", os.ModePerm); err != nil {
+	if err := os.Mkdir(filepath.Join(".PKr", "Files", "Current"), os.ModePerm); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create Files/Current Folder")
 		fmt.Println("Source: InitWorkspace()")
@@ -73,7 +70,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Create Changes Folder
-	if err := os.Mkdir(".PKr/Files/Changes/", os.ModePerm); err != nil {
+	if err := os.Mkdir(filepath.Join(".PKr", "Files", "Changes"), os.ModePerm); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create Files/Changes Folder")
 		fmt.Println("Source: InitWorkspace()")
@@ -83,10 +80,11 @@ func InitWorkspace(server_alias, workspace_password string) {
 	// Get Curr Directory as Workspace Path
 	workspace_path, err := os.Getwd()
 	if err != nil {
-		log.Println("Error Cannot Call Getwd():", err)
-		log.Println("Source: InitWorkspace()")
+		fmt.Println("Error Cannot Call Getwd():", err)
+		fmt.Println("Source: InitWorkspace()")
 		return
 	}
+
 	workspace_path_split := strings.Split(workspace_path, string(filepath.Separator))
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
 
@@ -96,8 +94,8 @@ func InitWorkspace(server_alias, workspace_password string) {
 	// Getting Hash of Zip File
 	hash_zipfile, err := filetracker.ZipData(workspace_path, zip_destination_path)
 	if err != nil {
-		log.Println("Error while Getting Hash of Zipped Data:", err)
-		log.Println("Source InitWorkspace()")
+		fmt.Println("Error while Getting Hash of Zipped Data:", err)
+		fmt.Println("Source InitWorkspace()")
 		return
 	}
 	hash_zipfile = strings.Split(hash_zipfile, ".")[0]
@@ -146,87 +144,43 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	// Encrypting Zip File in Chunks
+	// Encrypting Zip File of Entire in Chunks
 	fmt.Println("Encrypting Zip and Storing for Workspace ...")
 	zipped_filepath := zip_destination_path + hash_zipfile + ".zip"
 	zip_enc_path := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 
-	zipped_filepath_obj, err := os.Open(zipped_filepath)
+	err = encryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
 	if err != nil {
-		fmt.Println("Failed to Open Zipped File:", err)
+		fmt.Println("Error while Encrypting Zip File of Entire Workspace, Storing it & Deleting Zip File:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
-	defer zipped_filepath_obj.Close()
 
-	zip_enc_file_obj, err := os.Create(zip_enc_path)
+	// Create Tree
+	tree, err := config.GetNewTree(workspace_path)
 	if err != nil {
-		fmt.Println("Failed to Create & Open Enc Zipped File:", err)
+		fmt.Println("Error Could not Create Tree:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
-	defer zip_enc_file_obj.Close()
 
-	buffer := make([]byte, DATA_CHUNK)
-	reader := bufio.NewReader(zipped_filepath_obj)
-	writer := bufio.NewWriter(zip_enc_file_obj)
-
-	offset := 0
-	for {
-		n, err := reader.Read(buffer)
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println("File Encryption Completed ...")
-				break
-			}
-			log.Println("Error while Reading Zip File:", err)
-			log.Println("Source: InitWorkspace()")
-			return
-		}
-		encrypted, err := encrypt.EncryptDecryptChunk(buffer[:n], key, iv)
-		if err != nil {
-			fmt.Println("Failed to Encrypt Chunk:", err)
-			fmt.Println("Source: InitWorkspace()")
-			return
-		}
-
-		_, err = writer.Write(encrypted)
-		if err != nil {
-			fmt.Println("Failed to Write Chunk to File:", err)
-			fmt.Println("Source: InitWorkspace()")
-			return
-		}
-
-		// Flush buffer to disk after 'FLUSH_AFTER_EVERY_X_CHUNK'
-		if offset%FLUSH_AFTER_EVERY_X_MB == 0 {
-			err = writer.Flush()
-			if err != nil {
-				fmt.Println("Error flushing 'writer' after X KB/MB buffer:", err)
-				fmt.Println("Soure: InitWorkspace()")
-				return
-			}
-		}
-		offset += n
-	}
-
-	// Flush buffer to disk at end
-	err = writer.Flush()
+	// Store Tree
+	err = config.WriteToFileTree(workspace_path, tree)
 	if err != nil {
-		fmt.Println("Error flushing 'writer' buffer:", err)
-		fmt.Println("Soure: InitWorkspace()")
-		return
-	}
-	zipped_filepath_obj.Close() // Close Obj now, so we can delete zip file
-	zip_enc_file_obj.Close()
-
-	// Removing Zip File
-	err = os.Remove(zipped_filepath)
-	if err != nil {
-		fmt.Println("Error deleting zip file:", err)
+		fmt.Println("Error Write Tree to file:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
-	fmt.Println("Removed Zip File - ", zipped_filepath)
+
+	// Write Updates in PKr Config
+	fmt.Println("Comparing Changes And Updating to workspace Config")
+	changes := config.CompareTrees(config.FileTree{}, tree, hash_zipfile)
+	err = config.AppendWorkspaceUpdates(changes, filepath.Join(workspace_path, ".PKr", "workspaceConfig.json"))
+	if err != nil {
+		fmt.Println("Error while Adding Changes to PKr Config:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
 
 	// Create New gRPC Client
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
@@ -273,5 +227,5 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	fmt.Println("New Workspace Registered Successfully")
+	fmt.Println("Workspace Initialized Successfully")
 }

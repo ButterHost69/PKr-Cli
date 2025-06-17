@@ -431,6 +431,5 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
-
-	fmt.Println("Clone Done")
+	fmt.Println("Workspace Cloned Successfully")
 }

@@ -57,4 +57,5 @@ func Install(server_alias, server_ip, username, password string) {
 	}
 
 	fmt.Println("Entry added to userConfig.json file")
+	fmt.Println("PKr Installed Successfully")
 }
