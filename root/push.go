@@ -284,7 +284,7 @@ func Push(workspace_name, server_alias string) {
 		WorkspaceOwnerUsername: username,
 		WorkspaceOwnerPassword: password,
 		WorkspaceName:          workspace_name,
-		NewWorkspaceHash:       hash_zipfile,
+		NewWorkspaceHash:       new_hash,
 	}
 
 	// Request Timeout
