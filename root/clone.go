@@ -92,6 +92,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	if err != nil {
 		fmt.Println("Error while Punching to Remote Addr:", err)
 		fmt.Println("Source: connectToAnotherUser()")
+		udp_conn.Close()
 		return "", "", nil, nil, err
 
 	}
@@ -102,6 +103,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	if err != nil {
 		fmt.Println("Error while Dialing KCP Connection to Remote Addr:", err)
 		fmt.Println("Source: connectToAnotherUser()")
+		udp_conn.Close()
 		return "", "", nil, nil, err
 	}
 
@@ -141,6 +143,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		return err
 	}
+	defer zip_file_obj.Close()
 
 	// To Write Decrypted Data in Chunks
 	writer := bufio.NewWriter(zip_file_obj)
@@ -154,6 +157,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		return err
 	}
 	defer kcp_conn.Close()
+
 	fmt.Println("Connected Successfully to Workspace Owner")
 
 	// KCP Params for Congestion Control
@@ -258,6 +262,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		// Not Returning Error because, we got data, we don't care if workspace owner now is offline or not responding
 	}
+	kcp_conn.Close()
 
 	if err = filetracker.CleanFilesFromWorkspace(workspace_path); err != nil {
 		fmt.Println("Error while Cleaning Workspace :", err)
@@ -298,6 +303,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
+	defer udp_conn.Close()
+	defer kcp_conn.Close()
 
 	// Sending the Type of Session
 	rpc_buff := [3]byte{'R', 'P', 'C'}
@@ -310,6 +317,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	// Creating RPC Client
 	rpc_client := rpc.NewClient(kcp_conn)
+	defer rpc_client.Close()
+
 	rpcClientHandler := dialer.ClientCallHandler{}
 
 	fmt.Println("Calling Get Public Key")
@@ -380,6 +389,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
+	udp_conn.Close()
+
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json

@@ -101,44 +101,6 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 	hash_zipfile = strings.Split(hash_zipfile, ".")[0]
 
-	// Create New gRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Create New GRPC Client")
-		fmt.Println("Source: InitWorkspace()")
-		return
-	}
-
-	// Prepare gRPC Request
-	req := &pb.RegisterWorkspaceRequest{
-		Username:      username,
-		Password:      password,
-		WorkspaceName: workspace_name,
-		LastHash:      hash_zipfile,
-	}
-
-	// Request Timeout
-	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
-	defer cancelFunc()
-
-	// Sending Request ...
-	_, err = gRPC_cli_service_client.RegisterWorkspace(ctx, req)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Register User")
-		fmt.Println("Source: InitWorkspace()")
-		return
-	}
-
-	// Register the workspace in the main userConfig file
-	if err := config.RegisterNewSendWorkspace(server_alias, workspace_name, workspace_path, workspace_password); err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Register Workspace to userConfig File")
-		fmt.Println("Source: InitWorkspace()")
-		return
-	}
-
 	// Create the workspace config file
 	if err := config.CreatePKRConfigIfNotExits(workspace_name, workspace_path); err != nil {
 		fmt.Println("Error:", err)
@@ -147,16 +109,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	fmt.Println("Adding New Push to Config ...")
 	fmt.Println("Current Main Hash: ", hash_zipfile)
-
-	err = config.UpdateLastHash(workspace_name, hash_zipfile)
-	if err != nil {
-		fmt.Println("Error while Adding New Init to Config:", err)
-		fmt.Println("Source: InitWorkspace()")
-		return
-	}
-
 	fmt.Println("Encrypting Zip File...")
 
 	// Generating Key
@@ -176,6 +129,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+	// Generating IV
 	iv, err := encrypt.AESGenerateIV()
 	if err != nil {
 		fmt.Println("Failed to Generate IV Keys:", err)
@@ -202,6 +156,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
+	defer zipped_filepath_obj.Close()
 
 	zip_enc_file_obj, err := os.Create(zip_enc_path)
 	if err != nil {
@@ -261,6 +216,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 	zipped_filepath_obj.Close() // Close Obj now, so we can delete zip file
+	zip_enc_file_obj.Close()
 
 	// Removing Zip File
 	err = os.Remove(zipped_filepath)
@@ -270,6 +226,51 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 	fmt.Println("Removed Zip File - ", zipped_filepath)
+
+	// Create New gRPC Client
+	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create New GRPC Client")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	// Prepare gRPC Request
+	req := &pb.RegisterWorkspaceRequest{
+		Username:      username,
+		Password:      password,
+		WorkspaceName: workspace_name,
+		LastHash:      hash_zipfile,
+	}
+
+	// Request Timeout
+	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
+	defer cancelFunc()
+
+	// Sending Request ...
+	_, err = gRPC_cli_service_client.RegisterWorkspace(ctx, req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Register User")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	// Register the workspace in the main userConfig file
+	if err := config.RegisterNewSendWorkspace(server_alias, workspace_name, workspace_path, workspace_password); err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Register Workspace to userConfig File")
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
+	if err != nil {
+		fmt.Println("Error while Updating Last to Config:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
 
 	fmt.Println("New Workspace Registered Successfully")
 }

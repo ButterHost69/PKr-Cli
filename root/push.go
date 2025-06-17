@@ -60,52 +60,6 @@ func Push(workspace_name, server_alias string) {
 	}
 	fmt.Println("Changes Detected, Notifying this to Listeners")
 
-	// Get Details from Config
-	server_ip, username, password, err := config.GetServerDetails(server_alias)
-	if err != nil {
-		log.Println("Error while getting Server Details from Config:", err)
-		log.Println("Source: Push()")
-		return
-	}
-
-	// New GRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Create New GRPC Client")
-		fmt.Println("Source: Push()")
-		return
-	}
-
-	// Prepare req
-	req := &pb.NotifyNewPushToListenersRequest{
-		WorkspaceOwnerUsername: username,
-		WorkspaceOwnerPassword: password,
-		WorkspaceName:          workspace_name,
-		NewWorkspaceHash:       hash_zipfile,
-	}
-
-	// Request Timeout
-	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
-	defer cancelFunc()
-
-	_, err = gRPC_cli_service_client.NotifyNewPushToListeners(ctx, req)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Notify New Push to Listeners")
-		fmt.Println("Source: Push()")
-		return
-	}
-
-	err = config.UpdateLastHash(workspace_name, hash_zipfile)
-	if err != nil {
-		fmt.Println("Error:", err)
-		fmt.Println("Description: Cannot Add New Push to Config")
-		fmt.Println("Source: Push()")
-		return
-	}
-	fmt.Println("New Push Registered Successfully")
-
 	// Generating Key
 	fmt.Println("Generating Keys ...")
 	key, err := encrypt.AESGenerakeKey(16)
@@ -123,6 +77,7 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 
+	// Generating IV
 	iv, err := encrypt.AESGenerateIV()
 	if err != nil {
 		fmt.Println("Failed to Generate IV Keys:", err)
@@ -153,6 +108,7 @@ func Push(workspace_name, server_alias string) {
 		fmt.Println("Source: Push()")
 		return
 	}
+	defer zipped_filepath_obj.Close()
 
 	zip_enc_file_obj, err := os.Create(zip_enc_path)
 	if err != nil {
@@ -212,6 +168,7 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 	zipped_filepath_obj.Close() // Close Obj now, so we can delete zip file
+	zip_enc_file_obj.Close()
 
 	// Removing Zip File
 	err = os.Remove(zipped_filepath)
@@ -231,4 +188,52 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 	fmt.Println("Removed Prev Commit's Enc Zip File - ", zipped_filepath)
+
+	// Get Details from Config
+	server_ip, username, password, err := config.GetServerDetails(server_alias)
+	if err != nil {
+		log.Println("Error while getting Server Details from Config:", err)
+		log.Println("Source: Push()")
+		return
+	}
+
+	// New GRPC Client
+	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Create New GRPC Client")
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	// Prepare req
+	req := &pb.NotifyNewPushToListenersRequest{
+		WorkspaceOwnerUsername: username,
+		WorkspaceOwnerPassword: password,
+		WorkspaceName:          workspace_name,
+		NewWorkspaceHash:       hash_zipfile,
+	}
+
+	// Request Timeout
+	ctx, cancelFunc := context.WithTimeout(context.Background(), CONTEXT_TIMEOUT)
+	defer cancelFunc()
+
+	_, err = gRPC_cli_service_client.NotifyNewPushToListeners(ctx, req)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Notify New Push to Listeners")
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	err = config.UpdateLastHash(workspace_name, hash_zipfile)
+	if err != nil {
+		fmt.Println("Error:", err)
+		fmt.Println("Description: Cannot Add New Push to Config")
+		fmt.Println("Source: Push()")
+		return
+	}
+	fmt.Println("New Push Registered Successfully")
+
+	fmt.Println("Push Done")
 }
