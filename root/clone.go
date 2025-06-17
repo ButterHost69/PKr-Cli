@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/rpc"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
@@ -134,7 +135,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 
 	workspace_path := "."
-	zip_file_path := workspace_path + "\\.PKr\\" + res.UpdatedHash + ".zip"
+	zip_file_path := filepath.Join(workspace_path, ".PKr", res.UpdatedHash+".zip")
 
 	// Create Zip File
 	zip_file_obj, err := os.Create(zip_file_path)
@@ -271,7 +272,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 
 	// Unzip Content
-	if err = filetracker.UnzipData(zip_file_path, workspace_path+"\\"); err != nil {
+	if err = filetracker.UnzipData(zip_file_path, workspace_path+string(filepath.Separator)); err != nil {
 		fmt.Println("Error while Unzipping Data into Workspace:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		return err
@@ -363,7 +364,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.MkdirAll(currDir+"\\.PKr\\", 0777)
+	err = os.MkdirAll(filepath.Join(currDir, ".PKr")+string(filepath.Separator), 0777)
 	if err != nil {
 		fmt.Println("Error while using MkdirAll for '.PKr' folder:", err)
 		fmt.Println("Source: Clone()")

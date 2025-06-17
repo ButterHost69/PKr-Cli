@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
@@ -86,10 +87,10 @@ func InitWorkspace(server_alias, workspace_password string) {
 		log.Println("Source: InitWorkspace()")
 		return
 	}
-	workspace_path_split := strings.Split(workspace_path, "\\")
+	workspace_path_split := strings.Split(workspace_path, string(filepath.Separator))
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
 
-	zip_destination_path := workspace_path + "\\.PKr\\Files\\Current\\"
+	zip_destination_path := filepath.Join(workspace_path, ".PKr", "Files", "Current") + string(filepath.Separator)
 	fmt.Println("Destination For Current Snapshot: ", zip_destination_path)
 
 	// Getting Hash of Zip File

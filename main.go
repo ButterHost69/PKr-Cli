@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Cli/root"
@@ -43,6 +44,7 @@ func main() {
 
 			fmt.Println("Installing ...")
 			root.Install(server_alias, server_ip, username, password)
+			// TODO: Install PKr-Base Service
 		}
 
 	case "init":
@@ -107,7 +109,7 @@ func main() {
 				return
 			}
 
-			current_working_directory_split := strings.Split(current_working_directory, "\\")
+			current_working_directory_split := strings.Split(current_working_directory, string(filepath.Separator))
 			workspace_name := current_working_directory_split[len(current_working_directory_split)-1]
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
