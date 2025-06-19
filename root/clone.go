@@ -193,6 +193,14 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 	fmt.Println("Workspace Name & Hash Sent to Workspace Owner")
 
+	// Sending Get Data Type (Pull/Clone)
+	_, err = kcp_conn.Write([]byte("Clone"))
+	if err != nil {
+		fmt.Println("Error while Sending 'Clone' to Workspace Owner:", err)
+		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
+		return err
+	}
+
 	buffer := make([]byte, DATA_CHUNK)
 
 	fmt.Println("Len Data Bytes:", res.LenData)
@@ -272,7 +280,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 
 	// Unzip Content
-	if err = filetracker.UnzipData(zip_file_path, workspace_path+string(filepath.Separator)); err != nil {
+	if err = filetracker.UnzipData(zip_file_path, workspace_path); err != nil {
 		fmt.Println("Error while Unzipping Data into Workspace:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		return err
@@ -319,14 +327,47 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	// Creating RPC Client
 	rpc_client := rpc.NewClient(kcp_conn)
 	defer rpc_client.Close()
-
 	rpcClientHandler := dialer.ClientCallHandler{}
+
+	// Create .PKr folder to store zipped data
+	currDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error while Getting Current Directory:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+	err = os.MkdirAll(filepath.Join(currDir, ".PKr"), 0777)
+	if err != nil {
+		fmt.Println("Error while using MkdirAll for '.PKr' folder:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Contents"), 0777)
+	if err != nil {
+		fmt.Println("Error while using MkdirAll for '.PKr/Contents' folder:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Keys"), 0777)
+	if err != nil {
+		fmt.Println("Error while using MkdirAll for '.PKr/Keys' folder:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
 
 	fmt.Println("Calling Get Public Key")
 	// Get Public Key of Workspace Owner
 	public_key, err := rpcClientHandler.CallGetPublicKey(client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetPublicKey:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	// Store the Public Key of Workspace Owner
+	err = os.WriteFile(filepath.Join(currDir, ".PKr", "Keys", workspace_owner_username+".pem"), public_key, 0777)
+	if err != nil {
+		fmt.Println("Error while Storing the Public Key of Workspace Owner:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
@@ -340,7 +381,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Reading my Public Key
-	my_public_key, err := os.ReadFile("./tmp/mykeys/publickey.pem")
+	my_public_key, err := os.ReadFile(filepath.Join("tmp", "mykeys", "publickey.pem"))
 	if err != nil {
 		fmt.Println("Error while Reading Public Key:", err)
 		fmt.Println("Source: Clone()")
@@ -353,20 +394,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	err = rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, username, server_ip, encrypted_password, base64_public_key, client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling Init New Workspace Connection:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
-
-	// Create .PKr folder to store zipped data
-	currDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error while Getting Current Directory:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
-	err = os.MkdirAll(filepath.Join(currDir, ".PKr")+string(filepath.Separator), 0777)
-	if err != nil {
-		fmt.Println("Error while using MkdirAll for '.PKr' folder:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}

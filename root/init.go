@@ -149,7 +149,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	zipped_filepath := zip_destination_path + hash_zipfile + ".zip"
 	zip_enc_path := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
 
-	err = encryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
+	err = EncryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
 	if err != nil {
 		fmt.Println("Error while Encrypting Zip File of Entire Workspace, Storing it & Deleting Zip File:", err)
 		fmt.Println("Source: InitWorkspace()")
@@ -175,7 +175,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	// Write Updates in PKr Config
 	fmt.Println("Comparing Changes And Updating to workspace Config")
 	changes := config.CompareTrees(config.FileTree{}, tree, hash_zipfile)
-	err = config.AppendWorkspaceUpdates(changes, filepath.Join(workspace_path, ".PKr", "workspaceConfig.json"))
+	err = config.AppendWorkspaceUpdates(changes, workspace_path)
 	if err != nil {
 		fmt.Println("Error while Adding Changes to PKr Config:", err)
 		fmt.Println("Source: InitWorkspace()")

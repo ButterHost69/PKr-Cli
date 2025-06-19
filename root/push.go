@@ -17,7 +17,7 @@ import (
 )
 
 // Encrypts Zip File, Stores Enc Zip File & Deletes Old Zip File
-func encryptZipFileAndStore(zipped_filepath, zip_enc_path string, key, iv []byte) error {
+func EncryptZipFileAndStore(zipped_filepath, zip_enc_path string, key, iv []byte) error {
 	zipped_filepath_obj, err := os.Open(zipped_filepath)
 	if err != nil {
 		fmt.Println("Failed to Open Zipped File:", err)
@@ -192,7 +192,7 @@ func Push(workspace_name, server_alias string) {
 	// Encrypting Entire Workspace's Zip File in Chunks
 	fmt.Println("Encrypting Zip and Storing it ...")
 	zip_enc_path := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
-	err = encryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
+	err = EncryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
 	if err != nil {
 		fmt.Println("Error while Encrypting Zip File of Entire Workspace, Storing it & Deleting Zip File:", err)
 		fmt.Println("Source: Push()")
@@ -221,7 +221,7 @@ func Push(workspace_name, server_alias string) {
 	// Adding Changes to PKr Config
 	fmt.Println("Updating New Changes to the Workspace Config")
 	updates.Hash = hash_entire_workspace
-	err = config.AppendWorkspaceUpdates(updates, filepath.Join(workspace_path, ".PKr", "workspaceConfig.json"))
+	err = config.AppendWorkspaceUpdates(updates, workspace_path)
 	if err != nil {
 		fmt.Println("Error Write Tree to file:", err)
 		fmt.Println("Source: Push()")
@@ -232,32 +232,37 @@ func Push(workspace_name, server_alias string) {
 	files_hash_list := []string{}
 	for _, changes := range updates.Changes {
 		if changes.Type == "Updated" {
-			files_hash_list = append(files_hash_list, updates.Hash)
+			fmt.Println(changes.FilePath)
+			files_hash_list = append(files_hash_list, changes.FilePath)
+			files_hash_list = append(files_hash_list, changes.FileHash)
 		}
 	}
+	fmt.Println("updates.Hash:", updates.Hash)
+	fmt.Println("Files Hash List:", files_hash_list)
+	fmt.Println("Updates:", updates)
 
 	changes_hash_name := encrypt.GeneratHashFromFileNames(files_hash_list)
 	changes_path := filepath.Join(workspace_path, ".PKr", "Files", "Changes", changes_hash_name)
 	fmt.Println("Changes Hash:", changes_hash_name)
 	fmt.Println(files_hash_list)
 
-	skip_encryption := false
-	// Create Zip File of Changes
-	err = filetracker.ZipUpdates(updates, workspace_path, changes_hash_name)
+	is_updates_cache_present, err := filetracker.AreUpdatesCached(workspace_path, changes_hash_name)
 	if err != nil {
-		if err.Error() == "zip already exists" {
-			fmt.Println("Hello")
-			skip_encryption = true
-			fmt.Println("Hello:", skip_encryption)
-		} else {
+		fmt.Println("Error while Checking Whether Updates're Already Cached or Not")
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	// Skip Encryption & Zip Creation if the same changes already exists
+	if !is_updates_cache_present {
+		fmt.Println("Not Skipping Encrypting & Zipping ...")
+		// Create Zip File of Changes
+		err = filetracker.ZipUpdates(updates, workspace_path, changes_hash_name)
+		if err != nil {
 			fmt.Println("Error while Creating Zip for Changes:", err)
 			fmt.Println("Source: Push()")
 			return
 		}
-	}
-	// Skip Encryption & Zip Creation if the same changes already exists
-	if !skip_encryption {
-		fmt.Println("Not Skipping Encrypting ...")
 		// Create AES Key for Changes Zip
 		changes_key, err := encrypt.AESGenerakeKey(16)
 		if err != nil {
@@ -294,7 +299,7 @@ func Push(workspace_name, server_alias string) {
 		changes_zipped_filepath := filepath.Join(changes_path, changes_hash_name+".zip")
 		changes_enc_zip_filepath := strings.Replace(changes_zipped_filepath, ".zip", ".enc", 1)
 
-		err = encryptZipFileAndStore(changes_zipped_filepath, changes_enc_zip_filepath, changes_key, changes_iv)
+		err = EncryptZipFileAndStore(changes_zipped_filepath, changes_enc_zip_filepath, changes_key, changes_iv)
 		if err != nil {
 			fmt.Println("Error while Encrypting 'Changes' Zip File, Storing it & Deleting Zip File:", err)
 			fmt.Println("Source: Push()")
