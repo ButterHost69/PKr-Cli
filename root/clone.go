@@ -17,9 +17,7 @@ import (
 	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
-
 	"github.com/ButterHost69/PKr-Base/handler"
-
 	"github.com/ButterHost69/PKr-Base/models"
 	"github.com/ButterHost69/PKr-Base/pb"
 	"github.com/ButterHost69/PKr-Base/utils"
@@ -139,21 +137,17 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	workspace_path := "."
 	zip_file_path := filepath.Join(workspace_path, ".PKr", res.UpdatedHash+".zip")
 
-
 	// Create Zip File
 	zip_file_obj, err := os.Create(zip_file_path)
 	if err != nil {
 		fmt.Println("Failed to Open & Create Zipped File:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
-
 		return err
 	}
 	defer zip_file_obj.Close()
 
-
 	// To Write Decrypted Data in Chunks
 	writer := bufio.NewWriter(zip_file_obj)
-
 
 	// Now Transfer Data using KCP ONLY, No RPC in chunks
 	fmt.Println("Connecting Again to Workspace Owner")
@@ -165,6 +159,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 	defer kcp_conn.Close()
 
+	fmt.Println("Connected Successfully to Workspace Owner")
 
 	// KCP Params for Congestion Control
 	kcp_conn.SetWindowSize(128, 1024)
@@ -403,10 +398,9 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 
-
 	fmt.Println("Calling GetMetaData ...")
 	// Calling GetMetaData
-	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "None", client_handler_name, rpc_client)
+	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetMetaData:", err)
 		fmt.Println("Source: Clone()")
@@ -414,11 +408,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	fmt.Println("Get Meta Data Responded")
-
 	kcp_conn.Close()
 	rpc_client.Close()
-
-  
 	// Temp Logs Remove Later
 	fmt.Print("CallGetMetaData Response: ")
 	fmt.Println("[Response] Len IVBytes: ", len(res.IVBytes))
@@ -432,8 +423,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	// When Fetching Data workspace hash is provided as ""
 	// This will send the entire Workspace
 	fmt.Println("Recieved New Hash is: ", res.RequestHash)
-	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
 
+	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
 	if err != nil {
 		fmt.Println("Error while Fetching & Storing Data:", err)
 		fmt.Println("Source: Clone()")
@@ -444,9 +435,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	fmt.Println("Data Stored into Workspace")
 
 	// Update tmp/userConfig.json
-
 	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.UpdatedHash)
-
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")

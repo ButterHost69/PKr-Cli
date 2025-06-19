@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Cli/root"
@@ -102,10 +101,8 @@ func main() {
 			fmt.Print("> Enter Server Alias: ")
 			fmt.Scan(&server_alias)
 
-
 			fmt.Print("> Enter Workspace Name: ")
 			fmt.Scan(&workspace_name)
-
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
 			root.Push(workspace_name, server_alias)
