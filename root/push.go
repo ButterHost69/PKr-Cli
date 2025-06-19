@@ -4,15 +4,19 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+
 	"io"
+
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
+
 	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+
 	"github.com/ButterHost69/PKr-Base/pb"
 )
 
@@ -102,16 +106,19 @@ func Push(workspace_name, server_alias string) {
 	// Getting Workspace's Absolute Path
 	workspace_path, err := config.GetSendWorkspaceFilePath(workspace_name)
 	if err != nil {
+
 		fmt.Println("Error while getting Absolute Workspace Path:", err)
 		fmt.Println("Source: Push()")
 		return
 	}
 
 	// Creating New Tree
+
 	fmt.Println("Checking if Changes are Present in the Workspace")
 	fmt.Println("Creating File Tree Structure for the Workspace")
 	new_tree, err := config.GetNewTree(workspace_path)
 	if err != nil {
+
 		fmt.Println("Could Not Create New Tree of the Current Workspace:", err)
 		fmt.Println("Source: Push()")
 		return
@@ -120,11 +127,13 @@ func Push(workspace_name, server_alias string) {
 	// Getting Old Tree
 	fmt.Println("Fetching Old File Tree")
 	old_tree, err := config.ReadFromTreeFile(workspace_path)
+
 	if err != nil {
 		fmt.Println("Could Not Read Old Tree of the file_tree.json:", err)
 		fmt.Println("Source: Push()")
 		return
 	}
+
 
 	// Comparing Old & New Trees
 	fmt.Println("Comparing Trees ...")
@@ -307,6 +316,44 @@ func Push(workspace_name, server_alias string) {
 		}
 	}
 
+
+	changes_iv, err := encrypt.AESGenerateIV()
+	if err != nil {
+		fmt.Println("Failed to Generate IV Keys:", err)
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	// Storing IV
+	err = os.WriteFile(filepath.Join(changes_path, "AES_IV"), changes_iv, 0644)
+	if err != nil {
+		fmt.Println("Failed to Write AES IV to File:", err)
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	// Encrypting Zip File
+	fmt.Println("Encrypting Zip and Storing for Workspace ...")
+	changes_zipped_filepath := filepath.Join(changes_path, changes_hash_name+".zip")
+	changes_destination_filepath := strings.Replace(changes_zipped_filepath, ".zip", ".enc", 1)
+	if err := encrypt.AESEncrypt(changes_zipped_filepath, changes_destination_filepath, changes_key, changes_iv); err != nil {
+		fmt.Println("Failed to Encrypt Data using AES:", err)
+		fmt.Println("Source: Push()")
+		return
+	}
+
+	// Removing Zip File
+	err = os.Remove(changes_zipped_filepath)
+	if err != nil {
+		fmt.Println("Error deleting zip file:", err)
+		fmt.Println("Source: Push()")
+		return
+	}
+	fmt.Println("Removed Changes Zip File - ", changes_zipped_filepath)
+
+
+
+	fmt.Println("Notifying to Listeners")
 	// Get Details from Config
 	server_ip, username, password, err := config.GetServerDetails(server_alias)
 	if err != nil {
@@ -329,7 +376,9 @@ func Push(workspace_name, server_alias string) {
 		WorkspaceOwnerUsername: username,
 		WorkspaceOwnerPassword: password,
 		WorkspaceName:          workspace_name,
+
 		NewWorkspaceHash:       hash_entire_workspace,
+
 	}
 
 	// Request Timeout
@@ -344,7 +393,9 @@ func Push(workspace_name, server_alias string) {
 		return
 	}
 
+
 	err = config.UpdateLastHash(workspace_name, hash_entire_workspace)
+
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Add New Push to Config")

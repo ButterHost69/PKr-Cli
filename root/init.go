@@ -8,9 +8,11 @@ import (
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
+
 	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/encrypt"
 	"github.com/ButterHost69/PKr-Base/filetracker"
+
 	"github.com/ButterHost69/PKr-Base/pb"
 )
 
@@ -85,10 +87,12 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+
 	workspace_path_split := strings.Split(workspace_path, string(filepath.Separator))
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
 
 	zip_destination_path := filepath.Join(workspace_path, ".PKr", "Files", "Current") + string(filepath.Separator)
+
 	fmt.Println("Destination For Current Snapshot: ", zip_destination_path)
 
 	// Getting Hash of Zip File
@@ -220,12 +224,14 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+
 	err = config.UpdateLastHash(workspace_name, hash_zipfile)
 	if err != nil {
 		fmt.Println("Error while Updating Last to Config:", err)
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
+
 
 	fmt.Println("Workspace Initialized Successfully")
 }
