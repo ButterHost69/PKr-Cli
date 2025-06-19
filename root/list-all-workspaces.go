@@ -3,7 +3,6 @@ package root
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-Base/dialer"
@@ -14,8 +13,8 @@ func ListAllWorkspaces(server_alias string) {
 	// Get Details from Config
 	server_ip, username, password, err := config.GetServerDetails(server_alias)
 	if err != nil {
-		log.Println("Error while getting Server Details from Config:", err)
-		log.Println("Source: ListAllWorkspaces()")
+		fmt.Println("Error while getting Server Details from Config:", err)
+		fmt.Println("Source: ListAllWorkspaces()")
 		return
 	}
 
@@ -48,4 +47,5 @@ func ListAllWorkspaces(server_alias string) {
 	for _, workspace := range res.Workspaces {
 		fmt.Printf("Workspace Owner: %s, Workspace Name: %s\n", workspace.WorkspaceOwner, workspace.WorkspaceName)
 	}
+	fmt.Println("Workspace Fetched Successfully")
 }

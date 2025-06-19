@@ -44,6 +44,7 @@ func main() {
 
 			fmt.Println("Installing ...")
 			root.Install(server_alias, server_ip, username, password)
+			// TODO: Install PKr-Base Service
 		}
 
 	case "init":
@@ -96,20 +97,15 @@ func main() {
 
 	case "push":
 		{
-			var server_alias string
+			var server_alias, workspace_name string
 
 			fmt.Print("> Enter Server Alias: ")
 			fmt.Scan(&server_alias)
 
-			current_working_directory, err := os.Getwd()
-			if err != nil {
-				fmt.Println("Could not Get Current Working Directory :", err)
-				fmt.Println("Source: main()")
-				return
-			}
 
-			current_working_directory_split := strings.Split(current_working_directory, string(filepath.Separator))
-			workspace_name := strings.TrimSpace(current_working_directory_split[len(current_working_directory_split)-1])
+			fmt.Print("> Enter Workspace Name: ")
+			fmt.Scan(&workspace_name)
+
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
 			root.Push(workspace_name, server_alias)
