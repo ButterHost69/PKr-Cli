@@ -11,6 +11,7 @@ import (
 	"net/rpc"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/config"
@@ -135,7 +136,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	}
 
 	workspace_path := "."
-	zip_file_path := filepath.Join(workspace_path, ".PKr", res.UpdatedHash+".zip")
+	zip_file_path := filepath.Join(workspace_path, ".PKr", "Contents", strconv.Itoa(res.LastPushNum)+".zip")
 
 	// Create Zip File
 	zip_file_obj, err := os.Create(zip_file_path)
@@ -149,8 +150,8 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	// To Write Decrypted Data in Chunks
 	writer := bufio.NewWriter(zip_file_obj)
 
+	// Connecting to Workspace Owner Again
 	// Now Transfer Data using KCP ONLY, No RPC in chunks
-	fmt.Println("Connecting Again to Workspace Owner")
 	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_public_ip, nil, 0, 0, udp_conn)
 	if err != nil {
 		fmt.Println("Error while Dialing Workspace Owner to Get Data:", err)
@@ -158,8 +159,6 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		return err
 	}
 	defer kcp_conn.Close()
-
-	fmt.Println("Connected Successfully to Workspace Owner")
 
 	// KCP Params for Congestion Control
 	kcp_conn.SetWindowSize(128, 1024)
@@ -176,7 +175,6 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		return err
 	}
 
-	fmt.Println("Sending Workspace Name & Hash to Workspace Owner")
 	// Sending Workspace Name & Hash
 	_, err = kcp_conn.Write([]byte(workspace_name))
 	if err != nil {
@@ -185,13 +183,12 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		return err
 	}
 
-	_, err = kcp_conn.Write([]byte(res.UpdatedHash))
+	_, err = kcp_conn.Write([]byte("0"))
 	if err != nil {
 		fmt.Println("Error while Sending Workspace Name to Workspace Owner:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		return err
 	}
-	fmt.Println("Workspace Name & Hash Sent to Workspace Owner")
 
 	// Sending Get Data Type (Pull/Clone)
 	_, err = kcp_conn.Write([]byte("Clone"))
@@ -206,7 +203,6 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	fmt.Println("Len Data Bytes:", res.LenData)
 	offset := 0
 
-	fmt.Println("Now Reading Data from Workspace Owner ...")
 	for offset < res.LenData {
 		n, err := kcp_conn.Read(buffer)
 		if err != nil {
@@ -218,7 +214,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 		// Check for Errors on Workspace Owner's Side
 		if n < 30 {
 			msg := string(buffer[:n])
-			if msg == "Incorrect Workspace Name/Hash" || msg == "Internal Server Error" {
+			if msg == "Incorrect Workspace Name/Push Num" || msg == "Incorrect Workspace Name/Push Num Range" || msg == "Internal Server Error" {
 				fmt.Println("\nError while Reading from Workspace on his/her side:", msg)
 				fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 				return errors.New(msg)
@@ -336,27 +332,27 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.MkdirAll(filepath.Join(currDir, ".PKr"), 0777)
+	err = os.Mkdir(filepath.Join(currDir, ".PKr"), 0600)
 	if err != nil {
-		fmt.Println("Error while using MkdirAll for '.PKr' folder:", err)
+		fmt.Println("Error while using Mkdir for '.PKr' folder:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Contents"), 0777)
+	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Contents"), 0600)
 	if err != nil {
-		fmt.Println("Error while using MkdirAll for '.PKr/Contents' folder:", err)
+		fmt.Println("Error while using Mkdir for '.PKr/Contents' folder:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Keys"), 0777)
+	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Keys"), 0600)
 	if err != nil {
-		fmt.Println("Error while using MkdirAll for '.PKr/Keys' folder:", err)
+		fmt.Println("Error while using Mkdir for '.PKr/Keys' folder:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
 
-	fmt.Println("Calling Get Public Key")
 	// Get Public Key of Workspace Owner
+	fmt.Println("Requesting Public Key of Workspace Owner ...")
 	public_key, err := rpcClientHandler.CallGetPublicKey(client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetPublicKey:", err)
@@ -365,7 +361,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Store the Public Key of Workspace Owner
-	err = os.WriteFile(filepath.Join(currDir, ".PKr", "Keys", workspace_owner_username+".pem"), public_key, 0777)
+	err = os.WriteFile(filepath.Join(currDir, ".PKr", "Keys", workspace_owner_username+".pem"), public_key, 0600)
 	if err != nil {
 		fmt.Println("Error while Storing the Public Key of Workspace Owner:", err)
 		fmt.Println("Source: Clone()")
@@ -389,7 +385,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
-	fmt.Println("Calling InitWorkspaceConnection")
 	// Requesting InitWorkspaceConnection
 	err = rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, username, server_ip, encrypted_password, base64_public_key, client_handler_name, rpc_client)
 	if err != nil {
@@ -398,31 +393,17 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 
-	fmt.Println("Calling GetMetaData ...")
+	fmt.Println("Requesting Meta Data ...")
 	// Calling GetMetaData
-	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, "", client_handler_name, rpc_client)
+	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, client_handler_name, -1, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetMetaData:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
 
-	fmt.Println("Get Meta Data Responded")
 	kcp_conn.Close()
 	rpc_client.Close()
-	// Temp Logs Remove Later
-	fmt.Print("CallGetMetaData Response: ")
-	fmt.Println("[Response] Len IVBytes: ", len(res.IVBytes))
-	fmt.Println("[Response] Len KeyBytes: ", len(res.KeyBytes))
-	fmt.Println("[Response] LenData: ", res.LenData)
-	fmt.Println("[Response] IsChanges: ", res.IsChanges)
-	fmt.Println("[Response] RequestHash: ", res.RequestHash)
-	fmt.Println("[Response] UpdatedHash: ", res.UpdatedHash)
-	fmt.Println("[Response] Updates: ", res.Updates)
-
-	// When Fetching Data workspace hash is provided as ""
-	// This will send the entire Workspace
-	fmt.Println("Recieved New Hash is: ", res.RequestHash)
 
 	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
 	if err != nil {
@@ -431,19 +412,11 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		return
 	}
 	udp_conn.Close()
-
-	fmt.Println("Data Stored into Workspace")
-
-	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.UpdatedHash)
-	if err != nil {
-		fmt.Println("Error while Registering New GetWorkspace:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
+	fmt.Println("Data Stored into Workspace ...")
 
 	// Register New User to Workspace
 	// New GRPC Client
+	fmt.Println("Sending Updates to Server ...")
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -468,6 +441,14 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	_, err = gRPC_cli_service_client.RegisterUserToWorkspace(ctx, register_user_to_workspace_res_req)
 	if err != nil {
 		fmt.Println("Error while Registering User To Workspace:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	// Update tmp/userConfig.json
+	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.LastPushNum)
+	if err != nil {
+		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}

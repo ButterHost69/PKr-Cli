@@ -13,12 +13,13 @@ import (
 const CONTEXT_TIMEOUT = 60 * time.Second
 
 func Install(server_alias, server_ip, username, password string) {
-	config.CreateUserIfNotExists()
+	config.CreateUserIfNotExists(username)
 
 	if server_alias == "" || server_ip == "" || username == "" || password == "" {
 		fmt.Println("Username or Password or Server IP MUST NOT be Empty")
 		return
 	}
+	fmt.Println("Registering User, Sending Request to Server ...")
 
 	// New GRPC Client
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
@@ -55,7 +56,5 @@ func Install(server_alias, server_ip, username, password string) {
 		fmt.Println("Source: Install()")
 		return
 	}
-
-	fmt.Println("Entry added to userConfig.json file")
 	fmt.Println("PKr Installed Successfully")
 }

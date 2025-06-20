@@ -19,6 +19,7 @@ func ListAllWorkspaces(server_alias string) {
 	}
 
 	// New GRPC Client
+	fmt.Println("Fetching All Workspaces from Server ...")
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
 	if err != nil {
 		fmt.Println("Error:", err)

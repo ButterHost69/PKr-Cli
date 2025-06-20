@@ -14,7 +14,7 @@ import (
 	"github.com/ButterHost69/PKr-Base/pb"
 )
 
-func InitWorkspace(server_alias, workspace_password string) {
+func InitWorkspace(server_alias, workspace_password, push_desc string) {
 	// Get Details from Config
 	server_ip, username, password, err := config.GetServerDetails(server_alias)
 	if err != nil {
@@ -38,6 +38,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 	}
 
 	// Create .Pkr Folder ; return if error occured
+	fmt.Println("Creating Config Folders ...")
 	if err := os.Mkdir(".PKr", os.ModePerm); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create '.PKr' Directory")
@@ -87,20 +88,10 @@ func InitWorkspace(server_alias, workspace_password string) {
 
 	workspace_path_split := strings.Split(workspace_path, string(filepath.Separator))
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
-
 	zip_destination_path := filepath.Join(workspace_path, ".PKr", "Files", "Current") + string(filepath.Separator)
-	fmt.Println("Destination For Current Snapshot: ", zip_destination_path)
-
-	// Getting Hash of Zip File
-	hash_zipfile, err := filetracker.ZipData(workspace_path, zip_destination_path)
-	if err != nil {
-		fmt.Println("Error while Getting Hash of Zipped Data:", err)
-		fmt.Println("Source InitWorkspace()")
-		return
-	}
-	hash_zipfile = strings.Split(hash_zipfile, ".")[0]
 
 	// Create the workspace config file
+	fmt.Println("Creating Workspace Config ...")
 	if err := config.CreatePKRConfigIfNotExits(workspace_name, workspace_path); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create .Pkr/PKRConfig.json")
@@ -108,11 +99,8 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	fmt.Println("Current Main Hash: ", hash_zipfile)
-	fmt.Println("Encrypting Zip File...")
-
 	// Generating Key
-	fmt.Println("Generating Keys ...")
+	fmt.Println("Generating & Storing Workspace Keys ...")
 	key, err := encrypt.AESGenerakeKey(16)
 	if err != nil {
 		fmt.Println("Failed to Generate AES Keys:", err)
@@ -144,19 +132,17 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	// Encrypting Zip File of Entire in Chunks
-	fmt.Println("Encrypting Zip and Storing for Workspace ...")
-	zipped_filepath := zip_destination_path + hash_zipfile + ".zip"
-	zip_enc_path := strings.Replace(zipped_filepath, ".zip", ".enc", 1)
-
-	err = EncryptZipFileAndStore(zipped_filepath, zip_enc_path, key, iv)
+	// Creating Zip File of Entire Workspace
+	fmt.Println("Creating Zip of Entire Workspace ...")
+	err = filetracker.ZipData(workspace_path, zip_destination_path, "0")
 	if err != nil {
-		fmt.Println("Error while Encrypting Zip File of Entire Workspace, Storing it & Deleting Zip File:", err)
-		fmt.Println("Source: InitWorkspace()")
+		fmt.Println("Error while Getting Hash of Zipped Data:", err)
+		fmt.Println("Source InitWorkspace()")
 		return
 	}
 
 	// Create Tree
+	fmt.Println("Creating & Storing Workspace File Structure Tree ...")
 	tree, err := config.GetNewTree(workspace_path)
 	if err != nil {
 		fmt.Println("Error Could not Create Tree:", err)
@@ -172,17 +158,8 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	// Write Updates in PKr Config
-	fmt.Println("Comparing Changes And Updating to workspace Config")
-	changes := config.CompareTrees(config.FileTree{}, tree, hash_zipfile)
-	err = config.AppendWorkspaceUpdates(changes, workspace_path)
-	if err != nil {
-		fmt.Println("Error while Adding Changes to PKr Config:", err)
-		fmt.Println("Source: InitWorkspace()")
-		return
-	}
-
 	// Create New gRPC Client
+	fmt.Println("Sending Init Workspace Request to Server ....")
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -196,7 +173,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		Username:      username,
 		Password:      password,
 		WorkspaceName: workspace_name,
-		LastHash:      hash_zipfile,
+		LastPushNum:   0,
 	}
 
 	// Request Timeout
@@ -212,6 +189,21 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
+	// Write Updates in PKr Config
+	changes := config.CompareTrees(config.FileTree{}, tree)
+	updates := config.Updates{
+		Changes:  changes,
+		PushNum:  0,
+		PushDesc: push_desc,
+	}
+
+	err = config.AppendWorkspaceUpdates(updates, workspace_path)
+	if err != nil {
+		fmt.Println("Error while Adding Changes to PKr Config:", err)
+		fmt.Println("Source: InitWorkspace()")
+		return
+	}
+
 	// Register the workspace in the main userConfig file
 	if err := config.RegisterNewSendWorkspace(server_alias, workspace_name, workspace_path, workspace_password); err != nil {
 		fmt.Println("Error:", err)
@@ -220,7 +212,7 @@ func InitWorkspace(server_alias, workspace_password string) {
 		return
 	}
 
-	err = config.UpdateLastHash(workspace_name, hash_zipfile)
+	err = config.UpdateLastPushNum(workspace_name, 0)
 	if err != nil {
 		fmt.Println("Error while Updating Last to Config:", err)
 		fmt.Println("Source: InitWorkspace()")

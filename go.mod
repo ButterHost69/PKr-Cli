@@ -3,12 +3,11 @@ module github.com/ButterHost69/PKr-Cli
 go 1.24.0
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250617180451-8e0840d0269b
+	github.com/ButterHost69/PKr-Base v0.0.0-20250620183719-141377b12593
 	github.com/ButterHost69/kcp-go v1.0.10
 )
 
 require (
-	github.com/brianvoe/gofakeit/v7 v7.2.1 // indirect
 	github.com/ccding/go-stun v0.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.6 // indirect
 	github.com/klauspost/reedsolomon v1.12.0 // indirect

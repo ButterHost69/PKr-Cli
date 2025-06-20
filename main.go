@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
@@ -48,16 +49,23 @@ func main() {
 
 	case "init":
 		{
-			var server_alias, workspace_password string
+			var server_alias, workspace_password, push_desc string
+			reader := bufio.NewReader(os.Stdin)
 
 			fmt.Print("> Enter Server Alias: ")
-			fmt.Scan(&server_alias)
+			server_alias, _ = reader.ReadString('\n')
+			server_alias = strings.TrimSpace(server_alias)
 
 			fmt.Print("> Enter Workspace Password: ")
-			fmt.Scan(&workspace_password)
+			workspace_password, _ = reader.ReadString('\n')
+			workspace_password = strings.TrimSpace(workspace_password)
+
+			fmt.Print("> Enter Push Description: ")
+			push_desc, _ = reader.ReadString('\n')
+			push_desc = strings.TrimSpace(push_desc)
 
 			fmt.Println("Initializing New Workspace ...")
-			root.InitWorkspace(server_alias, workspace_password)
+			root.InitWorkspace(server_alias, workspace_password, push_desc)
 		}
 
 	case "clone":
@@ -89,23 +97,30 @@ func main() {
 
 			fmt.Print("> Enter Server Alias: ")
 			fmt.Scan(&server_alias)
-			fmt.Println("Fetching All Workspaces ...")
 
+			fmt.Println("Fetching All Workspaces ...")
 			root.ListAllWorkspaces(server_alias)
 		}
 
 	case "push":
 		{
-			var server_alias, workspace_name string
+			var server_alias, workspace_name, push_desc string
+			reader := bufio.NewReader(os.Stdin)
 
 			fmt.Print("> Enter Server Alias: ")
-			fmt.Scan(&server_alias)
+			server_alias, _ = reader.ReadString('\n')
+			server_alias = strings.TrimSpace(server_alias)
 
 			fmt.Print("> Enter Workspace Name: ")
-			fmt.Scan(&workspace_name)
+			workspace_name, _ = reader.ReadString('\n')
+			workspace_name = strings.TrimSpace(workspace_name)
+
+			fmt.Print("> Enter Push Description: ")
+			push_desc, _ = reader.ReadString('\n')
+			push_desc = strings.TrimSpace(push_desc)
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
-			root.Push(workspace_name, server_alias)
+			root.Push(workspace_name, server_alias, push_desc)
 		}
 
 	default:
