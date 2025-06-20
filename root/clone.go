@@ -287,7 +287,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 	if err != nil {
 		fmt.Println("Error while Removing the Zip File After Use:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
-		// No need to return err, else it won't register in configs
+		return err
 	}
 	return nil
 }
