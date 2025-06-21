@@ -208,7 +208,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, u
 		return err
 	}
 
-	_, err = kcp_conn.Write([]byte("0"))
+	_, err = kcp_conn.Write([]byte(res.RequestPushRange))
 	if err != nil {
 		fmt.Println("Error while Sending Workspace Name to Workspace Owner:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
