@@ -111,7 +111,6 @@ func Push(workspace_name, server_alias, push_desc string) {
 		fmt.Println("Source: Push()")
 		return
 	}
-	fmt.Println("Removed Prev Commit's Zip File:", old_zipped_filepath)
 
 	// Writing New Tree to Config
 	err = config.WriteToFileTree(workspace_path, new_tree)

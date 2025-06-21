@@ -34,17 +34,24 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	fmt.Println("My Local Port:", local_port)
 
 	// Get My Public IP
-	myPublicIP, err := dialer.GetMyPublicIP(local_port)
+	my_public_IP, err := dialer.GetMyPublicIP(local_port)
 	if err != nil {
 		fmt.Println("Error while Getting my Public IP:", err)
 		fmt.Println("Source: connectToAnotherUser()")
 		return "", "", nil, nil, err
 	}
-	fmt.Println("My Public IP Addr:", myPublicIP)
+	fmt.Println("My Public IP Addr:", my_public_IP)
 
-	myPublicIPSplit := strings.Split(myPublicIP, ":")
-	myPublicIPOnly := myPublicIPSplit[0]
-	myPublicPortOnly := myPublicIPSplit[1]
+	my_public_IP_split := strings.Split(my_public_IP, ":")
+	my_public_IP_only := my_public_IP_split[0]
+	my_public_port_only := my_public_IP_split[1]
+
+	private_ips, err := utils.ReturnListOfPrivateIPs()
+	if err != nil {
+		fmt.Println("Error while Fetching the List of Private IPs:", err)
+		fmt.Println("Source: connectToAnotherUser()")
+		return "", "", nil, nil, err
+	}
 
 	// New GRPC Client
 	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
@@ -60,8 +67,10 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		WorkspaceOwnerUsername: workspace_owner_username,
 		ListenerUsername:       username,
 		ListenerPassword:       password,
-		ListenerPublicIp:       myPublicIPOnly,
-		ListenerPublicPort:     myPublicPortOnly,
+		ListenerPublicIp:       my_public_IP_only,
+		ListenerPublicPort:     my_public_port_only,
+		ListenerPrivateIpList:  private_ips,
+		ListenerPrivatePort:    strconv.Itoa(local_port),
 	}
 
 	// Request Timeout
@@ -76,7 +85,8 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		return "", "", nil, nil, err
 
 	}
-	fmt.Println("Remote Addr:", res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort)
+	fmt.Println("Remote Public Addr:", res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort)
+	fmt.Println("TEST Res:", res)
 
 	// Creating UDP Conn to Perform UDP NAT Hole Punching
 	udp_conn, err := net.ListenUDP("udp", &net.UDPAddr{
@@ -89,19 +99,34 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		return "", "", nil, nil, err
 	}
 
-	workspace_owner_public_ip := res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
-	client_handler_name, err := dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_public_ip)
-	if err != nil {
-		fmt.Println("Error while Punching to Remote Addr:", err)
-		fmt.Println("Source: connectToAnotherUser()")
-		udp_conn.Close()
-		return "", "", nil, nil, err
-
+	var workspace_owner_ip, client_handler_name string
+	if res.WorkspaceOwnerPublicIp == my_public_IP_only {
+		for _, private_ip := range res.WorkspaceOwnerPrivateIpList {
+			workspace_owner_ip = private_ip + ":" + res.WorkspaceOwnerPrivatePort
+			client_handler_name, err = dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_ip)
+			if err != nil {
+				fmt.Println("Error while Punching to Private Remote Addr:", err)
+				fmt.Println("Source: connectToAnotherUser()")
+				udp_conn.Close()
+				return "", "", nil, nil, err
+			}
+			fmt.Println("TEST Sending Request via Private IP")
+			break
+		}
+	} else {
+		workspace_owner_ip = res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
+		client_handler_name, err = dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_ip)
+		if err != nil {
+			fmt.Println("Error while Punching to Public Remote Addr:", err)
+			fmt.Println("Source: connectToAnotherUser()")
+			udp_conn.Close()
+			return "", "", nil, nil, err
+		}
 	}
 	fmt.Println("UDP NAT Hole Punching Completed Successfully")
 
 	// Creating KCP-Conn, KCP = Reliable UDP
-	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_public_ip, nil, 0, 0, udp_conn)
+	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_ip, nil, 0, 0, udp_conn)
 	if err != nil {
 		fmt.Println("Error while Dialing KCP Connection to Remote Addr:", err)
 		fmt.Println("Source: connectToAnotherUser()")
@@ -115,10 +140,10 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	kcp_conn.SetACKNoDelay(true)
 	kcp_conn.SetDSCP(46)
 
-	return client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, nil
+	return client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, nil
 }
 
-func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name string, udp_conn *net.UDPConn, res models.GetMetaDataResponse) error {
+func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, udp_conn *net.UDPConn, res models.GetMetaDataResponse) error {
 	// Decrypting AES Key
 	key, err := encrypt.DecryptData(string(res.KeyBytes))
 	if err != nil {
@@ -152,7 +177,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name st
 
 	// Connecting to Workspace Owner Again
 	// Now Transfer Data using KCP ONLY, No RPC in chunks
-	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_public_ip, nil, 0, 0, udp_conn)
+	kcp_conn, err := kcp.DialWithConnAndOptions(workspace_owner_ip, nil, 0, 0, udp_conn)
 	if err != nil {
 		fmt.Println("Error while Dialing Workspace Owner to Get Data:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
@@ -302,7 +327,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Connecting to Workspace Owner
-	client_handler_name, workspace_owner_public_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
+	client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
 	if err != nil {
 		fmt.Println("Error while Connecting to Another User:", err)
 		fmt.Println("Source: Clone()")
@@ -405,7 +430,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	kcp_conn.Close()
 	rpc_client.Close()
 
-	err = fetchAndStoreDataIntoWorkspace(workspace_owner_public_ip, workspace_name, udp_conn, *res)
+	err = fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name, udp_conn, *res)
 	if err != nil {
 		fmt.Println("Error while Fetching & Storing Data:", err)
 		fmt.Println("Source: Clone()")
