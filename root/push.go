@@ -140,6 +140,13 @@ func Push(workspace_name, server_alias, push_desc string) {
 	src_zip_path := filepath.Join(workspace_path, ".PKr", "Files", "Current", strconv.Itoa(workspace_conf.LastPushNum+1)+".zip")
 	dst_zip_path := filepath.Join(workspace_path, ".PKr", "Files", "Changes", changes_push_range, changes_push_range+".zip")
 
+	err = filetracker.CleanFilesFromWorkspace(filepath.Join(workspace_path, ".PKr", "Files", "Changes"))
+	if err != nil {
+		fmt.Println("Error while Clearing .PKr/Files/Changes:", err)
+		fmt.Println("Source: Push()")
+		return
+	}
+
 	// Create Zip File of Changes
 	fmt.Println("Zipping Changes ...")
 	err = filetracker.ZipUpdates(changes, src_zip_path, dst_zip_path)
