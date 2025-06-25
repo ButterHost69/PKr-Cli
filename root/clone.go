@@ -357,12 +357,14 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 		fmt.Println("Source: Clone()")
 		return
 	}
+
 	err = os.Mkdir(filepath.Join(currDir, ".PKr"), 0600)
 	if err != nil {
 		fmt.Println("Error while using Mkdir for '.PKr' folder:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
+
 	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Contents"), 0600)
 	if err != nil {
 		fmt.Println("Error while using Mkdir for '.PKr/Contents' folder:", err)
