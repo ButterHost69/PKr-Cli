@@ -15,7 +15,7 @@ import (
 	"github.com/ButterHost69/PKr-Base/pb"
 )
 
-func Push(workspace_name, server_alias, push_desc string) {
+func Push(workspace_name, push_desc string) {
 	// Getting Workspace's Absolute Path
 	workspace_path, err := config.GetSendWorkspaceFilePath(workspace_name)
 	if err != nil {
@@ -52,7 +52,7 @@ func Push(workspace_name, server_alias, push_desc string) {
 	fmt.Println("Changes're Detected ...")
 
 	// Reading Last Hash from Config
-	workspace_conf, err := config.ReadFromPKRConfigFile(filepath.Join(workspace_path, ".PKr", "workspaceConfig.json"))
+	workspace_conf, err := config.ReadFromWorkspaceConfigFile(filepath.Join(workspace_path, ".PKr", "workspace-config.json"))
 	if err != nil {
 		fmt.Println("Error while Reading from PKr Config File:", err)
 		fmt.Println("Source: Push()")
@@ -200,16 +200,17 @@ func Push(workspace_name, server_alias, push_desc string) {
 	}
 
 	// Get Details from Config
-	server_ip, username, password, err := config.GetServerDetails(server_alias)
+	// Get Details from user-config
+	user_conf, err := config.ReadFromUserConfigFile()
 	if err != nil {
-		fmt.Println("Error while getting Server Details from Config:", err)
+		fmt.Println("Error while Reading user-config:", err)
 		fmt.Println("Source: Push()")
 		return
 	}
 
 	// New GRPC Client
 	fmt.Println("Registering Push & Notifying Listeners ...")
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	gRPC_cli_service_client, err := dialer.GetNewGRPCClient(user_conf.ServerIP)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
@@ -219,8 +220,8 @@ func Push(workspace_name, server_alias, push_desc string) {
 
 	// Prepare req
 	req := &pb.NotifyNewPushToListenersRequest{
-		WorkspaceOwnerUsername: username,
-		WorkspaceOwnerPassword: password,
+		WorkspaceOwnerUsername: user_conf.Username,
+		WorkspaceOwnerPassword: user_conf.Password,
 		WorkspaceName:          workspace_name,
 		NewWorkspacePushNum:    int32(updates.PushNum),
 	}

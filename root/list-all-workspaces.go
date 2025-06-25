@@ -9,18 +9,18 @@ import (
 	"github.com/ButterHost69/PKr-Base/pb"
 )
 
-func ListAllWorkspaces(server_alias string) {
-	// Get Details from Config
-	server_ip, username, password, err := config.GetServerDetails(server_alias)
+func ListAllWorkspaces() {
+	// Get Details from user-config
+	user_conf, err := config.ReadFromUserConfigFile()
 	if err != nil {
-		fmt.Println("Error while getting Server Details from Config:", err)
+		fmt.Println("Error while Reading user-config:", err)
 		fmt.Println("Source: ListAllWorkspaces()")
 		return
 	}
 
 	// New GRPC Client
 	fmt.Println("Fetching All Workspaces from Server ...")
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	gRPC_cli_service_client, err := dialer.GetNewGRPCClient(user_conf.ServerIP)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
@@ -30,8 +30,8 @@ func ListAllWorkspaces(server_alias string) {
 
 	// Prepare req
 	req := &pb.GetAllWorkspacesRequest{
-		Username: username,
-		Password: password,
+		Username: user_conf.Username,
+		Password: user_conf.Password,
 	}
 
 	// Request Timeout

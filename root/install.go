@@ -3,6 +3,8 @@ package root
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/ButterHost69/PKr-Base/config"
@@ -12,17 +14,28 @@ import (
 
 const CONTEXT_TIMEOUT = 60 * time.Second
 
-func Install(server_alias, server_ip, username, password string) {
-	config.CreateUserIfNotExists(username)
+func Install(server_ip, username, password string) {
+	user_config_file_path := filepath.Join(os.Getenv("LOCALAPPDATA"), "PKr", "Config", "user-config.json")
+	_, err := os.Stat(user_config_file_path)
+	if err == nil {
+		fmt.Println("It Seems PKr is Already Installed...")
+		return
+	} else if os.IsNotExist(err) {
+		fmt.Println("Installing PKr ...")
+	} else {
+		fmt.Println("Error while checking Existence of user-config file:", err)
+		fmt.Println("Source: Install()")
+		return
+	}
 
-	if server_alias == "" || server_ip == "" || username == "" || password == "" {
+	if server_ip == "" || username == "" || password == "" {
 		fmt.Println("Username or Password or Server IP MUST NOT be Empty")
 		return
 	}
-	fmt.Println("Registering User, Sending Request to Server ...")
 
+	fmt.Println("Registering User, Sending Request to Server ...")
 	// New GRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	gRPC_cli_service_client, err := dialer.GetNewGRPCClient(server_ip)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
@@ -49,10 +62,10 @@ func Install(server_alias, server_ip, username, password string) {
 		return
 	}
 
-	// Adding New Server to Config
-	err = config.AddNewServerToConfig(server_alias, server_ip, username, password)
+	// Add Credentials to Config
+	err = config.CreateUserConfigIfNotExists(username, password, server_ip)
 	if err != nil {
-		fmt.Println("Error Occured in Adding Server to serverConfig.json:", err)
+		fmt.Println("Error while Adding Credentials to user-config:", err)
 		fmt.Println("Source: Install()")
 		return
 	}

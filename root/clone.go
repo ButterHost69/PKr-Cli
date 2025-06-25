@@ -54,7 +54,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	}
 
 	// New GRPC Client
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	gRPC_cli_service_client, err := dialer.GetNewGRPCClient(server_ip)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
@@ -145,7 +145,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 
 func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, udp_conn *net.UDPConn, res models.GetMetaDataResponse) error {
 	// Decrypting AES Key
-	key, err := encrypt.DecryptData(string(res.KeyBytes))
+	key, err := encrypt.RSADecryptData(string(res.KeyBytes))
 	if err != nil {
 		fmt.Println("Error while Decrypting Key:", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
@@ -153,7 +153,7 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, u
 	}
 
 	// Decrypting AES IV
-	iv, err := encrypt.DecryptData(string(res.IVBytes))
+	iv, err := encrypt.RSADecryptData(string(res.IVBytes))
 	if err != nil {
 		fmt.Println("Error while Decrypting 'IV':", err)
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
@@ -317,17 +317,17 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, u
 	return nil
 }
 
-func Clone(workspace_owner_username, workspace_name, workspace_password, server_alias string) {
-	// Get Details from Config
-	server_ip, username, password, err := config.GetServerDetails(server_alias)
+func Clone(workspace_owner_username, workspace_name, workspace_password string) {
+	// Get Details from user-config
+	user_conf, err := config.ReadFromUserConfigFile()
 	if err != nil {
-		fmt.Println("Error while getting Server Details from Config:", err)
+		fmt.Println("Error while Reading user-config:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
 
 	// Connecting to Workspace Owner
-	client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, server_ip, username, password)
+	client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, user_conf.ServerIP, user_conf.Username, user_conf.Password)
 	if err != nil {
 		fmt.Println("Error while Connecting to Another User:", err)
 		fmt.Println("Source: Clone()")
@@ -369,12 +369,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 		fmt.Println("Source: Clone()")
 		return
 	}
-	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Keys"), 0600)
-	if err != nil {
-		fmt.Println("Error while using Mkdir for '.PKr/Keys' folder:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
 
 	// Get Public Key of Workspace Owner
 	fmt.Println("Requesting Public Key of Workspace Owner ...")
@@ -386,7 +380,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Store the Public Key of Workspace Owner
-	err = os.WriteFile(filepath.Join(currDir, ".PKr", "Keys", workspace_owner_username+".pem"), public_key, 0600)
+	err = config.StorePublicKeyOfOtherUser(workspace_owner_username, public_key)
 	if err != nil {
 		fmt.Println("Error while Storing the Public Key of Workspace Owner:", err)
 		fmt.Println("Source: Clone()")
@@ -394,15 +388,15 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Encrypting Workspace Password with Public Key
-	encrypted_password, err := encrypt.EncryptData(workspace_password, string(public_key))
+	encrypted_password, err := encrypt.RSAEncryptData(workspace_password, string(public_key))
 	if err != nil {
 		fmt.Println("Error while Encrypting Workspace Password via Public Key:", err)
 		fmt.Println("Source: Clone()")
 		return
 	}
 
-	// Reading my Public Key
-	my_public_key, err := os.ReadFile(filepath.Join("tmp", "mykeys", "publickey.pem"))
+	// Reading My Public Key
+	my_public_key, err := config.ReadMyPublicKey()
 	if err != nil {
 		fmt.Println("Error while Reading Public Key:", err)
 		fmt.Println("Source: Clone()")
@@ -411,7 +405,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
 	// Requesting InitWorkspaceConnection
-	err = rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, username, server_ip, encrypted_password, base64_public_key, client_handler_name, rpc_client)
+	err = rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, user_conf.Username, user_conf.ServerIP, encrypted_password, base64_public_key, client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling Init New Workspace Connection:", err)
 		fmt.Println("Source: Clone()")
@@ -420,7 +414,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	fmt.Println("Requesting Meta Data ...")
 	// Calling GetMetaData
-	res, err := rpcClientHandler.CallGetMetaData(username, server_ip, workspace_name, encrypted_password, client_handler_name, -1, rpc_client)
+	res, err := rpcClientHandler.CallGetMetaData(user_conf.Username, user_conf.ServerIP, workspace_name, encrypted_password, client_handler_name, -1, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling GetMetaData:", err)
 		fmt.Println("Source: Clone()")
@@ -442,7 +436,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	// Register New User to Workspace
 	// New GRPC Client
 	fmt.Println("Sending Updates to Server ...")
-	gRPC_cli_service_client, err := dialer.NewGRPCClients(server_ip)
+	gRPC_cli_service_client, err := dialer.GetNewGRPCClient(user_conf.ServerIP)
 	if err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create New GRPC Client")
@@ -452,8 +446,8 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 
 	// Prepare req
 	register_user_to_workspace_res_req := &pb.RegisterUserToWorkspaceRequest{
-		ListenerUsername:       username,
-		ListenerPassword:       password,
+		ListenerUsername:       user_conf.Username,
+		ListenerPassword:       user_conf.Password,
 		WorkspaceName:          workspace_name,
 		WorkspaceOwnerUsername: workspace_owner_username,
 	}
@@ -471,7 +465,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password, server_
 	}
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(server_alias, workspace_name, workspace_owner_username, currDir, workspace_password, res.LastPushNum)
+	err = config.RegisterNewGetWorkspace(workspace_name, workspace_owner_username, currDir, workspace_password, res.LastPushNum)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
