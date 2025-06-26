@@ -86,7 +86,6 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 
 	}
 	fmt.Println("Remote Public Addr:", res.WorkspaceOwnerPublicIp+":"+res.WorkspaceOwnerPublicPort)
-	fmt.Println("TEST Res:", res)
 
 	// Creating UDP Conn to Perform UDP NAT Hole Punching
 	udp_conn, err := net.ListenUDP("udp", &net.UDPAddr{
@@ -101,6 +100,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 
 	var workspace_owner_ip, client_handler_name string
 	if res.WorkspaceOwnerPublicIp == my_public_IP_only {
+		fmt.Println("Sending Request via Private IP ...")
 		for _, private_ip := range res.WorkspaceOwnerPrivateIpList {
 			workspace_owner_ip = private_ip + ":" + res.WorkspaceOwnerPrivatePort
 			client_handler_name, err = dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_ip)
@@ -110,10 +110,11 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 				udp_conn.Close()
 				return "", "", nil, nil, err
 			}
-			fmt.Println("TEST Sending Request via Private IP")
+			fmt.Println("Connected to User via Private IP")
 			break
 		}
 	} else {
+		fmt.Println("Sending Request via Public IP ...")
 		workspace_owner_ip = res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
 		client_handler_name, err = dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_ip)
 		if err != nil {
@@ -122,6 +123,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 			udp_conn.Close()
 			return "", "", nil, nil, err
 		}
+		fmt.Println("Connected to User via Public IP")
 	}
 	fmt.Println("UDP NAT Hole Punching Completed Successfully")
 
