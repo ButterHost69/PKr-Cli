@@ -64,6 +64,7 @@ func main() {
 			var workspace_name string
 			var workspace_password string
 
+			fmt.Println("WARNING: All Previous files'll be DELETED & REPLACED by files Received from Workspace Owner")
 			fmt.Print("> Enter the Workspace Owner Username: ")
 			fmt.Scan(&workspace_owner_username)
 

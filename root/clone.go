@@ -320,6 +320,32 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, u
 }
 
 func Clone(workspace_owner_username, workspace_name, workspace_password string) {
+	// Create .PKr folder to store zipped data
+	curr_dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error while Getting Current Directory:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	err = os.Mkdir(filepath.Join(curr_dir, ".PKr"), 0600)
+	if err != nil {
+		if os.IsExist(err) {
+			fmt.Println("It seems you've already used Clone in this Directory")
+			return
+		}
+		fmt.Println("Error while using Mkdir for '.PKr' folder:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
+	err = os.Mkdir(filepath.Join(curr_dir, ".PKr", "Contents"), 0600)
+	if err != nil {
+		fmt.Println("Error while using Mkdir for '.PKr/Contents' folder:", err)
+		fmt.Println("Source: Clone()")
+		return
+	}
+
 	// Get Details from user-config
 	user_conf, err := config.ReadFromUserConfigFile()
 	if err != nil {
@@ -351,28 +377,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	rpc_client := rpc.NewClient(kcp_conn)
 	defer rpc_client.Close()
 	rpcClientHandler := dialer.ClientCallHandler{}
-
-	// Create .PKr folder to store zipped data
-	currDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error while Getting Current Directory:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
-
-	err = os.Mkdir(filepath.Join(currDir, ".PKr"), 0600)
-	if err != nil {
-		fmt.Println("Error while using Mkdir for '.PKr' folder:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
-
-	err = os.Mkdir(filepath.Join(currDir, ".PKr", "Contents"), 0600)
-	if err != nil {
-		fmt.Println("Error while using Mkdir for '.PKr/Contents' folder:", err)
-		fmt.Println("Source: Clone()")
-		return
-	}
 
 	// Get Public Key of Workspace Owner
 	fmt.Println("Requesting Public Key of Workspace Owner ...")
@@ -469,7 +473,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	}
 
 	// Update tmp/userConfig.json
-	err = config.RegisterNewGetWorkspace(workspace_name, workspace_owner_username, currDir, workspace_password, res.LastPushNum)
+	err = config.RegisterNewGetWorkspace(workspace_name, workspace_owner_username, curr_dir, workspace_password, res.LastPushNum)
 	if err != nil {
 		fmt.Println("Error while Registering New GetWorkspace:", err)
 		fmt.Println("Source: Clone()")
