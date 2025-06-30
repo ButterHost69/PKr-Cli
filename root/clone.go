@@ -46,7 +46,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	my_public_IP_only := my_public_IP_split[0]
 	my_public_port_only := my_public_IP_split[1]
 
-	private_ip, err := dialer.GetMyPrivateIP()
+	my_private_ip, err := dialer.GetMyPrivateIP()
 	if err != nil {
 		fmt.Println("Error while Getting My Private IP:", err)
 		fmt.Println("Source: connectToAnotherUser()")
@@ -69,7 +69,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		ListenerPassword:       password,
 		ListenerPublicIp:       my_public_IP_only,
 		ListenerPublicPort:     my_public_port_only,
-		ListenerPrivateIp:      private_ip,
+		ListenerPrivateIp:      my_private_ip,
 		ListenerPrivatePort:    strconv.Itoa(local_port),
 	}
 
@@ -99,13 +99,14 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	}
 
 	var workspace_owner_ip, client_handler_name string
-	if res.WorkspaceOwnerPublicIp == my_public_IP_only {
-		fmt.Println("Sending Request via Private IP ...")
-		workspace_owner_ip = res.WorkspaceOwnerPrivateIp + ":" + res.WorkspaceOwnerPrivatePort
-	} else {
-		fmt.Println("Sending Request via Public IP ...")
-		workspace_owner_ip = res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
-	}
+	// TODO: UNCOMMENT THIS
+	// if res.WorkspaceOwnerPublicIp == my_public_IP_only {
+	// 	fmt.Println("Sending Request via Private IP ...")
+	// 	workspace_owner_ip = res.WorkspaceOwnerPrivateIp + ":" + res.WorkspaceOwnerPrivatePort
+	// } else {
+	fmt.Println("Sending Request via Public IP ...")
+	workspace_owner_ip = res.WorkspaceOwnerPublicIp + ":" + res.WorkspaceOwnerPublicPort
+	// }
 
 	client_handler_name, err = dialer.WorkspaceListenerUdpNatHolePunching(udp_conn, workspace_owner_ip)
 	if err != nil {

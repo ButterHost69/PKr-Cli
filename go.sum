@@ -1,7 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/ButterHost69/PKr-Base v0.0.0-20250630142703-05389e55ca23 h1:Wzf2s98yUXspfAbSw8nkrhFj16l0l6YBRmAFgC1Uzjg=
-github.com/ButterHost69/PKr-Base v0.0.0-20250630142703-05389e55ca23/go.mod h1:XSFyNQ7us4xPN8bC7VZanAW5TD3RhoAAuzIhxUzgrhk=
+github.com/ButterHost69/PKr-Base v0.0.0-20250630150816-4eaf60a91961 h1:SMpjHCPRunVOXDlm4Qzn+zKmb3xC9nRG6gVV2WYF2bg=
+github.com/ButterHost69/PKr-Base v0.0.0-20250630150816-4eaf60a91961/go.mod h1:XSFyNQ7us4xPN8bC7VZanAW5TD3RhoAAuzIhxUzgrhk=
 github.com/ButterHost69/kcp-go v1.0.10 h1:LXrttjFl8Hrmp9ebUBEDsIvIIhwNeSZyPUJ7Te0pz4o=
 github.com/ButterHost69/kcp-go v1.0.10/go.mod h1:/ECsUnFLsAZkfWFp0xFgJZUHKy8zNA9aBjam3q60uJI=
 github.com/ccding/go-stun v0.1.5 h1:qEM367nnezmj7dv+SdT52prv5x6HUTG3nlrjX5aitlo=
