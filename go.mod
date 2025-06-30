@@ -3,7 +3,7 @@ module github.com/ButterHost69/PKr-Cli
 go 1.24.0
 
 require (
-	github.com/ButterHost69/PKr-Base v0.0.0-20250630150816-4eaf60a91961
+	github.com/ButterHost69/PKr-Base v0.0.0-20250630171549-b86818ea2308
 	github.com/ButterHost69/kcp-go v1.0.10
 )
 
