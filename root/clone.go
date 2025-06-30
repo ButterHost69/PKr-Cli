@@ -344,7 +344,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 		return
 	}
 
-	err = os.Mkdir(filepath.Join(curr_dir, ".PKr"), 0600)
+	err = os.Mkdir(filepath.Join(curr_dir, ".PKr"), 0700)
 	if err != nil {
 		if os.IsExist(err) {
 			fmt.Println("It seems you've already used Clone in this Directory")
@@ -355,7 +355,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 		return
 	}
 
-	err = os.Mkdir(filepath.Join(curr_dir, ".PKr", "Contents"), 0600)
+	err = os.Mkdir(filepath.Join(curr_dir, ".PKr", "Contents"), 0700)
 	if err != nil {
 		fmt.Println("Error while using Mkdir for '.PKr/Contents' folder:", err)
 		fmt.Println("Source: Clone()")
