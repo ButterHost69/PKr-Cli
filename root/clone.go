@@ -46,7 +46,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 	my_public_IP_only := my_public_IP_split[0]
 	my_public_port_only := my_public_IP_split[1]
 
-	private_ips, err := utils.ReturnListOfPrivateIPs()
+	private_ips, err := dialer.ReturnListOfPrivateIPs()
 	if err != nil {
 		fmt.Println("Error while Fetching the List of Private IPs:", err)
 		fmt.Println("Source: connectToAnotherUser()")

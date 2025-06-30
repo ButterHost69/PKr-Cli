@@ -4,19 +4,25 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/ButterHost69/PKr-Base/config"
 	"github.com/ButterHost69/PKr-Base/dialer"
 	"github.com/ButterHost69/PKr-Base/pb"
+	"github.com/ButterHost69/PKr-Base/utils"
 )
 
 const CONTEXT_TIMEOUT = 60 * time.Second
 
 func Install(server_ip, username, password string) {
-	user_config_file_path := filepath.Join(os.Getenv("LOCALAPPDATA"), "PKr", "Config", "user-config.json")
-	_, err := os.Stat(user_config_file_path)
+	user_config_file_path, err := utils.GetUserConfigFilePath()
+	if err != nil {
+		fmt.Println("Error while Getting Path of user-config:", err)
+		fmt.Println("Source: Install()")
+		return
+	}
+
+	_, err = os.Stat(user_config_file_path)
 	if err == nil {
 		fmt.Println("It Seems PKr is Already Installed...")
 		return
