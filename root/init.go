@@ -40,7 +40,6 @@ func InitWorkspace(workspace_password, push_desc string) {
 	workspace_name := workspace_path_split[len(workspace_path_split)-1]
 
 	// Create the workspace config file
-	fmt.Println("Creating workspace-config ...")
 	if err := config.CreatePKRConfigIfNotExits(workspace_name, workspace_path); err != nil {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Create .Pkr/PKRConfig.json")

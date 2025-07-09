@@ -283,7 +283,6 @@ func fetchAndStoreDataIntoWorkspace(workspace_owner_ip, workspace_name string, u
 		fmt.Println("Source: fetchAndStoreDataIntoWorkspace()")
 		// Not Returning Error because, we got data, we don't care if workspace owner now is offline or not responding
 	}
-	kcp_conn.Close()
 
 	if err = filetracker.CleanFilesFromWorkspace(workspace_path); err != nil {
 		fmt.Println("Error while Cleaning Workspace :", err)
@@ -427,7 +426,6 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 		fmt.Println("Source: Clone()")
 		return
 	}
-	udp_conn.Close()
 	fmt.Println("Data Stored into Workspace ...")
 
 	// Register New User to Workspace
