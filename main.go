@@ -80,7 +80,7 @@ func main() {
 
 	case "list":
 		{
-			fmt.Println("Fetching All Workspaces ...")
+			fmt.Println("Fetching All Workspaces from Server ...")
 			root.ListAllWorkspaces()
 		}
 
