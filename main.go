@@ -14,7 +14,7 @@ func printArguments() {
 	fmt.Println("	1] install -> Create User and Install PKr")
 	fmt.Println("	2] init -> Initialize a Workspace, allows other Users to connect")
 	fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
-	fmt.Println("	4] list -> List all Send and Get Workspaces")
+	fmt.Println("	4] list -> List all Workspaces")
 	fmt.Println("	5] push -> Push new Changes to Listeners")
 }
 
