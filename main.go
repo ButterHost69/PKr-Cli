@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ButterHost69/PKr-Base/utils"
 	"github.com/ButterHost69/PKr-Cli/root"
 )
 
@@ -16,6 +17,7 @@ func printArguments() {
 	fmt.Println("	3] clone -> Clone an existing Workspace of a different User")
 	fmt.Println("	4] list -> List all Workspaces")
 	fmt.Println("	5] push -> Push new Changes to Listeners")
+	fmt.Println("	6] debug -> Add Additional cmd line args")
 }
 
 func main() {
@@ -25,6 +27,19 @@ func main() {
 	}
 
 	cmd := strings.ToLower(os.Args[1])
+
+	args := os.Args
+	if cmd == "debug" {
+		if len(args) > 2 && args[1] == "debug" {
+			for i, arg := range args {
+				if arg == "--fp" && i+1 < len(args) {
+					utils.SetUserConfigDir(args[i+1])
+					cmd = os.Args[i+2]
+				}
+			}
+		}
+	}
+
 	switch cmd {
 	case "install":
 		{
