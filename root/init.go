@@ -82,15 +82,9 @@ func InitWorkspace(workspace_password, push_desc string) {
 		return
 	}
 
-	// Creating Zip File of Entire Workspace
-	fmt.Println("Creating Zip of Entire Workspace ...")
-	err = filetracker.ZipData(workspace_path, zip_destination_path, "0")
-	if err != nil {
-		fmt.Println("Error while Getting Hash of Zipped Data:", err)
-		fmt.Println("Source InitWorkspace()")
-		return
-	}
-
+	// Compute Tree First
+	// Will reduce Syscall times for zipdata
+	// OS will cache files in memory -- Thus reducing time taken to zip data
 	// Create Tree
 	fmt.Println("Creating & Storing Workspace File Structure Tree ...")
 	tree, err := config.GetNewTree(workspace_path)
@@ -122,6 +116,16 @@ func InitWorkspace(workspace_password, push_desc string) {
 		fmt.Println("Source: InitWorkspace()")
 		return
 	}
+
+	// Creating Zip File of Entire Workspace
+	fmt.Println("Creating Zip of Entire Workspace ...")
+	err = filetracker.ZipData(workspace_path, zip_destination_path, "0")
+	if err != nil {
+		fmt.Println("Error while Getting Hash of Zipped Data:", err)
+		fmt.Println("Source InitWorkspace()")
+		return
+	}
+
 
 	// Register the workspace in the main userConfig file
 	if err := config.RegisterNewSendWorkspace(workspace_name, workspace_path, workspace_password); err != nil {
