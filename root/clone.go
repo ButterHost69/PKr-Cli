@@ -376,6 +376,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	}
 
 	// Store the Public Key of Workspace Owner
+	fmt.Println("Storing Public Key of Workspace Owner ...")
 	err = config.StorePublicKeyOfOtherUser(workspace_owner_username, public_key)
 	if err != nil {
 		fmt.Println("Error while Storing the Public Key of Workspace Owner:", err)
@@ -384,6 +385,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	}
 
 	// Encrypting Workspace Password with Public Key
+	fmt.Println("Encrypting  Workspace Password with Public Key ...")
 	encrypted_password, err := encrypt.RSAEncryptData(workspace_password, string(public_key))
 	if err != nil {
 		fmt.Println("Error while Encrypting Workspace Password via Public Key:", err)
@@ -401,6 +403,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	base64_public_key := []byte(base64.StdEncoding.EncodeToString(my_public_key))
 
 	// Requesting InitWorkspaceConnection
+	fmt.Println("Calling Requesting InitWorkspaceConnection ...")
 	err = rpcClientHandler.CallInitNewWorkSpaceConnection(workspace_name, user_conf.Username, user_conf.ServerIP, encrypted_password, base64_public_key, client_handler_name, rpc_client)
 	if err != nil {
 		fmt.Println("Error while Calling Init New Workspace Connection:", err)

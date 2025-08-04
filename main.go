@@ -3,11 +3,21 @@ package main
 import (
 	"bufio"
 	"fmt"
+
 	"os"
+
 	"strings"
 
 	"github.com/ButterHost69/PKr-Base/utils"
 	"github.com/ButterHost69/PKr-Cli/root"
+	"github.com/pkg/profile"
+	// _ "net/http/pprof" // Temp Profile Import - Remove Later
+)
+
+var (
+	IS_PROF            = false
+	PROFILE            interface{ Stop() }
+	PROFILE_ARGS       []func(*profile.Profile)
 )
 
 func printArguments() {
@@ -30,12 +40,42 @@ func main() {
 
 	args := os.Args
 	if cmd == "debug" {
+		fmt.Println("[DEBUG MODE is ON]")
 		if len(args) > 2 && args[1] == "debug" {
 			for i, arg := range args {
 				if arg == "--fp" && i+1 < len(args) {
+					fmt.Println("[DEBUG] Setting Debug Config File Path: ", args[i+1])
 					utils.SetUserConfigDir(args[i+1])
 					cmd = os.Args[i+2]
+				} else if arg == "--prof.cpu" && i+1 < len(args) {
+					IS_PROF = true
+
+					fmt.Println("[DEBUG] Generating CPU Profiles at: ", args[i+1])
+
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.CPUProfile)
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.ProfilePath(args[i+1]))
+
+					cmd = os.Args[i+2]
+				} else if arg == "--prof.mem" && i+1 < len(args) {
+					IS_PROF = true
+
+					fmt.Println("[DEBUG] Generating CPU Profiles at: ", args[i+1])
+
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.MemProfile)
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.MemProfileRate(1))
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.ProfilePath(args[i+1]))
+
+					cmd = os.Args[i+2]
+				} else if arg == "--prof.trace" && i+1 < len(args) {
+					IS_PROF = true
+
+					fmt.Println("[DEBUG] Generating CPU Profiles at: ", args[i+1])
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.TraceProfile)
+					PROFILE_ARGS = append(PROFILE_ARGS, profile.ProfilePath(args[i+1]))
+
+					cmd = os.Args[i+2]
 				}
+
 			}
 		}
 	}
@@ -54,6 +94,10 @@ func main() {
 			fmt.Print("> Enter Server IP: ")
 			fmt.Scan(&server_ip)
 
+			if IS_PROF {
+				fmt.Println("Starting Profiling....")
+				PROFILE = profile.Start(PROFILE_ARGS...)
+			}
 			root.Install(server_ip, username, password)
 		}
 
@@ -70,6 +114,10 @@ func main() {
 			push_desc, _ = reader.ReadString('\n')
 			push_desc = strings.TrimSpace(push_desc)
 
+			if IS_PROF {
+				fmt.Println("Starting Profiling....")
+				PROFILE = profile.Start(PROFILE_ARGS...)
+			}
 			root.InitWorkspace(workspace_password, push_desc)
 		}
 
@@ -90,12 +138,22 @@ func main() {
 			fmt.Scan(&workspace_password)
 
 			fmt.Println("Cloning ...")
+
+			if IS_PROF {
+				fmt.Println("Starting Profiling....")
+				PROFILE = profile.Start(PROFILE_ARGS...)
+			}
 			root.Clone(workspace_owner_username, workspace_name, workspace_password)
 		}
 
 	case "list":
 		{
 			fmt.Println("Fetching All Workspaces from Server ...")
+
+			if IS_PROF {
+				fmt.Println("Starting Profiling....")
+				PROFILE = profile.Start(PROFILE_ARGS...)
+			}
 			root.ListAllWorkspaces()
 		}
 
@@ -113,10 +171,21 @@ func main() {
 			push_desc = strings.TrimSpace(push_desc)
 
 			fmt.Printf("Pushing Workpace: %s ...\n", workspace_name)
+
+			if IS_PROF {
+				fmt.Println("Starting Profiling....")
+				PROFILE = profile.Start(PROFILE_ARGS...)
+			}
 			root.Push(workspace_name, push_desc)
 		}
 
 	default:
 		printArguments()
+	}
+
+	// remove before commit and push -- for deubg only
+	if IS_PROF {
+		fmt.Println("<<< CLOSE PROFILING >>>")
+		PROFILE.Stop()
 	}
 }
