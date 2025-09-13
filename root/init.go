@@ -126,7 +126,6 @@ func InitWorkspace(workspace_password, push_desc string) {
 		return
 	}
 
-
 	// Register the workspace in the main userConfig file
 	if err := config.RegisterNewSendWorkspace(workspace_name, workspace_path, workspace_password); err != nil {
 		fmt.Println("Error:", err)
@@ -165,7 +164,6 @@ func InitWorkspace(workspace_password, push_desc string) {
 		Username:      user_conf.Username,
 		Password:      user_conf.Password,
 		WorkspaceName: workspace_name,
-		LastPushNum:   0,
 	}
 
 	// Request Timeout

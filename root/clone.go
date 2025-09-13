@@ -29,7 +29,7 @@ import (
 const DATA_CHUNK = handler.DATA_CHUNK
 const FLUSH_AFTER_EVERY_X_MB = handler.FLUSH_AFTER_EVERY_X_MB
 
-func connectToAnotherUser(workspace_owner_username, server_ip, username, password string) (string, string, *net.UDPConn, *kcp.UDPSession, error) {
+func connectToAnotherUser(workspace_name, workspace_owner_username, server_ip, username, password string) (string, string, *net.UDPConn, *kcp.UDPSession, error) {
 	local_port := rand.Intn(16384) + 16384
 	fmt.Println("My Local Port:", local_port)
 
@@ -71,6 +71,7 @@ func connectToAnotherUser(workspace_owner_username, server_ip, username, passwor
 		ListenerPublicPort:     my_public_port_only,
 		ListenerPrivateIp:      my_private_ip,
 		ListenerPrivatePort:    strconv.Itoa(local_port),
+		WorkspaceName:          workspace_name,
 	}
 
 	// Request Timeout
@@ -343,7 +344,7 @@ func Clone(workspace_owner_username, workspace_name, workspace_password string) 
 	}
 
 	// Connecting to Workspace Owner
-	client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_owner_username, user_conf.ServerIP, user_conf.Username, user_conf.Password)
+	client_handler_name, workspace_owner_ip, udp_conn, kcp_conn, err := connectToAnotherUser(workspace_name, workspace_owner_username, user_conf.ServerIP, user_conf.Username, user_conf.Password)
 	if err != nil {
 		fmt.Println("Error while Connecting to Another User:", err)
 		fmt.Println("Source: Clone()")
