@@ -42,6 +42,7 @@ func ListAllWorkspaces() {
 		fmt.Println("Error:", err)
 		fmt.Println("Description: Cannot Notify New Push to Listeners")
 		fmt.Println("Source: ListAllWorkspaces()")
+		return
 	}
 
 	for _, workspace := range res.Workspaces {
