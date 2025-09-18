@@ -1,4 +1,5 @@
 ROOT_DIR=E:\Projects\Picker-Pal
+
 CLI_OUTPUT=$(ROOT_DIR)\PKr-Cli\PKr-Cli.exe
 TEST_DEST=$(ROOT_DIR)\PKr-Test
 TEST_MOIT=$(TEST_DEST)\Moit
@@ -14,7 +15,6 @@ build:
 copy:
 	@echo Copying the Executable to Test Destination ...
 
-	@copy "$(CLI_OUTPUT)" "$(TEST_DEST)"
 	@copy "$(CLI_OUTPUT)" "$(TEST_MOIT)"
 	@copy "$(CLI_OUTPUT)" "$(TEST_PALAS)"
 	
@@ -24,6 +24,5 @@ clean:
 	@cls
 	@echo Cleaning Up ...
 
-	@del "$(TEST_DEST)\PKr-Cli.exe" || exit 0
 	@del "$(TEST_MOIT)\PKr-Cli.exe" || exit 0
 	@del "$(TEST_PALAS)\PKr-Cli.exe" || exit 0
